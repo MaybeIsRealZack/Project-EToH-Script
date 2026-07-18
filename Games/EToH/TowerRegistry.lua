@@ -11,15 +11,24 @@ local Categories = {
     Zone1 = 9071001075,
     Zone2 = 9071001366,
     Zone3 = 9071001563,
-    ["Pit-of-Misery"] = 15639952229,
+    Zone7 = 9071002677,
+    Zone8 = 9071002915,
+    Zone9 = 9071004505,
+    -- A category may map to one place id or a list of them. Pit of Misery exists in the
+    -- original EToH place AND in "The Eternal Abyss" (15873244701) + its Pit of Misery
+    -- subplace (121814103864070) -- the same towers are present in all of them.
+    ["Pit-of-Misery"] = { 15639952229, 15873244701, 121814103864070 },
     ["100M-Event-Replay"] = 115856553162061,
 }
 
 return {
     Categories = Categories,
     Towers = {
-        --Ring 0 
+        --Ring 0
         { name = "TNF",  category = "Ring0", suggestedTime = { min = "0", sec = "5" } },
+        { name = "ToG",  category = "Ring0", suggestedTime = { min = "3", sec = "0" } },
+        { name = "ToME",  category = "Ring0", suggestedTime = { min = "5", sec = "0" } },
+        { name = "ToB",  category = "Ring0", suggestedTime = { min = "5", sec = "0" } },
         --Ring 1
         { name = "NEAT",  category = "Ring1", suggestedTime = { min = "0", sec = "5" } },
         { name = "ToAST", category = "Ring1", suggestedTime = { min = "3", sec = "0" } },
@@ -44,10 +53,8 @@ return {
         { name = "ToBH",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToOH",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToCH",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
-        { name = "ToFaF",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToT",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToSD",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
-        { name = "ToDD",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToTF",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToES",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
         { name = "CoWS",  category = "Ring2", suggestedTime = { min = "3", sec = "0" } },
@@ -108,6 +115,7 @@ return {
         { name = "ToIM",  category = "Ring6", suggestedTime = { min = "3", sec = "0" } },
         --Ring 7
         { name = "ToER",  category = "Ring7", suggestedTime = { min = "3", sec = "30" } },
+        { name = "ToEH",  category = "Ring7", suggestedTime = { min = "3", sec = "0" } },
         --Ring 9
         { name = "ToGO",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToBBB",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
@@ -116,6 +124,9 @@ return {
         { name = "ToPP",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToHA",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToBT",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
+        { name = "ToCA",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
+        { name = "ToNS",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
+        { name = "ToCP",  category = "Ring9", suggestedTime = { min = "3", sec = "0" } },
         --Zone 1
         { name = "SAT",  category = "Zone1", suggestedTime = { min = "0", sec = "5" } },
         { name = "ToZD",  category = "Zone1", suggestedTime = { min = "3", sec = "0" } },
@@ -124,7 +135,15 @@ return {
         { name = "ToDT",  category = "Zone2", suggestedTime = { min = "5", sec = "0" } },
         --Zone 3
         { name = "ToHH",  category = "Zone3", suggestedTime = { min = "3", sec = "0" } },
+        --Zone 7
+        { name = "ToFM",  category = "Zone7", suggestedTime = { min = "3", sec = "0" } },
+        { name = "ToUA",  category = "Zone7", suggestedTime = { min = "3", sec = "0" } },
+        --Zone 8
+        { name = "ToDIE",  category = "Zone8", suggestedTime = { min = "3", sec = "0" } },
+        --Zone 9
+        { name = "ToEMP",  category = "Zone9", suggestedTime = { min = "3", sec = "0" } },
         --Pit of Misery
+        { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToVH",  category = "Pit-of-Misery", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToTRP",  category = "Pit-of-Misery", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToEV",  category = "Pit-of-Misery", suggestedTime = { min = "3", sec = "0" } },
@@ -140,5 +159,6 @@ return {
         { name = "R1TR", category = "Ring1", suggestedTime = { min = "39", sec = "0" }, isTowerRush = true, },
         { name = "R5TR", category = "Ring5", suggestedTime = { min = "33", sec = "0" }, isTowerRush = true, },
         { name = "R9TR", category = "Ring9", suggestedTime = { min = "40", sec = "0" }, isTowerRush = true, },
+        { name = "PoMTR", category = "Pit-of-Misery", places = 15639952229, suggestedTime = { min = "200", sec = "0" }, isTowerRush = true, },
     },
 }
