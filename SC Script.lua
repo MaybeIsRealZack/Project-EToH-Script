@@ -53,7 +53,7 @@ print((sUNCSupport.queueteleport     and "✅" or "❌") .. " queueonteleport")
 local HttpService = game:GetService("HttpService")
 local version = "Unknown"
 local ok, result = pcall(function()
-    local data = HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Mrman67/Project-EToH-Script-Plus/refs/heads/main/version.json"))
+    local data = HttpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/version.json"))
     return data.version
 end)
 if ok and result then version = result end
@@ -125,8 +125,8 @@ local currentResolvedSteps = nil
 local startAutoPlay -- forward declaration (assigned where the Auto Play button is built)
 local autoPlayStop = false -- set true to stop a running Auto Play without dying/rejoining
 
-local baseRepo = "https://raw.githubusercontent.com/Mrman67/Project-EToH-Script-Plus/refs/heads/main/Games/EToH/"
-local registryUrl = "https://raw.githubusercontent.com/Mrman67/Project-EToH-Script-Plus/refs/heads/main/Games/EToH/TowerRegistry.lua"
+local baseRepo = "https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/Games/EToH/"
+local registryUrl = "https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/Games/EToH/TowerRegistry.lua"
 
 local Registry
 local registryLoaded = false
@@ -2246,7 +2246,7 @@ MenuGroup:AddToggle("AutoExecute", {
                     end
                 end)
                 SCRIPT_KEY = "KEYLESS"
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/Mrman67/Project-EToH-Script-Plus/refs/heads/main/SC%20Script.lua"))()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/SC%20Script.lua"))()
             ]])
         end
     end,
