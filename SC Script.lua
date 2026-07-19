@@ -2431,6 +2431,581 @@ setGodmodeHeal(Library.Toggles.GodmodeHeal.Value)
 setGodmodeKillBricks(Library.Toggles.GodmodeKillBricks.Value)
 
 Library.Toggles.UseSuggestedTime:SetValue(true)
+
+-- Avatar loader, ported from AJ hub: type a username or UserId and wear their full R6
+-- look -- body package, clothes, colours, face, accessories, headless.
+--
+-- Own function scope so its locals don't count against the main chunk's 200-local cap.
+local function _initAvatar()
+    local Players = game:GetService("Players")
+    local player  = Players.LocalPlayer
+
+    local AvatarBox = Tabs.Main:AddRightGroupbox("Avatar")
+
+    local avatarTemplate       = nil    -- cached look-only clones (no live Humanoid)
+    local avatarHead           = nil    -- cached head mesh/face for respawn re-apply
+    local avatarActive         = false
+    local avatarTargetHeadless = false  -- the loaded avatar is itself headless
+    local statusLabel
+
+    local function setStatus(text)
+        if statusLabel then statusLabel:SetText(text) end
+    end
+
+    local function opt(name)
+        local t = Library.Toggles[name]
+        return t and t.Value
+    end
+
+    local function setHeadless(char, on)
+        local head = char and char:FindFirstChild("Head")
+        if not head then return end
+        pcall(function() head.Transparency = on and 1 or 0 end)
+        for _, d in ipairs(head:GetChildren()) do
+            if d:IsA("Decal") then pcall(function() d.Transparency = on and 1 or 0 end) end
+        end
+    end
+
+    local function isWelded(acc)
+        local handle = acc:FindFirstChild("Handle")
+        if not handle then return false end
+        for _, w in ipairs(handle:GetChildren()) do
+            if (w:IsA("Weld") or w:IsA("WeldConstraint") or w:IsA("Motor6D"))
+                and w.Part0 and w.Part1 then return true end
+        end
+        return false
+    end
+
+    local function manualWeld(char, acc)
+        local handle = acc:FindFirstChild("Handle")
+        if not handle then return false end
+        pcall(function() handle.Anchored = false; handle.CanCollide = false end)
+        local a0 = handle:FindFirstChildWhichIsA("Attachment")
+        if a0 then
+            for _, d in ipairs(char:GetDescendants()) do
+                if d:IsA("Attachment") and d.Name == a0.Name and d.Parent
+                    and d.Parent:IsA("BasePart") and d.Parent ~= handle then
+                    acc.Parent = char
+                    local w = Instance.new("Weld")
+                    w.Name = "PESAccWeld"
+                    w.Part0, w.Part1 = d.Parent, handle
+                    w.C0, w.C1 = d.CFrame, a0.CFrame
+                    w.Parent = handle
+                    return true
+                end
+            end
+        end
+        -- Legacy hats carry no attachment; weld them to the head.
+        local head = char:FindFirstChild("Head")
+        if head then
+            acc.Parent = char
+            local mesh = handle:FindFirstChildOfClass("SpecialMesh")
+            local w = Instance.new("Weld")
+            w.Name = "PESAccWeld"
+            w.Part0, w.Part1 = head, handle
+            w.C1 = CFrame.new(-((mesh and mesh.Offset) or Vector3.new(0, 0.5, 0)))
+            w.Parent = handle
+            return true
+        end
+        return false
+    end
+
+    local function attachAccessory(char, hum, acc)
+        -- The clone still carries the source model's weld, which pins the hat at the
+        -- world origin instead of on your body. Strip it before re-adding.
+        local handle = acc:FindFirstChild("Handle")
+        if handle then
+            for _, w in ipairs(handle:GetChildren()) do
+                if w:IsA("JointInstance") or w:IsA("WeldConstraint") then w:Destroy() end
+            end
+        end
+        pcall(function() hum:AddAccessory(acc) end)
+        local ok = (acc.Parent == char and isWelded(acc)) or manualWeld(char, acc)
+        if ok then
+            -- Kill physics on it, so wings and trailing accessories can't catch on
+            -- tower parts and drag you off a ledge.
+            for _, p in ipairs(acc:GetDescendants()) do
+                if p:IsA("BasePart") then
+                    pcall(function()
+                        p.CanCollide, p.CanTouch, p.CanQuery = false, false, false
+                        p.Massless, p.Anchored = true, false
+                    end)
+                end
+            end
+        end
+        return ok
+    end
+
+    local function targetIsHeadless(userId)
+        local info
+        local ok = pcall(function() info = Players:GetCharacterAppearanceInfoAsync(userId) end)
+        if not ok or type(info) ~= "table" or type(info.assets) ~= "table" then return false end
+        for _, a in ipairs(info.assets) do
+            if tostring(a.name or ""):lower():find("headless") then return true end
+        end
+        return false
+    end
+
+    -- Keep only the appearance, so the heavy rig and its Humanoid can be freed.
+    local function extractTemplate(model)
+        local folder = Instance.new("Folder")
+        local headInfo
+        local head = model:FindFirstChild("Head")
+        if head then
+            local sm   = head:FindFirstChildOfClass("SpecialMesh")
+            local face = head:FindFirstChild("face") or head:FindFirstChildOfClass("Decal")
+            headInfo = {
+                meshId  = sm and sm.MeshId or nil,
+                texId   = sm and sm.TextureId or nil,
+                scale   = sm and sm.Scale or nil,
+                faceTex = face and face.Texture or nil,
+            }
+        end
+        for _, item in ipairs(model:GetChildren()) do
+            if item:IsA("CharacterMesh") or item:IsA("Shirt") or item:IsA("Pants")
+                or item:IsA("ShirtGraphic") or item:IsA("BodyColors") or item:IsA("Accessory") then
+                item:Clone().Parent = folder
+            end
+        end
+        return folder, headInfo
+    end
+
+    local function applyLook(char, hum, folder, headInfo)
+        for _, c in ipairs(char:GetChildren()) do
+            if c:IsA("Accessory") or c:IsA("Shirt") or c:IsA("Pants")
+                or c:IsA("ShirtGraphic") or c:IsA("BodyColors") or c:IsA("CharacterMesh") then
+                c:Destroy()
+            end
+        end
+        local myHead = char:FindFirstChild("Head")
+        if myHead and headInfo then
+            if headInfo.meshId then
+                local mm = myHead:FindFirstChildOfClass("SpecialMesh")
+                if not mm then mm = Instance.new("SpecialMesh"); mm.Parent = myHead end
+                mm.MeshId, mm.TextureId = headInfo.meshId, headInfo.texId or ""
+                if headInfo.scale then mm.Scale = headInfo.scale end
+            end
+            if headInfo.faceTex then
+                local mf = myHead:FindFirstChild("face") or myHead:FindFirstChildOfClass("Decal")
+                if mf then mf.Texture = headInfo.faceTex end
+            end
+        end
+        local found, attached = 0, 0
+        for _, item in ipairs(folder:GetChildren()) do
+            if item:IsA("Accessory") then
+                found = found + 1
+                if opt("AvatarAccessories") and attachAccessory(char, hum, item:Clone()) then
+                    attached = attached + 1
+                end
+            else
+                pcall(function() item:Clone().Parent = char end)
+            end
+        end
+        return found, attached
+    end
+
+    -- Building the model is allowed even where live ApplyDescription is blocked.
+    local function buildModel(userId)
+        local desc
+        pcall(function() desc = Players:GetHumanoidDescriptionFromUserId(userId) end)
+        local model
+        if desc then
+            pcall(function()
+                model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R6)
+            end)
+        end
+        if not model then
+            pcall(function() model = Players:CreateHumanoidModelFromUserId(userId) end)
+        end
+        return model
+    end
+
+    local function resolveUserId(input)
+        input = tostring(input or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if input == "" then return nil, "Enter a username or UserId" end
+        if input:match("^%d+$") then return tonumber(input) end
+        local uid
+        local ok = pcall(function() uid = Players:GetUserIdFromNameAsync(input) end)
+        if ok and uid then return uid end
+        return nil, ("User '%s' not found"):format(input)
+    end
+
+    local function currentCharacter()
+        local char = player.Character
+        local hum  = char and char:FindFirstChildOfClass("Humanoid")
+        return char, hum
+    end
+
+    local function applyAvatar(input)
+        task.spawn(function()
+            setStatus("Building avatar...")
+            local uid, err = resolveUserId(input)
+            if not uid then
+                setStatus(err)
+                Library:Notify({ Title = "Avatar", Description = err, Duration = 4 })
+                return
+            end
+            local char, hum = currentCharacter()
+            if not char or not hum then setStatus("No character.") return end
+
+            local model = buildModel(uid)
+            if not model then
+                setStatus("Couldn't build that avatar (rate-limited?)")
+                Library:Notify({ Title = "Avatar", Description = "Couldn't build that avatar -- possibly rate-limited.", Duration = 5 })
+                return
+            end
+            local folder, headInfo = extractTemplate(model)
+            pcall(function() model:Destroy() end)
+
+            if avatarTemplate then pcall(function() avatarTemplate:Destroy() end) end
+            avatarTemplate       = folder
+            avatarHead           = headInfo
+            avatarActive         = true
+            avatarTargetHeadless = targetIsHeadless(uid)
+
+            local found, attached = applyLook(char, hum, folder, headInfo)
+            setHeadless(char, opt("AvatarHeadless") or avatarTargetHeadless)
+            setStatus(("Loaded UserId %d -- %d/%d accessories"):format(uid, attached, found))
+            Library:Notify({
+                Title       = "Avatar",
+                Description = ("Loaded UserId %d (%d/%d accessories)"):format(uid, attached, found),
+                Duration    = 4,
+            })
+        end)
+    end
+
+    local function resetAvatar()
+        task.spawn(function()
+            avatarActive         = false
+            avatarTargetHeadless = false
+            local char, hum = currentCharacter()
+            setHeadless(char, opt("AvatarHeadless"))
+            if avatarTemplate then
+                pcall(function() avatarTemplate:Destroy() end)
+                avatarTemplate = nil
+            end
+            avatarHead = nil
+            if not char or not hum then setStatus("No character.") return end
+
+            setStatus("Resetting...")
+            local model = buildModel(player.UserId)
+            if not model then setStatus("Reset failed (head restored)") return end
+            local folder, headInfo = extractTemplate(model)
+            pcall(function() model:Destroy() end)
+            applyLook(char, hum, folder, headInfo)
+            pcall(function() folder:Destroy() end)   -- one-shot, don't cache
+            setHeadless(char, opt("AvatarHeadless"))
+            setStatus("Reset to your own avatar")
+        end)
+    end
+
+    ----------------------------------------------------------------------------
+    -- Presets: saved HumanoidDescriptions you can wear without looking up a user.
+    ----------------------------------------------------------------------------
+    local HttpService = game:GetService("HttpService")
+    local PRESET_DIR  = "ProjectEToHScript/outfits"
+
+    local DESC_NUMS   = { "Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg",
+                          "Face", "Shirt", "Pants", "GraphicTShirt" }
+    local DESC_COLORS = { "HeadColor", "TorsoColor", "LeftArmColor", "RightArmColor",
+                          "LeftLegColor", "RightLegColor" }
+    local DESC_SCALES = { "HeightScale", "WidthScale", "HeadScale", "DepthScale",
+                          "ProportionScale", "BodyTypeScale" }
+    local DESC_ACCSTR = { "HatAccessory", "HairAccessory", "FaceAccessory", "NeckAccessory",
+                          "ShouldersAccessory", "FrontAccessory", "BackAccessory", "WaistAccessory" }
+
+    -- Shipped presets. Held as JSON rather than Lua tables because that is exactly the
+    -- format the save/load path already round-trips, so there's no hand-conversion to get
+    -- wrong. Order here is the order shown in the dropdown.
+    local BUILTIN_ORDER = { "blockerman", "gehad", "kaan2005", "skit", "skit current" }
+    local BUILTIN_PRESETS = {
+        ["blockerman"] = [==[{"nums":{"RightArm":0,"Head":15093053680,"Torso":0,"GraphicTShirt":0,"Shirt":8354334846,"LeftArm":0,"Pants":89528719756784,"Face":0,"RightLeg":0,"LeftLeg":0},"scales":{"BodyTypeScale":0,"DepthScale":1,"HeadScale":1,"HeightScale":1,"WidthScale":1,"ProportionScale":0},"colors":{"HeadColor":[255,255,0],"TorsoColor":[163,162,165],"LeftArmColor":[255,255,0],"RightLegColor":[99,95,98],"RightArmColor":[255,255,0],"LeftLegColor":[99,95,98]},"accStrings":{"NeckAccessory":"13312726192","ShouldersAccessory":"","FrontAccessory":"","FaceAccessory":"","WaistAccessory":"6934144658,13937231284,18864865684","BackAccessory":"2222538922","HatAccessory":"","HairAccessory":""},"accessories":[{"AssetId":2222538922,"IsLayered":false,"AccessoryType":"Back"},{"AssetId":6934144658,"IsLayered":false,"AccessoryType":"Waist"},{"AssetId":13312726192,"IsLayered":false,"AccessoryType":"Neck"},{"AssetId":13937231284,"IsLayered":false,"AccessoryType":"Waist"},{"AssetId":18864865684,"IsLayered":false,"AccessoryType":"Waist"}]}]==],
+        ["gehad"] = [==[{"nums":{"RightArm":0,"Head":74974372367270,"Torso":0,"GraphicTShirt":7541912145,"Shirt":330030567,"LeftArm":0,"Pants":330030618,"Face":0,"RightLeg":0,"LeftLeg":0},"scales":{"BodyTypeScale":0,"DepthScale":1,"HeadScale":1,"HeightScale":1,"WidthScale":1,"ProportionScale":0},"colors":{"HeadColor":[248,248,248],"TorsoColor":[17,17,17],"LeftArmColor":[27,42,53],"RightLegColor":[27,42,53],"RightArmColor":[163,162,165],"LeftLegColor":[99,95,98]},"accStrings":{"NeckAccessory":"","ShouldersAccessory":"10715291261,11970138578,18556350860","FrontAccessory":"","FaceAccessory":"","WaistAccessory":"5269089688","BackAccessory":"","HatAccessory":"7608861705","HairAccessory":""},"accessories":[{"AssetId":7608861705,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":10715291261,"IsLayered":false,"AccessoryType":"Shoulder"},{"AssetId":11970138578,"IsLayered":false,"AccessoryType":"Shoulder"},{"AssetId":18556350860,"IsLayered":false,"AccessoryType":"Shoulder"},{"AssetId":5269089688,"IsLayered":false,"AccessoryType":"Waist"}]}]==],
+        ["kaan2005"] = [==[{"nums":{"RightArm":0,"Head":15093053680,"Torso":0,"GraphicTShirt":11968498114,"Shirt":0,"LeftArm":0,"Pants":1033312407,"Face":0,"RightLeg":0,"LeftLeg":0},"scales":{"BodyTypeScale":0,"DepthScale":1,"HeadScale":1,"HeightScale":1,"WidthScale":1,"ProportionScale":0},"colors":{"HeadColor":[205,205,205],"TorsoColor":[205,205,205],"LeftArmColor":[205,205,205],"RightLegColor":[205,205,205],"RightArmColor":[205,205,205],"LeftLegColor":[205,205,205]},"accStrings":{"NeckAccessory":"","ShouldersAccessory":"","FrontAccessory":"","FaceAccessory":"","WaistAccessory":"","BackAccessory":"","HatAccessory":"321346550","HairAccessory":""},"accessories":[{"AssetId":321346550,"IsLayered":false,"AccessoryType":"Hat"}]}]==],
+        ["skit"] = [==[{"nums":{"RightArm":0,"Head":15093053680,"Torso":0,"GraphicTShirt":0,"Shirt":0,"LeftArm":0,"Pants":6941288880,"Face":0,"RightLeg":0,"LeftLeg":0},"scales":{"BodyTypeScale":0,"DepthScale":1,"HeadScale":1,"HeightScale":1,"WidthScale":1,"ProportionScale":0},"colors":{"HeadColor":[175,221,255],"TorsoColor":[175,221,255],"LeftArmColor":[128,187,220],"RightLegColor":[17,17,17],"RightArmColor":[0,255,0],"LeftLegColor":[255,255,0]},"accStrings":{"NeckAccessory":"","ShouldersAccessory":"","FrontAccessory":"","FaceAccessory":"","WaistAccessory":"6252477190","BackAccessory":"","HatAccessory":"14673809937","HairAccessory":""},"accessories":[{"AssetId":14673809937,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":6252477190,"IsLayered":false,"AccessoryType":"Waist"}]}]==],
+        ["skit current"] = [==[{"nums":{"RightArm":0,"Head":15093053680,"Torso":48474356,"GraphicTShirt":0,"Shirt":0,"LeftArm":0,"Pants":0,"Face":0,"RightLeg":0,"LeftLeg":0},"scales":{"BodyTypeScale":0.20000000298023225,"DepthScale":0.8500000238418579,"HeadScale":1,"HeightScale":0.8999999761581421,"WidthScale":0.699999988079071,"ProportionScale":1},"colors":{"HeadColor":[249,249,249],"TorsoColor":[252,240,182],"LeftArmColor":[249,249,249],"RightLegColor":[25,25,25],"RightArmColor":[249,249,249],"LeftLegColor":[25,25,25]},"accStrings":{"NeckAccessory":"","ShouldersAccessory":"","FrontAccessory":"","FaceAccessory":"","WaistAccessory":"7853207982,13218275142","BackAccessory":"","HatAccessory":"1080949,71844152179630,1365767,76953774632480","HairAccessory":"75654134505201,111191802672513,114970157890902,124684280646469"},"accessories":[{"AssetId":1080949,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":1365767,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":7853207982,"IsLayered":false,"AccessoryType":"Waist"},{"AssetId":13218275142,"IsLayered":false,"AccessoryType":"Waist"},{"AssetId":71844152179630,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":75654134505201,"IsLayered":false,"AccessoryType":"Hair"},{"AssetId":76953774632480,"IsLayered":false,"AccessoryType":"Hat"},{"AssetId":111191802672513,"IsLayered":false,"AccessoryType":"Hair"},{"AssetId":114970157890902,"IsLayered":false,"AccessoryType":"Hair"},{"AssetId":124684280646469,"IsLayered":false,"AccessoryType":"Hair"}]}]==],
+    }
+
+    local function filesOK()
+        return typeof(writefile) == "function" and typeof(readfile) == "function"
+            and typeof(isfile) == "function" and typeof(listfiles) == "function"
+    end
+
+    local function ensurePresetDir()
+        pcall(function()
+            if typeof(makefolder) ~= "function" or typeof(isfolder) ~= "function" then return end
+            if not isfolder("ProjectEToHScript") then makefolder("ProjectEToHScript") end
+            if not isfolder(PRESET_DIR) then makefolder(PRESET_DIR) end
+        end)
+    end
+
+    local function serializeDesc(desc)
+        local t = { nums = {}, colors = {}, scales = {}, accStrings = {}, accessories = {} }
+        for _, k in ipairs(DESC_NUMS)   do t.nums[k]       = desc[k] end
+        for _, k in ipairs(DESC_SCALES) do t.scales[k]     = desc[k] end
+        for _, k in ipairs(DESC_ACCSTR) do t.accStrings[k] = desc[k] end
+        for _, k in ipairs(DESC_COLORS) do
+            local c = desc[k]
+            t.colors[k] = {
+                math.floor(c.R * 255 + 0.5), math.floor(c.G * 255 + 0.5), math.floor(c.B * 255 + 0.5),
+            }
+        end
+        local ok, list = pcall(function() return desc:GetAccessories(true) end)
+        if ok and type(list) == "table" then
+            for _, a in ipairs(list) do
+                t.accessories[#t.accessories + 1] = {
+                    AssetId       = a.AssetId,
+                    AccessoryType = (typeof(a.AccessoryType) == "EnumItem") and a.AccessoryType.Name or nil,
+                    IsLayered     = a.IsLayered,
+                    Order         = a.Order,
+                    Puffiness     = a.Puffiness,
+                }
+            end
+        end
+        return t
+    end
+
+    local function deserializeDesc(t)
+        local desc = Instance.new("HumanoidDescription")
+        for _, k in ipairs(DESC_NUMS) do
+            if t.nums and t.nums[k] then pcall(function() desc[k] = t.nums[k] end) end
+        end
+        for _, k in ipairs(DESC_SCALES) do
+            if t.scales and t.scales[k] then pcall(function() desc[k] = t.scales[k] end) end
+        end
+        for _, k in ipairs(DESC_COLORS) do
+            local rgb = t.colors and t.colors[k]
+            if rgb then pcall(function() desc[k] = Color3.fromRGB(rgb[1], rgb[2], rgb[3]) end) end
+        end
+        -- Prefer the structured accessory list (keeps layered/order/puffiness); fall back
+        -- to the legacy comma-separated id strings when a preset has none.
+        if t.accessories and #t.accessories > 0 then
+            local list = {}
+            for _, a in ipairs(t.accessories) do
+                local e = {
+                    AssetId = a.AssetId, Order = a.Order,
+                    Puffiness = a.Puffiness, IsLayered = a.IsLayered,
+                }
+                if a.AccessoryType then
+                    pcall(function() e.AccessoryType = Enum.AccessoryType[a.AccessoryType] end)
+                end
+                list[#list + 1] = e
+            end
+            pcall(function() desc:SetAccessories(list, true) end)
+        else
+            for _, k in ipairs(DESC_ACCSTR) do
+                if t.accStrings and t.accStrings[k] then
+                    pcall(function() desc[k] = t.accStrings[k] end)
+                end
+            end
+        end
+        return desc
+    end
+
+    local function buildFromDesc(desc)
+        local model
+        pcall(function()
+            model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R6)
+        end)
+        return model
+    end
+
+    local function userPresetNames()
+        local out = {}
+        if not filesOK() then return out end
+        ensurePresetDir()
+        pcall(function()
+            for _, path in ipairs(listfiles(PRESET_DIR)) do
+                local name = path:match("([^/\\]+)%.json$")
+                -- A saved preset may share a built-in's name; the saved one wins on read.
+                if name then out[#out + 1] = name end
+            end
+        end)
+        table.sort(out)
+        return out
+    end
+
+    local function presetNames()
+        local seen, out = {}, {}
+        for _, n in ipairs(BUILTIN_ORDER) do
+            seen[n] = true
+            out[#out + 1] = n
+        end
+        for _, n in ipairs(userPresetNames()) do
+            if not seen[n] then out[#out + 1] = n end
+        end
+        return out
+    end
+
+    local function readPreset(name)
+        -- Saved file takes priority, so a user can override a shipped preset.
+        if filesOK() then
+            local path, data = ("%s/%s.json"):format(PRESET_DIR, name), nil
+            local ok = pcall(function()
+                if isfile(path) then data = HttpService:JSONDecode(readfile(path)) end
+            end)
+            if ok and data then return data end
+        end
+        local raw = BUILTIN_PRESETS[name]
+        if not raw then return nil end
+        local ok, decoded = pcall(function() return HttpService:JSONDecode(raw) end)
+        return ok and decoded or nil
+    end
+
+    local function wearPreset(name)
+        task.spawn(function()
+            if not name or name == "" then
+                setStatus("Pick a preset first.")
+                return
+            end
+            local data = readPreset(name)
+            if not data then setStatus(("Preset '%s' not found"):format(name)) return end
+
+            local char, hum = currentCharacter()
+            if not char or not hum then setStatus("No character.") return end
+
+            setStatus(("Wearing '%s'..."):format(name))
+            local model = buildFromDesc(deserializeDesc(data))
+            if not model then
+                setStatus("Couldn't build that preset (rate-limited?)")
+                return
+            end
+            local folder, headInfo = extractTemplate(model)
+            pcall(function() model:Destroy() end)
+
+            if avatarTemplate then pcall(function() avatarTemplate:Destroy() end) end
+            avatarTemplate       = folder
+            avatarHead           = headInfo
+            avatarActive         = true
+            avatarTargetHeadless = false
+
+            local found, attached = applyLook(char, hum, folder, headInfo)
+            setHeadless(char, opt("AvatarHeadless"))
+            setStatus(("Wearing '%s' -- %d/%d accessories"):format(name, attached, found))
+            Library:Notify({
+                Title       = "Avatar",
+                Description = ("Wearing preset '%s'"):format(name),
+                Duration    = 4,
+            })
+        end)
+    end
+
+    local function saveCurrentPreset(name)
+        if not name or name == "" then setStatus("Type a name to save as.") return end
+        if not filesOK() then setStatus("Executor can't write files.") return end
+        local desc
+        local ok = pcall(function()
+            desc = Players:GetHumanoidDescriptionFromUserId(player.UserId)
+        end)
+        if not ok or not desc then setStatus("Couldn't read your current avatar.") return end
+        ensurePresetDir()
+        local wrote = pcall(function()
+            writefile(("%s/%s.json"):format(PRESET_DIR, name),
+                HttpService:JSONEncode(serializeDesc(desc)))
+        end)
+        setStatus(wrote and ("Saved preset '%s'"):format(name) or "Save failed.")
+        if wrote and Library.Options.AvatarPreset then
+            Library.Options.AvatarPreset:SetValues(presetNames())
+        end
+    end
+
+    AvatarBox:AddInput("AvatarUser", {
+        Text        = "Username / ID",
+        Default     = "",
+        -- Finished=false so .Value tracks what's typed. With Finished=true the value only
+        -- commits on Enter, so typing a name and clicking Load Avatar read an empty box.
+        -- No Callback on purpose: with per-keystroke firing it would try to load an
+        -- avatar for every partial name as you type.
+        Finished    = false,
+        Placeholder = "e.g. builderman",
+        Tooltip     = "Type a username or UserId, then press Load Avatar.",
+    })
+
+    AvatarBox:AddButton({
+        Text     = "Load Avatar",
+        Tooltip  = "Wear this user's full R6 look.",
+        Callback = function()
+            local box = Library.Options.AvatarUser
+            applyAvatar(box and box.Value or "")
+        end,
+    })
+    AvatarBox:AddButton({
+        Text     = "Reset Avatar",
+        Tooltip  = "Restore your own appearance.",
+        Callback = resetAvatar,
+    })
+
+    statusLabel = AvatarBox:AddLabel({ Text = "Idle.", DoesWrap = true })
+
+    AvatarBox:AddToggle("AvatarAccessories", {
+        Text    = "Load accessories",
+        Default = true,
+        Tooltip = "Accessories are welded with collision off so they can't snag on tower parts.",
+    })
+    AvatarBox:AddToggle("AvatarHeadless", {
+        Text     = "Headless (hide head)",
+        Default  = false,
+        Callback = function(state)
+            local char = player.Character
+            setHeadless(char, state or (avatarActive and avatarTargetHeadless))
+        end,
+    })
+    AvatarBox:AddToggle("AvatarKeepOnRespawn", {
+        Text    = "Keep avatar on respawn",
+        -- On by default: tower games rebuild your character on every death, so without
+        -- this the look is lost constantly. Re-applies from the cached template, which is
+        -- why it's instant rather than a rebuild.
+        Default = true,
+        Tooltip = "Re-apply your loaded avatar after deaths and respawns.",
+    })
+
+    AvatarBox:AddDivider()
+
+    AvatarBox:AddDropdown("AvatarPreset", {
+        Text      = "Preset",
+        Values    = presetNames(),
+        Default   = BUILTIN_ORDER[1],
+        AllowNull = true,
+        Tooltip   = "Saved avatars. Wearing one doesn't need a username lookup.",
+    })
+    AvatarBox:AddButton({
+        Text     = "Wear Preset",
+        Callback = function()
+            local d = Library.Options.AvatarPreset
+            wearPreset(d and d.Value or nil)
+        end,
+    })
+    AvatarBox:AddInput("AvatarPresetName", {
+        Text        = "Save current as",
+        Default     = "",
+        Finished    = false,
+        Placeholder = "preset name",
+        Tooltip     = "Saves YOUR current avatar under this name.",
+    })
+    AvatarBox:AddButton({
+        Text     = "Save Current Avatar",
+        Callback = function()
+            local box = Library.Options.AvatarPresetName
+            saveCurrentPreset(box and box.Value or "")
+        end,
+    })
+
+    -- Tower games rebuild the character constantly, so re-apply from the cached template.
+    player.CharacterAdded:Connect(function(char)
+        local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        if avatarActive and avatarTemplate and opt("AvatarKeepOnRespawn") then
+            task.wait(0.4)
+            applyLook(char, hum, avatarTemplate, avatarHead)
+            setHeadless(char, opt("AvatarHeadless") or avatarTargetHeadless)
+        elseif opt("AvatarHeadless") then
+            task.wait(0.3)
+            setHeadless(char, true)
+        end
+    end)
+end
+_initAvatar()
+
 local MenuGroup = Tabs.UISettings:AddLeftGroupbox("Menu")
 MenuGroup:AddDropdown("UIStyle", {
     Text    = "UI Style",
