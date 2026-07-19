@@ -2636,7 +2636,44 @@ local function _initAvatar()
         return char, hum
     end
 
-    local function applyAvatar(input)
+    -- Forward declarations: the config hook below closes over these, and both are defined
+    -- further down. Without this it would capture a nil global instead.
+    local applyAvatar, wearPreset
+
+    -- Round-trip the worn avatar through configs: saving records what you have on,
+    -- loading puts it back. Registered straight into the library's config registry, so
+    -- the existing serialise/deserialise path carries it with no special-casing --
+    -- deserialise calls SetValue, which is what re-applies the look.
+    --
+    -- PESUI only. The Obsidian fallback owns its own registry and only serialises its
+    -- Toggles/Options, so there it degrades to remembering nothing rather than breaking.
+    local wornEntry
+    local function setWorn(value)
+        if wornEntry then wornEntry.Value = value end
+    end
+    if Library.Registry then
+        wornEntry = { Type = "AvatarWorn", Value = nil }
+        function wornEntry:SetValue(value)
+            self.Value = value
+            if type(value) ~= "string" or value == "" then return end
+            local kind, rest = value:match("^(%a+):(.+)$")
+            -- Deferred: a config can load before the character exists.
+            task.spawn(function()
+                if not player.Character then
+                    player.CharacterAdded:Wait()
+                    task.wait(0.5)
+                end
+                if kind == "user" then
+                    applyAvatar(rest)
+                elseif kind == "preset" then
+                    wearPreset(rest)
+                end
+            end)
+        end
+        Library.Registry["AvatarWorn"] = wornEntry
+    end
+
+    applyAvatar = function(input)
         task.spawn(function()
             setStatus("Building avatar...")
             local uid, err = resolveUserId(input)
@@ -2665,6 +2702,7 @@ local function _initAvatar()
 
             local found, attached = applyLook(char, hum, folder, headInfo)
             setHeadless(char, opt("AvatarHeadless") or avatarTargetHeadless)
+            setWorn("user:" .. tostring(uid))
             setStatus(("Loaded UserId %d -- %d/%d accessories"):format(uid, attached, found))
             Library:Notify({
                 Title       = "Avatar",
@@ -2678,6 +2716,7 @@ local function _initAvatar()
         task.spawn(function()
             avatarActive         = false
             avatarTargetHeadless = false
+            setWorn(nil)
             local char, hum = currentCharacter()
             setHeadless(char, opt("AvatarHeadless"))
             if avatarTemplate then
@@ -2852,7 +2891,7 @@ local function _initAvatar()
         return ok and decoded or nil
     end
 
-    local function wearPreset(name)
+    wearPreset = function(name)
         task.spawn(function()
             if not name or name == "" then
                 setStatus("Pick a preset first.")
@@ -2881,6 +2920,7 @@ local function _initAvatar()
 
             local found, attached = applyLook(char, hum, folder, headInfo)
             setHeadless(char, opt("AvatarHeadless"))
+            setWorn("preset:" .. name)
             setStatus(("Wearing '%s' -- %d/%d accessories"):format(name, attached, found))
             Library:Notify({
                 Title       = "Avatar",
