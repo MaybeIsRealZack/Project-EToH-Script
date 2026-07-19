@@ -5,31 +5,83 @@ end
 
 local autoExecuteFile = "ProjectEToHScript/auto_execute.txt"
 local uiStyleFile = "ProjectEToHScript/ui_style.txt"
+local uiMigrationFile = "ProjectEToHScript/ui_migrated_pes.txt"
 local autoExecuteDefault = false
 pcall(function()
     if isfile(autoExecuteFile) then
         autoExecuteDefault = readfile(autoExecuteFile) == "true"
     end
 end)
-local uiStyle = "Obsidian"
+-- "PES" is our own library (see PESUI.lua) and the default. Obsidian and Linoria stay
+-- selectable as fallbacks. Owning the UI means nothing outside this repo can break the
+-- menu -- an upstream push to Obsidian silently halted it once already.
+local uiStyle = "PES"
 pcall(function()
+    -- One-time migration. Existing installs already have ui_style.txt saying "Obsidian"
+    -- (the UI Style dropdown writes it), which would pin them to the old library forever
+    -- and make the new default look like it never applied. Ignore the stored value once,
+    -- switch to PES, then respect whatever is chosen from then on.
+    if not isfile(uiMigrationFile) then
+        if not isfolder("ProjectEToHScript") then makefolder("ProjectEToHScript") end
+        writefile(uiStyleFile, "PES")
+        writefile(uiMigrationFile, "1")
+        return
+    end
     if isfile(uiStyleFile) then
-        uiStyle = readfile(uiStyleFile)
+        local saved = readfile(uiStyleFile):gsub("%s+$", "")
+        if saved == "PES" or saved == "Obsidian" or saved == "Linoria" then
+            uiStyle = saved
+        end
     end
 end)
 
-local repo
-if uiStyle == "Linoria" then
-    repo = "https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/"
+local PES_UI_URL =
+    "https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/PESUI.lua"
+
+local repo = ""
+local Library, SaveManager, ThemeManager
+
+if uiStyle == "Linoria" or uiStyle == "Obsidian" then
+    if uiStyle == "Linoria" then
+        repo = "https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/"
+    else
+        -- Pinned to a known-good commit (2026-07-09) rather than tracking their main,
+        -- so an upstream push can't land in this script unannounced.
+        repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/398653c103a0b4a8d2a3b68bcd383af21814a512/"
+    end
+    Library      = loadstring(game:HttpGet(repo .. "Library.lua"))()
+    SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+    ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 else
-    -- Pinned to a known-good commit (2026-07-09). Loading from main means any push
-    -- to their repo lands in this script instantly; a 2026-07-11 change to the
-    -- config-load path is the suspect for UI Settings breaking. Bump deliberately.
-    repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/398653c103a0b4a8d2a3b68bcd383af21814a512/"
+    -- PESUI ships its own SaveManager/ThemeManager exposing the same methods, so the
+    -- setup block further down works unchanged. _G.PESUI_SOURCE lets a locally-built
+    -- test copy inline the library instead of fetching it.
+    --
+    -- Guarded, because the UI Style setting that switches back to Obsidian lives INSIDE
+    -- the menu: if PESUI failed to load there'd be no menu, and therefore no way to
+    -- recover. On any failure, fall back to Obsidian and say so.
+    local ok, result = pcall(function()
+        if _G.PESUI_SOURCE then
+            return loadstring(_G.PESUI_SOURCE, "PESUI")()
+        end
+        return loadstring(game:HttpGet(PES_UI_URL))()
+    end)
+
+    if ok and type(result) == "table" and result.CreateWindow then
+        Library      = result
+        SaveManager  = Library.SaveManager
+        ThemeManager = Library.ThemeManager
+    else
+        warn("[Project EToH Script] PES UI failed to load, falling back to Obsidian: "
+            .. tostring(result))
+        uiStyle = "Obsidian"
+        repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/398653c103a0b4a8d2a3b68bcd383af21814a512/"
+        Library      = loadstring(game:HttpGet(repo .. "Library.lua"))()
+        SaveManager  = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+        ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+        pcall(function() writefile(uiStyleFile, "Obsidian") end)
+    end
 end
-local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
-local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 
 local function missing(t, f, fallback)
     if type(f) == t then return f end
@@ -202,13 +254,57 @@ end
 -- (Teleporter.Teleporter.TPFRAME / Teleporter.TeleportTo), then falls back to a recursive
 -- search by name so towers in other games using the same JToH kit (e.g. The Eternal Abyss)
 -- resolve even if the hierarchy differs. Returns nil if the folder/part is gone.
+-- Tower games don't agree on what the entry portal is called. Observed so far:
+--   EToH  Teleporter.Teleporter.TPFRAME
+--   TEA   Portal            (siblings: Frame, WinPad, SpawnPad)
+--   CSCD  TP                (siblings: Checkpoints, Frame, DO_NOT_MOVE_...)
+-- Ordered most- to least-specific. Deliberately excludes Frame (the tower's base) and
+-- WinPad (the finish, not the entry).
+local PORTAL_NAMES = {
+    "TPFRAME", "Portal", "TP", "TeleportTo", "Teleporter", "Entrance", "SpawnPad", "Spawn",
+}
+-- Substring pass for games not covered above. Same exclusions.
+local PORTAL_HINTS = { "tpframe", "portal", "teleport", "entrance", "spawnpad" }
+
+-- Callers need a BasePart (they read .CFrame/.Position/.Size), but these can be Models
+-- or Folders, so resolve down to an actual part.
+local function toBasePart(inst)
+    if not inst then return nil end
+    if inst:IsA("BasePart") then return inst end
+    if inst:IsA("Model") and inst.PrimaryPart then return inst.PrimaryPart end
+    return inst:FindFirstChildWhichIsA("BasePart", true)
+end
+
 local function resolveTPFrame(name)
     local f = towerFolder(name)
     if not f then return nil end
+
+    -- EToH's exact nesting first: cheapest, and unambiguous when it's there.
     local tp    = f:FindFirstChild("Teleporter")
     local inner = tp and tp:FindFirstChild("Teleporter")
     local exact = inner and inner:FindFirstChild("TPFRAME")
-    return exact or f:FindFirstChild("TPFRAME", true)
+    if exact then
+        local part = toBasePart(exact)
+        if part then return part end
+    end
+
+    -- Then each known name, recursively, in priority order.
+    for _, candidate in ipairs(PORTAL_NAMES) do
+        local part = toBasePart(f:FindFirstChild(candidate, true))
+        if part then return part end
+    end
+
+    -- Last resort: any part whose name merely looks like a portal.
+    for _, descendant in ipairs(f:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            local lower = descendant.Name:lower()
+            for _, hint in ipairs(PORTAL_HINTS) do
+                if lower:find(hint, 1, true) then return descendant end
+            end
+        end
+    end
+
+    return nil
 end
 local function resolveTeleportTo(name)
     local f = towerFolder(name)
@@ -227,9 +323,13 @@ local function warnTowerStructure(name)
         warn(("[Auto Play] no folder named '%s' in workspace.Towers"):format(name))
         return
     end
+    -- Include ClassName: knowing whether the candidate is a Part, Model or Folder is what
+    -- decides how to reach its BasePart when adding support for a new tower game.
     local kids = {}
-    for _, c in ipairs(f:GetChildren()) do kids[#kids + 1] = c.Name end
-    warn(("[Auto Play] '%s' teleporter unresolved. Children: %s"):format(name, table.concat(kids, ", ")))
+    for _, c in ipairs(f:GetChildren()) do
+        kids[#kids + 1] = ("%s (%s)"):format(c.Name, c.ClassName)
+    end
+    warn(("[Tower Portal] '%s' portal unresolved. Children: %s"):format(name, table.concat(kids, ", ")))
 end
 
 -- A place spec is one place id or a list of them; true if we're in one of them.
@@ -1632,6 +1732,166 @@ local kb_AJTeleport = AllJumpBox:AddLabel("Teleport"):AddKeyPicker("AJTeleport",
 })
 Options.AJTeleport:OnClick(allJumpTeleport)
 
+-- Tower Portal: type an acronym, get live matches, teleport to that tower's entry portal.
+--
+-- Kept inside its own function so its locals live in this function's registers rather than
+-- the main chunk's -- Luau caps a function at 200 locals and the top level is already busy.
+local function _initTowerPortal()
+    local PortalBox = Tabs.Main:AddRightGroupbox("Tower Portal")
+
+    local MAX_RESULTS = 12
+    local searchText  = ""
+    local labelToName = {}   -- display label -> real tower folder name
+    local lastLabels  = ""   -- serialised list, so we only push changes to the dropdown
+
+    -- Everything we could plausibly teleport to: registry towers valid for this place,
+    -- plus whatever is physically in workspace.Towers (catches towers the registry
+    -- doesn't list, e.g. after a place-id change).
+    local function candidates()
+        local seen, out = {}, {}
+        for name in pairs(TowerConfigs) do
+            local folderName = getTpFrameName(name)
+            if not seen[folderName] then
+                seen[folderName] = true
+                out[#out + 1] = folderName
+            end
+        end
+        local towersFolder = workspace:FindFirstChild("Towers")
+        if towersFolder then
+            for _, child in ipairs(towersFolder:GetChildren()) do
+                if not seen[child.Name] then
+                    seen[child.Name] = true
+                    out[#out + 1] = child.Name
+                end
+            end
+        end
+        return out
+    end
+
+    -- Rank: exact acronym, then prefix, then substring. Empty query lists everything.
+    local function rankOf(name, query)
+        if query == "" then return 3 end
+        local lower = name:lower()
+        if lower == query then return 0 end
+        if lower:sub(1, #query) == query then return 1 end
+        if lower:find(query, 1, true) then return 2 end
+        return nil
+    end
+
+    local function refresh()
+        -- The input is created before the dropdown and may fire its callback immediately,
+        -- so there's a window where PortalMatch doesn't exist yet.
+        if not Options.PortalMatch then return end
+
+        local query  = searchText:gsub("%s", ""):lower()
+        local ranked = {}
+        for _, name in ipairs(candidates()) do
+            local rank = rankOf(name, query)
+            if rank then ranked[#ranked + 1] = { name = name, rank = rank } end
+        end
+        table.sort(ranked, function(a, b)
+            if a.rank ~= b.rank then return a.rank < b.rank end
+            return a.name:lower() < b.name:lower()
+        end)
+
+        local labels = {}
+        labelToName = {}
+        for i, entry in ipairs(ranked) do
+            if i > MAX_RESULTS then break end
+            -- Say up front whether it's actually teleportable. EToH's ultra-LDM unloads
+            -- towers you aren't near, and an unloaded tower has no portal to jump to.
+            local loaded = towerFolder(entry.name) ~= nil
+            local label  = loaded and entry.name or (entry.name .. "  (not loaded)")
+            labels[#labels + 1] = label
+            labelToName[label]  = entry.name
+        end
+
+        -- Only touch the dropdown when the list really changed, so it doesn't fight the
+        -- user while they have it open.
+        local serialised = table.concat(labels, "\0")
+        if serialised == lastLabels then return end
+        lastLabels = serialised
+
+        local keep = Options.PortalMatch and Options.PortalMatch.Value
+        Options.PortalMatch:SetValues(labels)
+        if keep and labelToName[keep] then
+            Options.PortalMatch:SetValue(keep)
+        end
+    end
+
+    PortalBox:AddInput("PortalSearch", {
+        Text        = "Search",
+        Default     = "",
+        Finished    = false,   -- fire per keystroke so suggestions track typing
+        Placeholder = "Acronym, e.g. ToH",
+        Tooltip     = "Type part of a tower's acronym. Matches update as you type.",
+        Callback    = function(value)
+            searchText = value or ""
+            refresh()
+        end,
+    })
+
+    PortalBox:AddDropdown("PortalMatch", {
+        Text      = "Matches",
+        Values    = {},
+        Default   = nil,
+        AllowNull = true,
+        Tooltip   = "Closest matches, best first. '(not loaded)' means the tower isn't in workspace yet.",
+    })
+
+    PortalBox:AddButton({
+        Text     = "Teleport to Portal",
+        Tooltip  = "Teleport to the selected tower's entry portal (TPFRAME).",
+        Callback = function()
+            local label = Options.PortalMatch and Options.PortalMatch.Value
+            local name  = label and labelToName[label]
+            if not name then
+                Library:Notify({ Title = "Tower Portal", Description = "Pick a tower first.", Duration = 3 })
+                return
+            end
+
+            local part = resolveTPFrame(name)
+            if not part then
+                -- Dump the folder's children to F9 so an unexpected hierarchy is one look away.
+                warnTowerStructure(name)
+                Library:Notify({
+                    Title       = "Tower Portal",
+                    Description = ("No portal found for %s -- it may not be loaded yet. See F9."):format(name),
+                    Duration    = 5,
+                })
+                return
+            end
+
+            local char = game:GetService("Players").LocalPlayer.Character
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then
+                Library:Notify({ Title = "Tower Portal", Description = "No character to teleport.", Duration = 3 })
+                return
+            end
+
+            -- Keep the current facing; only move the position, same as the other teleports.
+            hrp.CFrame = CFrame.new(getTopPos(part)) * (hrp.CFrame - hrp.CFrame.Position)
+            Library:Notify({ Title = "Tower Portal", Description = "Teleported to " .. name, Duration = 3 })
+        end,
+    })
+
+    -- Keep scanning: towers stream in and out as you move, so a match that was "(not
+    -- loaded)" a second ago may be teleportable now.
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            if not Library.Unloaded then
+                pcall(refresh)
+            else
+                break
+            end
+        end
+    end)
+
+    refresh()
+end
+_initTowerPortal()
+
 local PlayerBox = Tabs.Main:AddRightGroupbox("Player")
 
 local wsConn = nil
@@ -2174,7 +2434,7 @@ Library.Toggles.UseSuggestedTime:SetValue(true)
 local MenuGroup = Tabs.UISettings:AddLeftGroupbox("Menu")
 MenuGroup:AddDropdown("UIStyle", {
     Text    = "UI Style",
-    Values  = { "Obsidian", "Linoria" },
+    Values  = { "PES", "Obsidian", "Linoria" },
     Default = uiStyle,
     Callback = function(value)
         pcall(function()
@@ -2235,7 +2495,8 @@ MenuGroup:AddSlider("GameVolume", {
         end)
     end,
 })
-local isObsidian = repo:find("deividcomsono") ~= nil
+-- Both PESUI and Obsidian implement Window:SetCornerRadius; Linoria doesn't.
+local isObsidian = repo:find("deividcomsono") ~= nil or uiStyle == "PES"
 
 if isObsidian then
     MenuGroup:AddSlider("UICornerSlider", {
