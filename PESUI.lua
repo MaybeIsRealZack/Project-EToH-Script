@@ -442,7 +442,8 @@ function Groupbox:AddToggle(idx, info)
     -- AddKeyPicker / AddColorPicker chain off a toggle in the existing script.
     control.Row = row
     function control:AddKeyPicker(kIdx, kInfo)
-        return Groupbox.AttachKeyPicker(row, kIdx, kInfo)
+        -- 36px switch + 6px gap, so the pill lands clear of it rather than over it.
+        return Groupbox.AttachKeyPicker(row, kIdx, kInfo, 42)
     end
     function control:AddColorPicker(cIdx, cInfo)
         return Groupbox.AttachColorPicker(row, cIdx, cInfo)
@@ -829,9 +830,24 @@ function Groupbox:AddDropdown(idx, info)
     track(blocker.MouseButton1Click:Connect(closeList))
 
     local rebuild
+
+    local function validSet()
+        local valid = {}
+        for _, v in ipairs(control.Values or {}) do valid[v] = true end
+        return valid
+    end
+
     function control:SetValue(value)
         if multi then
-            self.Value = value or {}
+            -- Keep only entries that are actually selectable here. A config saved in one
+            -- place restores selections for towers that don't exist in another; those
+            -- would show in the button text with no row in the list to click, so they
+            -- could never be unselected.
+            local valid, cleaned = validSet(), {}
+            for key, on in pairs(value or {}) do
+                if on and valid[key] then cleaned[key] = true end
+            end
+            self.Value = cleaned
         else
             self.Value = value
         end
@@ -843,17 +859,27 @@ function Groupbox:AddDropdown(idx, info)
 
     function control:SetValues(values)
         self.Values = values or {}
-        -- Drop a selection that no longer exists, so stale text can't linger.
-        if not multi and self.Value ~= nil then
-            local stillThere = false
-            for _, v in ipairs(self.Values) do
-                if v == self.Value then stillThere = true break end
+        local valid = validSet()
+
+        if multi then
+            -- Same reasoning as above, for when the available list changes under an
+            -- existing selection (e.g. moving to another place, or Auto Detect refreshing).
+            local map, changed = self.Value or {}, false
+            for key in pairs(map) do
+                if not valid[key] then
+                    map[key] = nil
+                    changed  = true
+                end
             end
-            if not stillThere then
-                self.Value  = nil
+            if changed then
                 button.Text = displayText()
+                self:Fire()
             end
+        elseif self.Value ~= nil and not valid[self.Value] then
+            self.Value  = nil
+            button.Text = displayText()
         end
+
         if listHolder.Visible then rebuild() end
         return self
     end
@@ -948,13 +974,16 @@ end
 --------------------------------------------------------------------- KeyPicker
 -- Attached to a toggle or label row rather than being its own row, matching how the
 -- script chains them: AddLabel("Place"):AddKeyPicker("AJPlace", {...}).
-function Groupbox.AttachKeyPicker(row, idx, info)
+-- `rightInset` shifts the pill left to clear anything already anchored to the row's right
+-- edge. A toggle row has its switch there, so without this the keybind sits on top of it.
+function Groupbox.AttachKeyPicker(row, idx, info, rightInset)
     info = info or {}
+    rightInset = rightInset or 0
     local button = create("TextButton", {
         Parent           = row,
         BackgroundColor3 = Theme.Control,
         Size             = UDim2.new(0, 46, 0, 18),
-        Position         = UDim2.new(1, -46, 0, 0),
+        Position         = UDim2.new(1, -46 - rightInset, 0, 0),
         Font             = FONT,
         Text             = tostring(info.Default or "None"),
         TextColor3       = Theme.SubText,
