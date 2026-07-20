@@ -19,6 +19,7 @@ local Categories = {
     -- subplace (121814103864070) -- the same towers are present in all of them.
     ["Pit-of-Misery"] = { 15639952229, 15873244701, 121814103864070 },
     ["100M-Event-Replay"] = 115856553162061,
+    BIOUMS = 111393548264972,
 }
 
 return {
@@ -154,6 +155,8 @@ return {
         { name = "100MT",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "10" } },
         { name = "100MF",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "30" } },
         { name = "100MR",  category = "100M-Event-Replay", suggestedTime = { min = "2", sec = "30" } },
+        --BIOUMS
+        { name = "MS",  category = "BIOUMS", suggestedTime = { min = "3", sec = "0" } },
     },
     TowerRush = {
         { name = "R1TR", category = "Ring1", suggestedTime = { min = "39", sec = "0" }, isTowerRush = true, },
