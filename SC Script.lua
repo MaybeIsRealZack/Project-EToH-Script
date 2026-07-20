@@ -122,7 +122,7 @@ local Window = Library:CreateWindow({
 local isDev = game:GetService("Players").LocalPlayer.Name == "MaybeIsRealZack"
 
 local Tabs = {
-    Main       = Window:AddTab("Main",        "zap"),
+    Main       = Window:AddTab("Main",        "house"),
     UISettings = Window:AddTab("UI Settings", "settings"),
     Logs       = Window:AddTab("Logs",        "list"),
 }
