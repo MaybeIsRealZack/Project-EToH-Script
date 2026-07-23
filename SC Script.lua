@@ -185,21 +185,39 @@ local registryUrl = "https://raw.githubusercontent.com/MaybeIsRealZack/Project-E
 
 local Registry
 local registryLoaded = false
+-- Why the last attempt failed. Every stage below used to throw its error away, so a
+-- registry with a syntax error looked identical to a network failure: an empty tower
+-- dropdown and a notification blaming HttpGet. Keep the reason and report it.
+local registryErr = nil
 -- Retry the fetch: a single failed HttpGet (GitHub raw hiccup / rate limit) would
 -- otherwise drop us to the empty fallback registry -> "No towers found" with 0 towers.
 for attempt = 1, 4 do
     local ok_reg, reg_src = pcall(function() return game:HttpGet(registryUrl) end)
-    if ok_reg and type(reg_src) == "string" and #reg_src > 0 then
-        local fn = loadstring(reg_src)
-        if fn then
+    if not ok_reg then
+        registryErr = "fetch failed: " .. tostring(reg_src)
+    elseif type(reg_src) ~= "string" or #reg_src == 0 then
+        registryErr = "fetch returned an empty body"
+    else
+        -- loadstring returns nil PLUS the syntax error; keeping that second value is the
+        -- difference between "no towers, no idea why" and being told the exact line.
+        local fn, syntaxErr = loadstring(reg_src)
+        if not fn then
+            registryErr = "registry has a syntax error: " .. tostring(syntaxErr)
+        else
             local ok2, result = pcall(fn)
-            if ok2 and type(result) == "table" and type(result.Towers) == "table" then
+            if not ok2 then
+                registryErr = "registry errored while running: " .. tostring(result)
+            elseif type(result) ~= "table" or type(result.Towers) ~= "table" then
+                registryErr = "registry didn't return a table with a Towers list"
+            else
                 Registry = result
                 registryLoaded = true
+                registryErr = nil
                 break
             end
         end
     end
+    warn(("[ProjectEToH] tower registry attempt %d/4 failed -- %s"):format(attempt, registryErr))
     if attempt < 4 then task.wait(0.75) end
 end
 if not Registry then
@@ -413,7 +431,8 @@ if #DropdownValues == 0 then
     local loadedCount = towersFolder and #towersFolder:GetChildren() or 0
     local reason = registryLoaded
         and "The registry may be out of date for this game version."
-        or "Couldn't fetch the tower registry (network/HttpGet) -- try re-executing the script."
+        or ((registryErr or "the tower registry couldn't be loaded")
+            .. " -- full details in the F9 console.")
     Library:Notify({
         Title       = "Project EToH Script",
         Description  = ("No towers found (PlaceId %s, registry towers: %d, loaded in workspace.Towers: %d). %s")
