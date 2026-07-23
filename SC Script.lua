@@ -486,6 +486,20 @@ TowerBox:AddInput("RepeatCount", {
     Placeholder = "1",
     Tooltip     = "Auto Play the tower this many times. The Completion Time above is the TOTAL for all repeats, split evenly across them.",
 })
+TowerBox:AddInput("LobbyDelay", {
+    Text        = "Delay Before Lobby (s)",
+    Default     = "5",
+    Numeric     = true,
+    Placeholder = "5",
+    Tooltip     = "After winning, wait this long before returning to spawn. Lowering it too far can cut off the win registering.",
+})
+TowerBox:AddInput("NextTowerDelay", {
+    Text        = "Delay Before Next Tower (s)",
+    Default     = "5",
+    Numeric     = true,
+    Placeholder = "5",
+    Tooltip     = "After returning to spawn, wait this long before entering the next tower or repeating. Lowering it too far can enter before the lobby finishes loading.",
+})
 local routeHighlights = {}
 local routeUpdateConn = nil
 
@@ -654,11 +668,21 @@ local function getLobbyReturnPart()
     return workspace:FindFirstChild("RestartBrick", true)
 end
 
--- After a win: wait 5s, fire the RestartBrick's touch to return to the lobby, then wait
--- another 5s. Shared by the Return to Lobby toggle and Auto Play repeats. Never re-enters.
+-- Reads a Numeric input as a number, falling back to `default` if it's blank, junk or
+-- negative (the inputs are free text, so all three are reachable).
+local function numOpt(name, default)
+    local o = Library.Options[name]
+    local v = o and tonumber(o.Value)
+    if not v or v < 0 then return default end
+    return v
+end
+
+-- After a win: wait (Delay Before Lobby), fire the RestartBrick's touch to return to the
+-- lobby, then wait (Delay Before Next Tower) before the next tower / repeat is entered.
+-- Shared by the Return to Lobby toggle and Auto Play repeats. Never re-enters.
 local function returnToLobby()
     local player = game:GetService("Players").LocalPlayer
-    task.wait(5)
+    task.wait(numOpt("LobbyDelay", 5))
     local part = getLobbyReturnPart()
     local char = player.Character
     local hrp  = char and char:FindFirstChild("HumanoidRootPart")
@@ -684,7 +708,7 @@ local function returnToLobby()
             until os.clock() >= stop
         end
     end
-    task.wait(5)
+    task.wait(numOpt("NextTowerDelay", 5))
 end
 
 TowerBox:AddToggle("AutoReturnToLobby", {
