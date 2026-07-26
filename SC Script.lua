@@ -92,19 +92,19 @@ local okHook, errHook = pcall(function() hookmetamethod = missing("function", ho
 local okNcm,  errNcm  = pcall(function() getnamecallmethod = missing("function", getnamecallmethod or get_namecall_method) end)
 local queueteleport   = missing("function", queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport))
 
-local sUNCSupport = {
+local UNCSupport = {
     hookmetamethod    = okHook and hookmetamethod ~= nil,
     getnamecallmethod = okNcm  and getnamecallmethod ~= nil,
     queueteleport     = queueteleport ~= nil,
 }
-sUNCSupport.Godmode = sUNCSupport.hookmetamethod and sUNCSupport.getnamecallmethod
+UNCSupport.Godmode = UNCSupport.hookmetamethod and UNCSupport.getnamecallmethod
 
 print("[Project EToH Script] Functions Check:")
 print("[Project EToH Script] Metatable Library:")
-print((sUNCSupport.hookmetamethod    and "✅" or "❌") .. " hookmetamethod"    .. (not okHook and ": " .. tostring(errHook) or ""))
-print((sUNCSupport.getnamecallmethod and "✅" or "❌") .. " getnamecallmethod" .. (not okNcm  and ": " .. tostring(errNcm)  or ""))
+print((UNCSupport.hookmetamethod    and "✅" or "❌") .. " hookmetamethod"    .. (not okHook and ": " .. tostring(errHook) or ""))
+print((UNCSupport.getnamecallmethod and "✅" or "❌") .. " getnamecallmethod" .. (not okNcm  and ": " .. tostring(errNcm)  or ""))
 print("[Project EToH Script] Miscellaneous Library:")
-print((sUNCSupport.queueteleport     and "✅" or "❌") .. " queueonteleport")
+print((UNCSupport.queueteleport     and "✅" or "❌") .. " queueonteleport")
 local HttpService = game:GetService("HttpService")
 local version = "Unknown"
 local ok, result = pcall(function()
@@ -2435,10 +2435,10 @@ end
 
 PlayerBox:AddToggle("GodmodeHook", {
     Text    = "Godmode: Hook Damage",
-    Default = sUNCSupport.Godmode,
+    Default = UNCSupport.Godmode,
     Tooltip = "Blocks ALL damage by hooking the game's DamageEvent so the damage call never reaches the server -- you simply never take damage. The cleanest, most reliable method, but needs executor support for hookmetamethod + getnamecallmethod (greyed out if unsupported).",
     Callback = function(state)
-        if state and not sUNCSupport.Godmode then
+        if state and not UNCSupport.Godmode then
             Library.Toggles.GodmodeHook:SetValue(false)
             return
         end
@@ -2448,7 +2448,7 @@ PlayerBox:AddToggle("GodmodeHook", {
 
 PlayerBox:AddToggle("GodmodeHeal", {
     Text    = "Godmode: Auto-Heal",
-    Default = not sUNCSupport.Godmode,
+    Default = not UNCSupport.Godmode,
     Tooltip = "Instantly heals you back to full whenever you take damage (a loop that fires the DamageEvent with negative damage). Works on ANY executor, but you may flash a bit of damage before healing, so it's less clean than the hook.",
     Callback = function(state)
         setGodmodeHeal(state)
@@ -2464,7 +2464,7 @@ PlayerBox:AddToggle("GodmodeKillBricks", {
     end,
 })
 
-if not sUNCSupport.Godmode then
+if not UNCSupport.Godmode then
     Library.Toggles.GodmodeHook:SetDisabled(true)
 end
 
@@ -3171,9 +3171,9 @@ end
 MenuGroup:AddToggle("AutoExecute", {
     Text    = "Auto Execute on Teleport",
     Default = autoExecuteDefault,
-    Tooltip = sUNCSupport.queueteleport and "Re-executes this script after teleporting" or "Not supported by this executor",
+    Tooltip = UNCSupport.queueteleport and "Re-executes this script after teleporting" or "Not supported by this executor",
     Callback = function(state)
-        if not sUNCSupport.queueteleport then
+        if not UNCSupport.queueteleport then
             Library:Notify({ Title = "Auto Execute", Description = "queue_on_teleport not supported!", Duration = 3 })
             Library.Toggles.AutoExecute:SetValue(false)
             return
@@ -3196,7 +3196,7 @@ MenuGroup:AddToggle("AutoExecute", {
         end
     end,
 })
-if not sUNCSupport.queueteleport then
+if not UNCSupport.queueteleport then
     Library.Toggles.AutoExecute:SetDisabled(true)
 end
 MenuGroup:AddDivider()
@@ -3237,6 +3237,17 @@ MenuGroup:AddButton("Rejoin", function()
         onFail(err)
     end
 end)
+MenuGroup:AddButton("Sever Hop", function()
+    local TeleportService = game:GetService("TeleportService")
+    local player = game:GetService("Players").LocalPlayer
+    Library:Notify({ Title = "Server Hop", Description = "Hopping to a new server...", Duration = 3 })
+    local ok, err = pcall(function()
+        TeleportService:Teleport(game.PlaceId, player)
+    end)
+    if not ok then
+        Library:Notify({ Title = "Server Hop", Description = "Failed: " .. tostring(err), Duration = 5 })
+    end
+end)
 MenuGroup:AddButton("Unload", function()
     _G.ProjectEToHLoaded = nil
     Library:Unload()
@@ -3244,9 +3255,10 @@ end)
 Library.ToggleKeybind = Options.MenuKeybind
 
 local CreditsGroup = Tabs.UISettings:AddRightGroupbox("Credits")
-CreditsGroup:AddLabel('<font color="rgb(255,210,70)">[Mr.man]</font>  Owner', true)
-CreditsGroup:AddLabel('<font color="rgb(90,200,255)">[MaybeIsRealZack]</font>  Original Creator', true)
+CreditsGroup:AddLabel('<font color="rgb(90,200,255)">[MaybeIsRealZack]</font>  Owner', true)
+CreditsGroup:AddLabel('<font color="rgb(255,210,70)">[Mr.man]</font>  Co-owner', true)
 CreditsGroup:AddLabel('<font color="rgb(120,230,120)">[canadianeditz]</font>  Contributor', true)
+CreditsGroup:AddLabel('<font color="rgb(120,230,120)">[eli]</font>  Contributor', true)
 
 local OtherScriptsGroup = Tabs.UISettings:AddRightGroupbox("Other Scripts")
 local function copyLoadstring(name, code)
