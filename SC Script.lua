@@ -423,6 +423,105 @@ for _, tr in ipairs(Registry.TowerRush or {}) do
     table.insert(DropdownValues, n)
 end
 
+-- ===== Pit of Misery XL (place 14894545694) -- dynamic checkpoint routing =====
+-- This game ships no per-tower route files. Every tower that has a folder in
+-- workspace.Checkpoints is auto-discovered, and its route is that folder's numbered
+-- checkpoints walked in NUMERIC ORDER (the child names are the order -- explorer order is
+-- not), finishing on the tower's WinPad. Add a tower in-game and it just appears; no
+-- script edit needed.
+local POM_PLACE, POM_UNIVERSE = 14894545694, 5131529859
+local isPomXL = (currentPlaceId == POM_PLACE) or (game.GameId == POM_UNIVERSE)
+
+-- Entry portal: workspace["Tower Portals"].<name> -> a touchable Teleporter part.
+local function pomPortal(name)
+    local portals = workspace:FindFirstChild("Tower Portals")
+    local folder  = portals and portals:FindFirstChild(name)
+    if not folder then return nil end
+    return toBasePart(folder:FindFirstChild("Teleporter", true))
+        or toBasePart(folder:FindFirstChild("Portal", true))
+        or toBasePart(folder)
+end
+
+-- WinPad so the route finishes on it and the win registers. The Winpads folder's naming
+-- isn't confirmed, so try an exact-name child then a name-contains match; nil just means
+-- the route ends on the last numbered checkpoint.
+local function pomWinPad(name)
+    local wpf = workspace:FindFirstChild("Winpads")
+    if not wpf then return nil end
+    local exact = wpf:FindFirstChild(name)
+    if exact then return toBasePart(exact) end
+    for _, c in ipairs(wpf:GetChildren()) do
+        if c.Name:find(name, 1, true) then return toBasePart(c) end
+    end
+    return nil
+end
+
+-- The route: numbered checkpoints (sorted by number, not explorer order) + the WinPad.
+-- Rebuilt on each call so parts that stream in late are picked up.
+local function pomRoute(name)
+    local cpRoot = workspace:FindFirstChild("Checkpoints")
+    local folder = cpRoot and cpRoot:FindFirstChild(name)
+    if not folder then return {} end
+    local ordered = {}
+    for _, c in ipairs(folder:GetChildren()) do
+        local num = tonumber(c.Name)
+        if num then ordered[#ordered + 1] = { num = num, inst = c } end
+    end
+    table.sort(ordered, function(a, b) return a.num < b.num end)
+    local route = {}
+    for _, e in ipairs(ordered) do
+        local part = toBasePart(e.inst)
+        if part then route[#route + 1] = part end
+    end
+    local wp = pomWinPad(name)
+    if wp then route[#route + 1] = wp end
+    return route
+end
+
+if isPomXL then
+    local cpRoot = workspace:FindFirstChild("Checkpoints")
+    if cpRoot then
+        for _, folder in ipairs(cpRoot:GetChildren()) do
+            local n = folder.Name
+            local count = 0
+            for _, c in ipairs(folder:GetChildren()) do
+                if tonumber(c.Name) then count = count + 1 end
+            end
+            if count > 0 and not TowerConfigs[n] then
+                -- Generous default budget (~15s per checkpoint, min 60s) so long Citadels
+                -- don't walk fast enough to trip the server-side skip check. Tune per run
+                -- with the Completion Time fields.
+                local secTotal = math.max(count * 15, 60)
+                SuggestedTimes[n] = { min = tostring(math.floor(secTotal / 60)), sec = tostring(secTotal % 60) }
+                TowerConfigs[n] = {
+                    tpFrame    = function() return pomPortal(n) end,
+                    teleportTo = function() return pomPortal(n) end,
+                    routeFn    = function() return pomRoute(n) end,
+                }
+                table.insert(DropdownValues, n)
+            end
+        end
+        table.sort(DropdownValues)
+    end
+end
+
+-- Resolve a tower's getCheckpoints() function. PoM XL towers carry a routeFn and use it
+-- directly; every other tower fetches + loadstrings its route file as before. Returns the
+-- function, or nil + an error message.
+local function loadRouteFn(config)
+    if config.routeFn then return config.routeFn end
+    local routeSrc
+    local ok, err = pcall(function() routeSrc = game:HttpGet(config.routeUrl) end)
+    if not ok or not routeSrc then return nil, "Fetch failed: " .. tostring(err) end
+    local fn, fnErr = loadstring(routeSrc)
+    if not fn then return nil, "Parse failed: " .. tostring(fnErr) end
+    local ok2, getCheckpoints = pcall(fn)
+    if not ok2 or type(getCheckpoints) ~= "function" then
+        return nil, "Load failed: " .. tostring(getCheckpoints)
+    end
+    return getCheckpoints
+end
+
 -- Surface why the tower list is empty instead of failing silently. This usually means
 -- the registry didn't load, or none of its towers match this place (PlaceId may have
 -- changed in a game update) and none are loaded in workspace.Towers.
@@ -485,7 +584,7 @@ TowerBox:AddToggle("UseSuggestedTime", {
         end
     end,
 })
-SuggestedLabel = TowerBox:AddLabel(getSuggestedLabel("NEAT"))
+SuggestedLabel = TowerBox:AddLabel(getSuggestedLabel(DropdownValues[1] or "NEAT"))
 TowerBox:AddInput("CompletionMin", {
     Text        = "Completion Time (min)",
     Default     = "3",
@@ -635,13 +734,8 @@ local ShowRouteToggle = TowerBox:AddToggle("ShowRoute", {
             local selected = Library.Options.TowerSelect.Value
             local config   = TowerConfigs[selected]
             if not config then return end
-            local routeSrc
-            local ok = pcall(function() routeSrc = game:HttpGet(config.routeUrl) end)
-            if not ok or not routeSrc then return end
-            local fn = loadstring(routeSrc)
-            if not fn then return end
-            local ok2, getCheckpoints = pcall(fn)
-            if not ok2 or type(getCheckpoints) ~= "function" then return end
+            local getCheckpoints = loadRouteFn(config)
+            if not getCheckpoints then return end
             local ok3, checkpoints = pcall(getCheckpoints)
             if not ok3 or type(checkpoints) ~= "table" then return end
             local steps = {}
@@ -1195,10 +1289,9 @@ startAutoPlay = function()
                 local towerConfig = TowerConfigs[towerName]
                 if not towerConfig then continue end
                 Library:Notify({ Title = "Auto Play", Description = "Fetching " .. towerName .. " route... (" .. towerIndex .. "/" .. #towerList .. ")", Duration = 3 })
-                local routeSrc
-                local okFetch = pcall(function() routeSrc = game:HttpGet(towerConfig.routeUrl) end)
-                if not okFetch or not routeSrc then
-                    Library:Notify({ Title = "Auto Play", Description = "Fetch failed for " .. towerName, Duration = 5 })
+                local getCheckpoints, loadErr = loadRouteFn(towerConfig)
+                if not getCheckpoints then
+                    Library:Notify({ Title = "Auto Play", Description = (loadErr or "Load failed") .. " for " .. towerName, Duration = 5 })
                     isAutoPlaying = false
                     stopAutoNoclip()
                     return
@@ -1259,20 +1352,7 @@ startAutoPlay = function()
                 until hrp and (hrp.Position - posBeforeTP).Magnitude > 0.1
                 VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
                 if checkDied() then return end
-                local fn, fnErr = loadstring(routeSrc)
-                if not fn then
-                    Library:Notify({ Title = "Auto Play", Description = towerName .. " parse failed: " .. tostring(fnErr), Duration = 5 })
-                    isAutoPlaying = false
-                    stopAutoNoclip()
-                    return
-                end
-                local ok3, getCheckpoints = pcall(fn)
-                if not ok3 or type(getCheckpoints) ~= "function" then
-                    Library:Notify({ Title = "Auto Play", Description = towerName .. " load failed!", Duration = 5 })
-                    isAutoPlaying = false
-                    stopAutoNoclip()
-                    return
-                end
+                -- getCheckpoints was already resolved by loadRouteFn above (before entering).
                 local checkpoints
                 repeat
                     if checkDied() then return end
@@ -1402,27 +1482,12 @@ startAutoPlay = function()
             return
         end
 
-        local routeSrc
-        local ok0, err0 = pcall(function()
-            routeSrc = game:HttpGet(config.routeUrl)
-        end)
-        if not ok0 or not routeSrc then
-            Library:Notify({ Title = "Auto Play", Description = "Fetch failed: " .. tostring(err0), Duration = 5 })
-            isAutoPlaying = false
-            return
-        end
-
-        -- Load the route once and reuse it for every repeat. Re-running loadstring each
-        -- repeat fails on executors that throttle/forward loadstring to a server.
-        local fn, fnErr = loadstring(routeSrc)
-        if not fn then
-            Library:Notify({ Title = "Auto Play", Description = "Parse failed: " .. tostring(fnErr), Duration = 5 })
-            isAutoPlaying = false
-            return
-        end
-        local okLoad, getCheckpoints = pcall(fn)
-        if not okLoad or type(getCheckpoints) ~= "function" then
-            Library:Notify({ Title = "Auto Play", Description = "Load failed: " .. tostring(getCheckpoints), Duration = 5 })
+        -- Load the route once and reuse it for every repeat. PoM XL towers build it in-game
+        -- from their numbered checkpoints; every other tower fetches its route file. (Re-
+        -- running loadstring each repeat fails on executors that forward it to a server.)
+        local getCheckpoints, loadErr = loadRouteFn(config)
+        if not getCheckpoints then
+            Library:Notify({ Title = "Auto Play", Description = loadErr, Duration = 5 })
             isAutoPlaying = false
             return
         end
