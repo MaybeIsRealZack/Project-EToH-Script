@@ -488,10 +488,10 @@ if isPomXL then
                 if tonumber(c.Name) then count = count + 1 end
             end
             if count > 0 and not TowerConfigs[n] then
-                -- Generous default budget (~15s per checkpoint, min 60s) so long Citadels
+                -- Generous default budget (~45s per checkpoint, min 60s) so long Citadels
                 -- don't walk fast enough to trip the server-side skip check. Tune per run
                 -- with the Completion Time fields.
-                local secTotal = math.max(count * 15, 60)
+                local secTotal = math.max(count * 45, 60)
                 SuggestedTimes[n] = { min = tostring(math.floor(secTotal / 60)), sec = tostring(secTotal % 60) }
                 TowerConfigs[n] = {
                     tpFrame    = function() return pomPortal(n) end,
