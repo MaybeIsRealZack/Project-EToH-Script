@@ -72,6 +72,25 @@ local function track(conn)
 end
 
 --============================================================================
+-- Mobile detection
+--============================================================================
+
+-- Touch and no keyboard = phone/tablet. _G.PES_FORCE_MOBILE forces it on so the mobile
+-- layout can be tested from a desktop without needing a phone (see the dev loader).
+local function detectMobile()
+    if _G.PES_FORCE_MOBILE then return true end
+    if _G.PES_FORCE_DESKTOP then return false end
+    local okTiny, tiny = pcall(function()
+        return game:GetService("GuiService"):IsTinyTouchScreen()
+    end)
+    if okTiny and tiny then return true end
+    return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
+Library.IsMobile = detectMobile()
+Library.MobileButtons = {}
+
+--============================================================================
 -- Instance helpers
 --============================================================================
 
@@ -195,6 +214,38 @@ local function makeDraggable(frame, handle)
             and input.UserInputType ~= Enum.UserInputType.Touch then return end
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end))
+end
+
+-- A button that is BOTH movable and tappable: it only fires onTap if the finger barely
+-- moved, so dragging it into place never triggers the action. `moved` is what separates a
+-- tap from a drag -- without it every reposition would also fire the action.
+local TAP_SLOP = 6
+local function makeMovableButton(btn, onTap)
+    local dragging, dragStart, startPos, moved = false, nil, nil, false
+    track(btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging, dragStart, startPos, moved = true, input.Position, btn.Position, false
+        end
+    end))
+    track(btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging and not moved and onTap then pcall(onTap) end
+            dragging = false
+        end
+    end))
+    track(UserInputService.InputChanged:Connect(function(input)
+        if not dragging then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseMovement
+            and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local delta = input.Position - dragStart
+        if math.abs(delta.X) > TAP_SLOP or math.abs(delta.Y) > TAP_SLOP then moved = true end
+        btn.Position = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
             startPos.Y.Scale, startPos.Y.Offset + delta.Y
         )
@@ -1215,8 +1266,24 @@ function Library:CreateWindow(info)
     -- Clamped so it stays usable on small screens too.
     local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
         or Vector2.new(1280, 720)
-    local width  = math.clamp(math.floor(viewport.X * 0.62), 720, 1100)
-    local height = math.clamp(math.floor(viewport.Y * 0.68), 500, 760)
+    local isMobile = Library.IsMobile
+    local width, height
+    if isMobile then
+        -- The desktop minimum (720x500) covered a phone screen completely -- that is the
+        -- "UI covers the whole screen, unplayable" report. Take a fraction of the viewport
+        -- and never exceed it, so there's always game visible around the menu.
+        width  = math.clamp(math.floor(viewport.X * 0.70), 260, 520)
+        height = math.clamp(math.floor(viewport.Y * 0.60), 200, 380)
+        width  = math.min(width,  math.max(240, viewport.X - 40))
+        height = math.min(height, math.max(180, viewport.Y - 60))
+    else
+        width  = math.clamp(math.floor(viewport.X * 0.62), 720, 1100)
+        height = math.clamp(math.floor(viewport.Y * 0.68), 500, 760)
+    end
+    -- Mobile trims the chrome too: a 130px sidebar on a 400px-wide menu leaves no room
+    -- for the controls themselves.
+    local sideW  = isMobile and 86 or 130
+    local titleH = isMobile and 28 or 34
 
     local main = create("Frame", {
         Parent           = ScreenGui,
@@ -1231,7 +1298,7 @@ function Library:CreateWindow(info)
     local titleBar = create("Frame", {
         Parent           = main,
         BackgroundColor3 = Theme.Sidebar,
-        Size             = UDim2.new(1, 0, 0, 34),
+        Size             = UDim2.new(1, 0, 0, titleH),
     })
     corner(titleBar)
 
@@ -1262,18 +1329,18 @@ function Library:CreateWindow(info)
     local sidebar = create("Frame", {
         Parent           = main,
         BackgroundColor3 = Theme.Sidebar,
-        Size             = UDim2.new(0, 130, 1, -60),
-        Position         = UDim2.new(0, 8, 0, 40),
+        Size             = UDim2.new(0, sideW, 1, -(titleH + 26)),
+        Position         = UDim2.new(0, 8, 0, titleH + 6),
     })
     corner(sidebar)
-    padding(sidebar, 6)
+    padding(sidebar, isMobile and 4 or 6)
     listLayout(sidebar, 4)
 
     local pages = create("Frame", {
         Parent                 = main,
         BackgroundTransparency = 1,
-        Size                   = UDim2.new(1, -160, 1, -60),
-        Position               = UDim2.new(0, 148, 0, 40),
+        Size                   = UDim2.new(1, -(sideW + 30), 1, -(titleH + 26)),
+        Position               = UDim2.new(0, sideW + 18, 0, titleH + 6),
     })
 
     local window = {
@@ -1333,6 +1400,28 @@ function Library:CreateWindow(info)
     })
     Library.KeybindFrame = keybindFrame
 
+    -- Mobile: a movable on-screen toggle. The keybind path below is keyboard-only, and a
+    -- phone has no keyboard -- so without this the menu can never be hidden once shown,
+    -- which is the other half of the "unplayable on mobile" report.
+    if isMobile then
+        local fab = create("TextButton", {
+            Parent           = ScreenGui,
+            BackgroundColor3 = Theme.Accent,
+            Size             = UDim2.new(0, 52, 0, 52),
+            Position         = UDim2.new(0, 14, 0, 96),
+            Font             = FONT_BOLD,
+            Text             = "PES",
+            TextColor3       = Theme.Text,
+            TextSize         = TEXT_SIZE,
+            AutoButtonColor  = false,
+        })
+        corner(fab, 26)
+        stroke(fab)
+        accent(fab, "BackgroundColor3")
+        makeMovableButton(fab, function() main.Visible = not main.Visible end)
+        Library.MobileToggle = fab
+    end
+
     Library.Window = window
     Library.MainFrame = main
 
@@ -1368,6 +1457,82 @@ end
 
 function Library:SetDPIScale(scale)
     UIScale.Scale = (tonumber(scale) or 100) / 100
+    return self
+end
+
+--============================================================================
+-- Mobile action buttons -- movable on-screen stand-ins for keybinds
+--============================================================================
+
+-- Registers a draggable on-screen button that runs `callback` when tapped. Meant for the
+-- actions that are keybinds on desktop (fly, noclip, all-jump...), which are unreachable on
+-- a phone. Hidden until SetMobileButtonsVisible(true); they stack down the right side and
+-- can each be dragged wherever the player wants.
+local MOBILE_BTN_W, MOBILE_BTN_H, MOBILE_BTN_GAP = 104, 34, 8
+
+function Library:AddMobileButton(text, callback)
+    local i = #Library.MobileButtons
+    local btn = create("TextButton", {
+        Parent           = ScreenGui,
+        BackgroundColor3 = Theme.Control,
+        Size             = UDim2.new(0, MOBILE_BTN_W, 0, MOBILE_BTN_H),
+        Position         = UDim2.new(1, -(MOBILE_BTN_W + 14), 0, 96 + i * (MOBILE_BTN_H + MOBILE_BTN_GAP)),
+        Font             = FONT_BOLD,
+        Text             = text or ("Button " .. (i + 1)),
+        TextColor3       = Theme.Text,
+        TextSize         = TEXT_SIZE - 1,
+        TextTruncate     = Enum.TextTruncate.AtEnd,
+        AutoButtonColor  = false,
+        Visible          = false,
+    })
+    corner(btn)
+    stroke(btn)
+    -- Brief accent flash so a tap is visibly registered (no hover state on touch).
+    makeMovableButton(btn, function()
+        btn.BackgroundColor3 = Theme.AccentDim
+        task.delay(0.12, function()
+            if btn and btn.Parent then btn.BackgroundColor3 = Theme.Control end
+        end)
+        if callback then callback() end
+    end)
+    local entry = { Button = btn, Text = text }
+    table.insert(Library.MobileButtons, entry)
+    if Library.MobileButtonsShown then btn.Visible = true end
+    return entry
+end
+
+function Library:SetMobileButtonsVisible(state)
+    Library.MobileButtonsShown = state and true or false
+    for _, e in ipairs(Library.MobileButtons) do
+        if e.Button and e.Button.Parent then e.Button.Visible = Library.MobileButtonsShown end
+    end
+    return self
+end
+
+-- Re-stacks them down the right side, undoing any dragging.
+function Library:ResetMobileButtons()
+    for i, e in ipairs(Library.MobileButtons) do
+        if e.Button and e.Button.Parent then
+            e.Button.Position = UDim2.new(1, -(e.Button.AbsoluteSize.X + 14),
+                0, 96 + (i - 1) * (MOBILE_BTN_H + MOBILE_BTN_GAP))
+        end
+    end
+    return self
+end
+
+-- Scales every mobile button (and the menu toggle) so they can be made thumb-sized.
+function Library:SetMobileButtonScale(pct)
+    local s = math.clamp((tonumber(pct) or 100) / 100, 0.6, 2)
+    for _, e in ipairs(Library.MobileButtons) do
+        if e.Button and e.Button.Parent then
+            e.Button.Size = UDim2.new(0, math.floor(MOBILE_BTN_W * s), 0, math.floor(MOBILE_BTN_H * s))
+            e.Button.TextSize = math.floor((TEXT_SIZE - 1) * math.clamp(s, 0.8, 1.6))
+        end
+    end
+    if Library.MobileToggle and Library.MobileToggle.Parent then
+        local d = math.floor(52 * s)
+        Library.MobileToggle.Size = UDim2.new(0, d, 0, d)
+    end
     return self
 end
 
