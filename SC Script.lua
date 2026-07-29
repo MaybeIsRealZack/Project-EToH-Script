@@ -35,6 +35,12 @@ pcall(function()
     end
 end)
 
+-- Dev/testing override: pick a library for this run without touching the saved setting
+-- (the mobile test loader uses it to guarantee the PES UI, which owns the mobile layout).
+if _G.PES_FORCE_UI_STYLE == "PES" or _G.PES_FORCE_UI_STYLE == "Obsidian" or _G.PES_FORCE_UI_STYLE == "Linoria" then
+    uiStyle = _G.PES_FORCE_UI_STYLE
+end
+
 local PES_UI_URL =
     "https://raw.githubusercontent.com/MaybeIsRealZack/Project-EToH-Script/refs/heads/main/PESUI.lua"
 
@@ -3318,6 +3324,65 @@ MenuGroup:AddButton("Unload", function()
     Library:Unload()
 end)
 Library.ToggleKeybind = Options.MenuKeybind
+
+-- ===== Mobile (UI Settings) =====
+-- Phones have no keyboard, so every keybind action is unreachable there. This adds movable
+-- on-screen buttons for them, opt-in via a toggle. Kept in its own function so its locals
+-- don't add to the main chunk's 200-local budget.
+local function _initMobile()
+    local MobileGroup = Tabs.UISettings:AddLeftGroupbox("Mobile")
+
+    -- These controls are PES-UI only; Obsidian/Linoria don't have the mobile API.
+    if type(Library.AddMobileButton) ~= "function" then
+        MobileGroup:AddLabel("Mobile controls need the PES UI style (see UI Style above).", true)
+        return
+    end
+
+    local onMobile = Library.IsMobile and true or false
+    MobileGroup:AddLabel(onMobile
+        and "Mobile detected -- the menu is using its compact size."
+        or  "Desktop detected -- the menu is full size.", true)
+    if onMobile then
+        MobileGroup:AddLabel("Tap the round PES button to hide/show the menu. Drag it, the menu title bar, or any on-screen button to move them.", true)
+    end
+
+    MobileGroup:AddToggle("MobileButtons", {
+        Text    = "On-screen buttons",
+        Default = onMobile,
+        Tooltip = "Movable buttons for the keybind actions. Drag one to reposition it, tap to use it.",
+        Callback = function(value)
+            Library:SetMobileButtonsVisible(value)
+        end,
+    })
+    MobileGroup:AddSlider("MobileButtonScale", {
+        Text     = "Button Size",
+        Default  = 100,
+        Min      = 60,
+        Max      = 200,
+        Rounding = 0,
+        Callback = function(value)
+            Library:SetMobileButtonScale(value)
+        end,
+    })
+    MobileGroup:AddButton("Reset Button Positions", function()
+        Library:ResetMobileButtons()
+    end)
+
+    -- One button per keybind action. Toggles flip through SetValue so the menu checkbox and
+    -- the button never disagree; the All Jump ones call the same functions the keys do.
+    local function flipToggle(name)
+        local t = Library.Toggles[name]
+        if t then t:SetValue(not t.Value) end
+    end
+    Library:AddMobileButton("Fly",         function() flipToggle("Fly") end)
+    Library:AddMobileButton("Noclip",      function() flipToggle("Noclip") end)
+    Library:AddMobileButton("AJ Place",    function() pcall(allJumpPlace) end)
+    Library:AddMobileButton("AJ Remove",   function() pcall(allJumpRemove) end)
+    Library:AddMobileButton("AJ Teleport", function() pcall(allJumpTeleport) end)
+
+    if onMobile then Library:SetMobileButtonsVisible(true) end
+end
+_initMobile()
 
 local CreditsGroup = Tabs.UISettings:AddRightGroupbox("Credits")
 CreditsGroup:AddLabel('<font color="rgb(90,200,255)">[MaybeIsRealZack]</font>  Owner', true)
