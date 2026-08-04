@@ -1107,21 +1107,47 @@ startAutoPlay = function()
         if humanoid.Sit then humanoid.Sit = false end
         humanoid.PlatformStand = true
         local RunService = game:GetService("RunService")
-        local antiGravConn = RunService.Heartbeat:Connect(function()
+        -- Declared before the stabiliser below, which behaves differently once the route
+        -- starts (see there).
+        local walking = false
+        -- Keeps the character from fighting the route tween.
+        --
+        -- While `walking`, the tween is what drives position, so ANY leftover velocity is
+        -- pure interference: a contact that survives noclip shoves the body sideways
+        -- against the tween (stutter, and it can wedge in geometry), and the angular
+        -- velocity from that same contact spins the root part -- which is what throws the
+        -- camera around, since it follows the root's orientation. Zero both.
+        --
+        -- Before the route starts we still walk into the tower under our own power, so
+        -- only gravity is cancelled there; zeroing everything would pin us in place.
+        local function stabilise()
             if hrp and hrp.Parent then
-                hrp.AssemblyLinearVelocity = Vector3.new(
-                    hrp.AssemblyLinearVelocity.X,
-                    0,
-                    hrp.AssemblyLinearVelocity.Z
-                )
+                if walking then
+                    hrp.AssemblyLinearVelocity  = Vector3.zero
+                    hrp.AssemblyAngularVelocity = Vector3.zero
+                else
+                    hrp.AssemblyLinearVelocity = Vector3.new(
+                        hrp.AssemblyLinearVelocity.X,
+                        0,
+                        hrp.AssemblyLinearVelocity.Z
+                    )
+                end
             end
             local h = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Sit then h.Sit = false end
-        end)
+            if h then
+                if h.Sit then h.Sit = false end
+                -- Re-assert: some towers knock the humanoid back out of PlatformStand,
+                -- and once it's walking/standing again it fights the tween too.
+                if walking and not h.PlatformStand then h.PlatformStand = true end
+            end
+        end
+        -- Both sides of the physics step: Heartbeat alone only cleans up AFTER the solver
+        -- has already applied the push, which is a frame of visible spin each time.
+        local antiGravConn  = RunService.Heartbeat:Connect(stabilise)
+        local antiGravConn2 = RunService.Stepped:Connect(stabilise)
         -- Anti-stuck: while walking the route, if the character hasn't moved ~4 studs in
         -- 5s (e.g. caught on a vine or zipline that needs a jump to release), jump to free
         -- it. Runs in parallel with the walk and only acts while `walking` is true.
-        local walking = false
         task.spawn(function()
             local lastPos, lastMove
             while isAutoPlaying do
@@ -1175,9 +1201,14 @@ startAutoPlay = function()
         end)
 
         local function stopAutoNoclip()
+            walking = false
             if antiGravConn then
                 antiGravConn:Disconnect()
                 antiGravConn = nil
+            end
+            if antiGravConn2 then
+                antiGravConn2:Disconnect()
+                antiGravConn2 = nil
             end
             Library.Toggles.Noclip:SetDisabled(false)
             Library.Toggles.Noclip:SetValue(false)
@@ -1989,6 +2020,133 @@ local function _initTowerPortal()
         end,
     })
 
+    -- ===== Automake Route =====
+    -- Builds a route from the tower's own parts instead of a hand-made file: every
+    -- BasePart in its Obby ordered bottom-to-top by height, finishing on the WinPad.
+    -- A tower is a vertical climb, so height order approximates progression well enough
+    -- to autoplay most towers. Note this sorts by POSITION, not by child index --
+    -- Obby:GetChildren() order is effectively arbitrary (early children are grouped
+    -- section models), which is why an index-ordered version was tried and reverted.
+    local function collectAutoRoute(name, descending)
+        local folder = towerFolder(name)
+        if not folder then return nil, name .. " isn't loaded in workspace.Towers." end
+        local obby = folder:FindFirstChild("Obby")
+        if not obby then return nil, name .. " has no Obby folder." end
+
+        local kids    = obby:GetChildren()
+        local indexOf = {}
+        local parts   = {}
+        for i, v in ipairs(kids) do
+            indexOf[v] = i
+            if v:IsA("BasePart") then parts[#parts + 1] = v end
+        end
+        if #parts == 0 then return nil, name .. "'s Obby has no parts." end
+        -- Ascending = climb (lowest part first). Descending = a tower you go DOWN, so the
+        -- highest part is the start and the order flips.
+        if descending then
+            table.sort(parts, function(a, b) return a.Position.Y > b.Position.Y end)
+        else
+            table.sort(parts, function(a, b) return a.Position.Y < b.Position.Y end)
+        end
+
+        local winPad = folder:FindFirstChild("WinPad", true) or folder:FindFirstChild("Winpad", true)
+        return { parts = parts, indexOf = indexOf, winPad = winPad }
+    end
+
+    -- The same route as Lua source, in the exact format the repo's route files use, so it
+    -- can be dropped into Games/EToH/<category>/ as-is.
+    local function autoRouteSource(name, data)
+        local out = { "return function()", "    return {" }
+        for _, part in ipairs(data.parts) do
+            out[#out + 1] = ('        workspace.Towers[%q].Obby:GetChildren()[%d],'):format(name, data.indexOf[part])
+        end
+        if data.winPad then
+            out[#out + 1] = "        " .. (data.winPad:GetFullName():gsub("^Workspace%.", "workspace."))  .. ","
+        end
+        out[#out + 1] = "    }"
+        out[#out + 1] = "end"
+        return table.concat(out, "\n")
+    end
+
+    PortalBox:AddDropdown("AutoRouteOrder", {
+        Text    = "Route Order",
+        Values  = { "Ascending", "Descending" },
+        Default = "Ascending",
+        Tooltip = "Ascending: a normal climb, lowest part first. Descending: a tower you go DOWN, highest part first.",
+    })
+
+    PortalBox:AddButton({
+        Text    = "Automake Route",
+        Tooltip = "Build a route for the selected tower from its own parts in the chosen order, arm it for Auto Play, and save it to a file.",
+        Callback = function()
+            local label = Options.PortalMatch and Options.PortalMatch.Value
+            local name  = label and labelToName[label]
+            if not name then
+                Library:Notify({ Title = "Automake", Description = "Pick a tower first.", Duration = 3 })
+                return
+            end
+
+            -- Read the order once, here, and keep it: the armed route must stay in the
+            -- order it was made in even if the dropdown is changed afterwards.
+            local descending = (Options.AutoRouteOrder and Options.AutoRouteOrder.Value) == "Descending"
+
+            local data, err = collectAutoRoute(name, descending)
+            if not data then
+                Library:Notify({ Title = "Automake", Description = err, Duration = 5 })
+                return
+            end
+
+            -- Resolve live each call so parts that streamed in since still count, and so a
+            -- re-entry after a death doesn't walk stale instances.
+            local function routeFn()
+                local fresh = collectAutoRoute(name, descending)
+                local steps = {}
+                if fresh then
+                    for _, p in ipairs(fresh.parts) do steps[#steps + 1] = p end
+                    if fresh.winPad then steps[#steps + 1] = fresh.winPad end
+                end
+                return steps
+            end
+
+            -- Arm it: loadRouteFn() prefers config.routeFn over fetching a route file, so
+            -- Auto Play uses this immediately with nothing published.
+            local cfgName
+            for n in pairs(TowerConfigs) do
+                if getTpFrameName(n) == name then cfgName = n break end
+            end
+            if cfgName then
+                TowerConfigs[cfgName].routeFn = routeFn
+            else
+                -- Not in the registry at all -- make it selectable so it can be played.
+                cfgName = name
+                TowerConfigs[name] = {
+                    tpFrame    = function() return resolveTPFrame(name) end,
+                    teleportTo = function() return resolveTeleportTo(name) end,
+                    routeFn    = routeFn,
+                }
+                SuggestedTimes[name] = SuggestedTimes[name] or { min = "5", sec = "5" }
+                table.insert(DropdownValues, name)
+                table.sort(DropdownValues)
+                pcall(function() Options.TowerSelect:SetValues(DropdownValues) end)
+            end
+            pcall(function() Options.TowerSelect:SetValue(cfgName) end)
+
+            local saved = ""
+            if type(writefile) == "function" then
+                local ok = pcall(writefile, name .. ".lua", autoRouteSource(name, data))
+                saved = ok and (" Saved to " .. name .. ".lua.") or " (couldn't write the file)"
+            end
+            local dir = descending and "descending" or "ascending"
+            Library:Notify({
+                Title       = "Automake",
+                Description = ("%s: %d checkpoints %s%s, armed for Auto Play.%s"):format(
+                    name, #data.parts, dir, data.winPad and " + WinPad" or " (no WinPad found)", saved),
+                Duration    = 6,
+            })
+            logAction(("Automade a %d-checkpoint %s route for %s"):format(#data.parts, dir, name))
+        end,
+    })
+
     -- Keep scanning: towers stream in and out as you move, so a match that was "(not
     -- loaded)" a second ago may be teleportable now.
     task.spawn(function()
@@ -2135,12 +2293,44 @@ PlayerBox:AddToggle("Noclip", {
         end
         _G.noclipConns = {}
         if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end
+
+        -- Put collision back on everything noclip switched off -- the WORLD and the
+        -- CHARACTER. (Missing the character half is a softlock: the world is solid again
+        -- but you still fall through it.)
+        --
+        -- Only parts that were collidable when we touched them are ever recorded, so this
+        -- can never turn on something the game ships non-collidable -- it strictly undoes
+        -- our own changes. Restored in big batches so the floor is back almost instantly.
+        if _G.noclipChanged then
+            local restoring = _G.noclipChanged
+            _G.noclipChanged = nil
+            task.spawn(function()
+                local n = 0
+                for part in pairs(restoring) do
+                    -- Noclip switched back on mid-restore: stop, or we'd be handing
+                    -- collision back to parts the new pass has just switched off.
+                    if _G.noclipChanged ~= nil then return end
+                    if part and part.Parent then pcall(function() part.CanCollide = true end) end
+                    n += 1
+                    if n % 2000 == 0 then task.wait() end
+                end
+            end)
+        end
+
         if not state then return end
         local conns = _G.noclipConns
 
+        -- Every part noclip switches off is recorded here so it can be switched back on.
+        -- The `part.CanCollide` test is the whole safety rule: a part is only ever recorded
+        -- at the moment it was collidable, so restoring can only ever undo our own work.
+        -- Not weak-keyed -- losing an entry would mean leaving that part non-collidable
+        -- forever; destroyed parts are skipped on restore by the Parent check instead.
+        local changed = {}
+        _G.noclipChanged = changed
         local function forceUncollide(part)
             if part:IsA("BasePart") and part.CanCollide then
                 part.CanCollide = false
+                changed[part] = true
             end
         end
         -- Disable collision on every character part, including the HumanoidRootPart,
@@ -2151,7 +2341,10 @@ PlayerBox:AddToggle("Noclip", {
             if not part:IsA("BasePart") then return end
             forceUncollide(part)
             conns[#conns + 1] = part:GetPropertyChangedSignal("CanCollide"):Connect(function()
-                if part.CanCollide then part.CanCollide = false end
+                if part.CanCollide then
+                    part.CanCollide = false
+                    changed[part] = true      -- it was on again; make sure we hand it back on
+                end
             end)
         end
         local function hookChar(char)
@@ -2162,6 +2355,41 @@ PlayerBox:AddToggle("Noclip", {
 
         hookChar(Players.LocalPlayer.Character)
         conns[#conns + 1] = Players.LocalPlayer.CharacterAdded:Connect(hookChar)
+
+        -- Uncollide the WORLD too, not just the character.
+        --
+        -- Character-only noclip is not enough: a collision needs both sides, so the moment
+        -- the game re-asserts CanCollide on a body part (Pit of Misery does this
+        -- constantly) the contact is back. And a contact does not just add velocity --
+        -- the solver pushes the overlapping parts APART positionally, which is what
+        -- fights the autoplay tween, throws the camera around and wedges you in geometry.
+        -- Zeroing velocity cannot prevent that; the collision has to not exist. Killing it
+        -- on the world side means it survives the character side being re-enabled.
+        --
+        -- The initial pass is spread over frames because a tower game's workspace is tens
+        -- of thousands of parts and doing it in one go is a visible hitch.
+        -- Shares the `changed` record above, so world and character are restored together.
+        local uncollideWorld = forceUncollide
+        -- Repeats, because re-asserted collision on an EXISTING world part is exactly the
+        -- case a one-shot pass plus DescendantAdded would miss -- and re-asserting is the
+        -- thing Pit of Misery does. Incremental (800 parts per frame) with a pause between
+        -- passes, so it stays cheap on a tower-sized workspace.
+        task.spawn(function()
+            while _G.noclipConns == conns do
+                local stack, n = { workspace }, 0
+                while #stack > 0 do
+                    if not (_G.noclipConns == conns) then return end   -- noclip turned off mid-sweep
+                    local inst = table.remove(stack)
+                    uncollideWorld(inst)
+                    for _, kid in ipairs(inst:GetChildren()) do stack[#stack + 1] = kid end
+                    n += 1
+                    if n % 800 == 0 then task.wait() end
+                end
+                task.wait(2)
+            end
+        end)
+        -- Parts that stream in later (new towers, moving platforms) get the same treatment.
+        conns[#conns + 1] = workspace.DescendantAdded:Connect(uncollideWorld)
 
         -- Per-frame sweep on both sides of the physics step, as a fallback for
         -- anything the signal hooks miss.
