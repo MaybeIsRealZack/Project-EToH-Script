@@ -3501,6 +3501,66 @@ end
 MenuGroup:AddDivider()
 MenuGroup:AddLabel("Menu bind")
     :AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
+-- ===== Auto Rejoin =====
+-- Gets you back in after a disconnect/kick instead of leaving the session dead. Kept in
+-- its own function so its locals don't add to the main chunk's 200-local budget.
+local function _initAutoRejoin()
+    local TeleportService = game:GetService("TeleportService")
+    local GuiService      = game:GetService("GuiService")
+    local plr             = game:GetService("Players").LocalPlayer
+
+    local enabled   = true
+    local rejoining = false
+
+    local function rejoinNow()
+        -- One attempt at a time: the error prompt and the teleport-failed signal can both
+        -- fire for the same disconnect, and two teleports at once just fail each other.
+        if rejoining then return end
+        rejoining = true
+        task.delay(15, function() rejoining = false end)
+
+        -- Prefer the same server; if it's gone (or it's a private server, which a client
+        -- can't teleport back into) fall back to any server for this place.
+        local ok = pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+        end)
+        if not ok then
+            pcall(function() TeleportService:Teleport(game.PlaceId, plr) end)
+        end
+    end
+
+    MenuGroup:AddToggle("AutoRejoin", {
+        Text    = "Auto Rejoin on disconnect",
+        Default = true,
+        Tooltip = "Automatically rejoin when you get disconnected or kicked.",
+        Callback = function(value) enabled = value end,
+    })
+
+    -- Primary signal: the client replicator being removed IS the disconnect, so this
+    -- can't be confused with anything else.
+    pcall(function()
+        local net = game:GetService("NetworkClient")
+        net.ChildRemoved:Connect(function()
+            if enabled then task.wait(0.5) rejoinNow() end
+        end)
+    end)
+    -- Backup: the disconnect/kick dialog appearing. Kept because the replicator signal
+    -- doesn't fire on every kick path, but it's the looser of the two -- other errors can
+    -- raise a dialog too, which is what the rejoining guard above is there to contain.
+    pcall(function()
+        GuiService.ErrorMessageChanged:Connect(function()
+            if enabled then task.wait(0.5) rejoinNow() end
+        end)
+    end)
+    -- And retry if the teleport itself is what failed.
+    pcall(function()
+        TeleportService.TeleportInitFailed:Connect(function(who)
+            if enabled and who == plr then task.wait(2) rejoinNow() end
+        end)
+    end)
+end
+_initAutoRejoin()
+
 MenuGroup:AddButton("Rejoin", function()
     local TeleportService = game:GetService("TeleportService")
     local player = game:GetService("Players").LocalPlayer
