@@ -643,11 +643,16 @@ function Groupbox:AddInput(idx, info)
         return self
     end
 
-    -- Finished=false means fire per keystroke (needed for live search boxes);
-    -- otherwise only commit on Enter, matching Obsidian's behaviour.
+    -- Finished=false means fire per keystroke (needed for live search boxes); otherwise
+    -- commit when the box loses focus.
+    --
+    -- Committing only when `enter` was true is what broke saving configs: typing a name
+    -- and then CLICKING the button -- the obvious thing to do -- loses focus without
+    -- Enter, so the value was never committed and the save was told the name was empty.
+    -- Clicking away is just as much a commit as pressing Enter.
     if info.Finished then
-        track(box.FocusLost:Connect(function(enter)
-            if enter then control:SetValue(box.Text) end
+        track(box.FocusLost:Connect(function()
+            control:SetValue(box.Text)
         end))
     else
         track(box:GetPropertyChangedSignal("Text"):Connect(function()
@@ -656,6 +661,9 @@ function Groupbox:AddInput(idx, info)
     end
 
     if info.Callback then control:OnChanged(info.Callback) end
+    -- Exposed so a caller can read what is physically typed right now, without waiting for
+    -- the commit (see SaveManager's Create button).
+    control.Box = box
     Library.Options[idx] = control
     self:Resize()
     return control
@@ -1678,8 +1686,17 @@ function SaveManager:BuildConfigSection(tab)
     box:AddButton({
         Text = "Create",
         Callback = function()
-            local name = Library.Options.SaveManager_ConfigName
-                and Library.Options.SaveManager_ConfigName.Value
+            local ctl  = Library.Options.SaveManager_ConfigName
+            local name = ctl and ctl.Value
+            -- Fall back to what is literally in the box: the commit normally lands first
+            -- when the click steals focus, but never depend on that ordering for a save.
+            if (not name or name == "") and ctl and ctl.Box then name = ctl.Box.Text end
+            name = tostring(name or ""):match("^%s*(.-)%s*$")          -- trim
+            name = name:gsub("[\\/:%*%?\"<>|]", "")                     -- strip path/filename chars
+            if name == "" then
+                Library:Notify({ Title = "Configs", Description = "Type a config name first.", Duration = 4 })
+                return
+            end
             local ok, err = self:Save(name)
             Library:Notify({
                 Title       = "Configs",
