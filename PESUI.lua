@@ -1683,16 +1683,31 @@ function SaveManager:BuildConfigSection(tab)
             and Library.Options.SaveManager_ConfigList.Value
     end
 
+    -- Whatever is in the name box right now, cleaned up. Reads the live text as well as
+    -- the committed value so it works no matter how focus was lost.
+    local function typedName()
+        local ctl = Library.Options.SaveManager_ConfigName
+        local n = ctl and ctl.Value
+        if (not n or n == "") and ctl and ctl.Box then n = ctl.Box.Text end
+        n = tostring(n or ""):match("^%s*(.-)%s*$")
+        return (n:gsub("[\\/:%*%?\"<>|]", ""))
+    end
+
+    -- What the Load/Overwrite/Delete buttons act on: the list selection, falling back to
+    -- the typed name. Without the fallback they act on nil whenever nothing is selected
+    -- in the list yet -- which is what surfaced as a bare "Overwrite failed".
+    local function targetName()
+        local n = selected()
+        if n and n ~= "" then return n end
+        local t = typedName()
+        if t ~= "" then return t end
+        return nil
+    end
+
     box:AddButton({
         Text = "Create",
         Callback = function()
-            local ctl  = Library.Options.SaveManager_ConfigName
-            local name = ctl and ctl.Value
-            -- Fall back to what is literally in the box: the commit normally lands first
-            -- when the click steals focus, but never depend on that ordering for a save.
-            if (not name or name == "") and ctl and ctl.Box then name = ctl.Box.Text end
-            name = tostring(name or ""):match("^%s*(.-)%s*$")          -- trim
-            name = name:gsub("[\\/:%*%?\"<>|]", "")                     -- strip path/filename chars
+            local name = typedName()
             if name == "" then
                 Library:Notify({ Title = "Configs", Description = "Type a config name first.", Duration = 4 })
                 return
@@ -1703,13 +1718,32 @@ function SaveManager:BuildConfigSection(tab)
                 Description = ok and ("Saved '" .. tostring(name) .. "'") or ("Save failed: " .. tostring(err)),
                 Duration    = 4,
             })
-            if ok then Library.Options.SaveManager_ConfigList:SetValues(self:RefreshList()) end
+            if ok then
+                Library.Options.SaveManager_ConfigList:SetValues(self:RefreshList())
+                -- Select it, so Load/Overwrite/Delete have something to act on straight away.
+                pcall(function() Library.Options.SaveManager_ConfigList:SetValue(name) end)
+            end
         end,
     })
+    -- Shared by the buttons below: nothing to act on is a normal situation to explain,
+    -- not a failure to report.
+    local function needTarget()
+        local name = targetName()
+        if not name then
+            Library:Notify({
+                Title       = "Configs",
+                Description = "Pick a config from the list, or type its name above.",
+                Duration    = 4,
+            })
+        end
+        return name
+    end
+
     box:AddButton({
         Text = "Load",
         Callback = function()
-            local name = selected()
+            local name = needTarget()
+            if not name then return end
             local ok, err = self:Load(name)
             Library:Notify({
                 Title       = "Configs",
@@ -1721,19 +1755,25 @@ function SaveManager:BuildConfigSection(tab)
     box:AddButton({
         Text = "Overwrite",
         Callback = function()
-            local name = selected()
-            local ok = self:Save(name)
+            local name = needTarget()
+            if not name then return end
+            -- Keep the error: this used to drop it and report a bare "Overwrite failed",
+            -- which said nothing about why.
+            local ok, err = self:Save(name)
             Library:Notify({
                 Title       = "Configs",
-                Description = ok and ("Overwrote '" .. tostring(name) .. "'") or "Overwrite failed",
+                Description = ok and ("Overwrote '" .. tostring(name) .. "'")
+                    or ("Overwrite failed: " .. tostring(err)),
                 Duration    = 4,
             })
+            if ok then Library.Options.SaveManager_ConfigList:SetValues(self:RefreshList()) end
         end,
     })
     box:AddButton({
         Text = "Delete",
         Callback = function()
-            local name = selected()
+            local name = needTarget()
+            if not name then return end
             self:Delete(name)
             Library.Options.SaveManager_ConfigList:SetValues(self:RefreshList())
             Library:Notify({ Title = "Configs", Description = "Deleted '" .. tostring(name) .. "'", Duration = 4 })
@@ -1742,7 +1782,7 @@ function SaveManager:BuildConfigSection(tab)
     box:AddButton({
         Text = "Set as autoload",
         Callback = function()
-            local name = selected()
+            local name = needTarget()
             if not name then return end
             pcall(function() writefile(self.Folder .. "/autoload.txt", name) end)
             Library:Notify({ Title = "Configs", Description = "Autoload set to '" .. name .. "'", Duration = 4 })
