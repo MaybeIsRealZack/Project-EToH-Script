@@ -2033,12 +2033,18 @@ local function _initTowerPortal()
         local obby = folder:FindFirstChild("Obby")
         if not obby then return nil, name .. " has no Obby folder." end
 
-        local kids    = obby:GetChildren()
-        local indexOf = {}
-        local parts   = {}
-        for i, v in ipairs(kids) do
-            indexOf[v] = i
+        -- Direct children first: that's the usual layout and it keeps the emitted paths
+        -- short. But some towers group their obby into section Models, so the top level
+        -- holds no BaseParts at all -- fall back to the full descendant list instead of
+        -- reporting the Obby as empty (which is what "CoIV's Obby has no parts" was).
+        local parts = {}
+        for _, v in ipairs(obby:GetChildren()) do
             if v:IsA("BasePart") then parts[#parts + 1] = v end
+        end
+        if #parts == 0 then
+            for _, v in ipairs(obby:GetDescendants()) do
+                if v:IsA("BasePart") then parts[#parts + 1] = v end
+            end
         end
         if #parts == 0 then return nil, name .. "'s Obby has no parts." end
         -- Ascending = climb (lowest part first). Descending = a tower you go DOWN, so the
@@ -2050,7 +2056,27 @@ local function _initTowerPortal()
         end
 
         local winPad = folder:FindFirstChild("WinPad", true) or folder:FindFirstChild("Winpad", true)
-        return { parts = parts, indexOf = indexOf, winPad = winPad }
+        return { parts = parts, winPad = winPad, obby = obby }
+    end
+
+    -- Path to a part written relative to the tower's Obby, by child index at every level.
+    -- Index rather than name because obby parts share names constantly, and this has to
+    -- work for parts nested inside section Models, not just direct children.
+    local function pathFromObby(data, part, name)
+        local segs, node = {}, part
+        while node and node ~= data.obby do
+            local parent = node.Parent
+            if not parent then return nil end
+            local idx
+            for i, c in ipairs(parent:GetChildren()) do
+                if c == node then idx = i break end
+            end
+            if not idx then return nil end
+            table.insert(segs, 1, (":GetChildren()[%d]"):format(idx))
+            node = parent
+        end
+        if node ~= data.obby then return nil end
+        return ("workspace.Towers[%q].Obby%s"):format(name, table.concat(segs))
     end
 
     -- The same route as Lua source, in the exact format the repo's route files use, so it
@@ -2058,7 +2084,8 @@ local function _initTowerPortal()
     local function autoRouteSource(name, data)
         local out = { "return function()", "    return {" }
         for _, part in ipairs(data.parts) do
-            out[#out + 1] = ('        workspace.Towers[%q].Obby:GetChildren()[%d],'):format(name, data.indexOf[part])
+            local path = pathFromObby(data, part, name)
+            if path then out[#out + 1] = "        " .. path .. "," end
         end
         if data.winPad then
             out[#out + 1] = "        " .. (data.winPad:GetFullName():gsub("^Workspace%.", "workspace."))  .. ","
