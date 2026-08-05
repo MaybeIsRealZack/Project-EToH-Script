@@ -3599,17 +3599,19 @@ local function _initAutoRejoin()
         rejoining = true
         task.delay(15, function() rejoining = false end)
 
-        -- Private/VIP servers: Roblox blocks clients from teleporting into them, which is
-        -- Error 773 -- TeleportToPlaceInstance does not work for reserved servers, and
-        -- rejoining one needs the access code only the server side ever has. Roblox's own
-        -- Reconnect button fails the same way. So don't fire a teleport that cannot
-        -- succeed and bury the real reason under a 773 dialog; say what happened instead.
+        -- Private/VIP server: the same instance is off the table -- Roblox blocks client
+        -- teleports into them (Error 773), TeleportToPlaceInstance does not work for
+        -- reserved servers, and rejoining one needs an access code only the server side
+        -- ever has. Roblox's own Reconnect fails the same way. Trying it anyway just
+        -- produces a 773 dialog, so go straight to a normal server for the same place:
+        -- a different server, but back in the game instead of stuck on a dead prompt.
         if game.PrivateServerId ~= "" then
             Library:Notify({
                 Title       = "Auto Rejoin",
-                Description = "Disconnected from a private server. Roblox blocks scripts (and its own Reconnect) from rejoining those -- use the private server's link to get back in.",
-                Duration    = 10,
+                Description = "Private server can't be rejoined by a script -- joining a public server for this place instead.",
+                Duration    = 8,
             })
+            pcall(function() TeleportService:Teleport(game.PlaceId, plr) end)
             return
         end
 
