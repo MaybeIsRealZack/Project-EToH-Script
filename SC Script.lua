@@ -2663,6 +2663,7 @@ local godmodeOriginal = nil
 local godmodeV2Connection = nil
 local godmodeKillBrickConn = nil
 local godmodeKillBrickParts = {}
+local godmodeKillBrickToken = nil   -- identity of the current re-sweep; stops the old one
 
 local function isKillBrickPart(inst)
     if not inst:IsA("BasePart") then return false end
@@ -2705,12 +2706,42 @@ local function setGodmodeHook(state)
     if not state then return end
     local damageEvent = getDamageEvent()
     if not damageEvent then return godmodeUnavailable("GodmodeHook") end
-    godmodeOriginal = hookmetamethod(game, "__namecall", function(self, ...)
-        if self == damageEvent and getnamecallmethod() == "FireServer" then
-            return
+
+    -- `original` is captured in its own local rather than read back out of
+    -- `godmodeOriginal`. The hook runs for EVERY namecall in the game, so if godmode is
+    -- switched off (or re-applied) while a call is in flight, reading the shared variable
+    -- could find it nil mid-call and error -- and an erroring hook lets the damage call
+    -- through. This copy can never be cleared out from under it.
+    local original
+    local blocker = function(self, ...)
+        -- Identity check first: a cheap pointer compare that keeps the far more expensive
+        -- getnamecallmethod() off the path of every unrelated namecall in the game. That
+        -- matters when a floor is firing a damage call every few milliseconds.
+        if self == damageEvent then
+            -- Fail SAFE. getnamecallmethod() is the flaky part under a flood -- if it
+            -- throws or returns nothing while calls are stacking up, the old
+            -- `== "FireServer"` test was false and the damage went through, which is
+            -- exactly godmode "sometimes" failing when instakills come thick and fast.
+            -- Anything we can't positively identify as a different method is blocked;
+            -- FireServer is realistically the only thing called on this remote anyway.
+            local ok, method = pcall(getnamecallmethod)
+            if not ok or method == nil or method == "FireServer" then
+                return
+            end
         end
-        return godmodeOriginal(self, ...)
-    end)
+        return original(self, ...)
+    end
+    -- Wrap it so the metamethod stays a C closure. A plain Lua function here adds Lua
+    -- stack frames to every namecall in the game, which under a flood of damage calls can
+    -- overflow the C stack -- the hook then errors and damage lands. This is the likely
+    -- cause of godmode failing only when there are lots of instakills.
+    if type(newcclosure) == "function" then
+        local ok, wrapped = pcall(newcclosure, blocker)
+        if ok and wrapped then blocker = wrapped end
+    end
+
+    original = hookmetamethod(game, "__namecall", blocker)
+    godmodeOriginal = original
 end
 
 -- Auto-Heal: heal back to full whenever health drops (heal loop via DamageEvent).
@@ -2740,6 +2771,7 @@ local function setGodmodeKillBricks(state)
         godmodeKillBrickConn:Disconnect()
         godmodeKillBrickConn = nil
     end
+    godmodeKillBrickToken = nil   -- stop any running re-sweep before changing state
     if not state then
         for part in pairs(godmodeKillBrickParts) do
             if part and part.Parent then part.CanTouch = true end
@@ -2757,12 +2789,33 @@ local function setGodmodeKillBricks(state)
         scanAndDisable(inst)
     end
     godmodeKillBrickConn = workspace.DescendantAdded:Connect(scanAndDisable)
+
+    -- Re-sweep on a timer as well. A one-shot pass plus DescendantAdded misses a kill
+    -- brick that ALREADY existed and had its CanTouch turned back on -- towers re-enable
+    -- them, and a floor full of instakills is exactly where one slipping through is fatal.
+    -- Incremental so a tower-sized workspace doesn't hitch.
+    local token = {}
+    godmodeKillBrickToken = token
+    task.spawn(function()
+        while godmodeKillBrickToken == token do
+            local stack, n = { workspace }, 0
+            while #stack > 0 do
+                if godmodeKillBrickToken ~= token then return end
+                local inst = table.remove(stack)
+                scanAndDisable(inst)
+                for _, kid in ipairs(inst:GetChildren()) do stack[#stack + 1] = kid end
+                n += 1
+                if n % 800 == 0 then task.wait() end
+            end
+            task.wait(2)
+        end
+    end)
 end
 
 PlayerBox:AddToggle("GodmodeHook", {
     Text    = "Godmode: Hook Damage",
     Default = UNCSupport.Godmode,
-    Tooltip = "Blocks ALL damage by hooking the game's DamageEvent so the damage call never reaches the server -- you simply never take damage. The cleanest, most reliable method, but needs executor support for hookmetamethod + getnamecallmethod (greyed out if unsupported).",
+    Tooltip = "Blocks ALL damage by hooking the game's DamageEvent so the damage call never reaches the server -- you simply never take damage. The cleanest method, but needs executor support for hookmetamethod + getnamecallmethod (greyed out if unsupported). On floors that spam instakills, turn on Kill Bricks as well: that stops the touches happening at all, instead of filtering a flood of damage calls.",
     Callback = function(state)
         if state and not UNCSupport.Godmode then
             Library.Toggles.GodmodeHook:SetValue(false)
