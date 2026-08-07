@@ -3709,6 +3709,144 @@ MenuGroup:AddButton("Unload", function()
 end)
 Library.ToggleKeybind = Options.MenuKeybind
 
+-- ===== Auto Chat =====
+-- Sends a message into chat on a timer -- either a live status line or your own text,
+-- which can embed the same live values through placeholders. Kept in its own function so
+-- its locals don't add to the main chunk's 200-local budget.
+local function _initAutoChat()
+    local ChatBox = Tabs.Main:AddRightGroupbox("Auto Chat")
+
+    local enabled     = false
+    local intervalSec = 60
+    local mode        = "Status log"
+    local customText  = "PES running -- {tower} ({status}) at {time}"
+    local startedAt   = os.clock()
+    local sentCount   = 0
+
+    -- Roblox has two chat systems and games use one or the other, so try the modern one
+    -- and fall back to the legacy remote.
+    local function sendChat(msg)
+        local sent = false
+        pcall(function()
+            local TCS = game:GetService("TextChatService")
+            if TCS.ChatVersion == Enum.ChatVersion.TextChatService then
+                local channels = TCS:FindFirstChild("TextChannels")
+                local general  = channels and channels:FindFirstChild("RBXGeneral")
+                if general then
+                    general:SendAsync(msg)
+                    sent = true
+                end
+            end
+        end)
+        if sent then return true end
+        pcall(function()
+            local events = game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents")
+            local say    = events and events:FindFirstChild("SayMessageRequest")
+            if say then
+                say:FireServer(msg, "All")
+                sent = true
+            end
+        end)
+        return sent
+    end
+
+    local function mmss(seconds)
+        seconds = math.max(math.floor(seconds), 0)
+        return ("%d:%02d"):format(math.floor(seconds / 60), seconds % 60)
+    end
+
+    -- The live values, shared by both modes.
+    local function values()
+        local tower = "none"
+        pcall(function() tower = tostring(Library.Options.TowerSelect.Value or "none") end)
+        return {
+            tower   = tower,
+            status  = isAutoPlaying and "auto playing" or "idle",
+            steps   = tostring(currentResolvedSteps and #currentResolvedSteps or 0),
+            time    = os.date("%H:%M:%S"),
+            elapsed = mmss(os.clock() - startedAt),
+            sent    = tostring(sentCount + 1),
+        }
+    end
+
+    local function buildMessage()
+        local v = values()
+        if mode == "Status log" then
+            return ("[PES] %s | %s | %s steps | up %s"):format(v.tower, v.status, v.steps, v.elapsed)
+        end
+        -- Custom: substitute any {placeholder} we know, leave unknown ones alone.
+        return (customText:gsub("{(%w+)}", function(key) return v[key] end))
+    end
+
+    ChatBox:AddToggle("AutoChat", {
+        Text    = "Auto Chat",
+        Default = false,
+        Tooltip = "Send a chat message on a timer.",
+        Callback = function(state)
+            enabled = state
+            if state then startedAt = os.clock() end
+        end,
+    })
+    ChatBox:AddInput("AutoChatInterval", {
+        Text        = "Interval (s)",
+        Default     = "60",
+        Numeric     = true,
+        Placeholder = "60",
+        Tooltip     = "Seconds between messages. Held to 8s minimum -- Roblox rate-limits chat and will drop messages sent faster than that.",
+        Callback    = function(value)
+            intervalSec = math.max(tonumber(value) or 60, 8)
+        end,
+    })
+    ChatBox:AddDropdown("AutoChatMode", {
+        Text    = "Message",
+        Values  = { "Status log", "Custom message" },
+        Default = "Status log",
+        Tooltip = "Status log posts a live line about what the script is doing. Custom message sends your own text.",
+        Callback = function(value) mode = value end,
+    })
+    ChatBox:AddInput("AutoChatText", {
+        Text        = "Custom text",
+        Default     = customText,
+        Finished    = false,
+        Placeholder = "Message, may use {tower} {status} ...",
+        Tooltip     = "Used by Custom message. Placeholders get replaced with live values: {tower} {status} {steps} {time} {elapsed} {sent}.",
+        Callback    = function(value) customText = value or "" end,
+    })
+    ChatBox:AddButton({
+        Text    = "Send now",
+        Tooltip = "Send the message immediately, to check how it reads.",
+        Callback = function()
+            local msg = buildMessage()
+            if msg == "" then
+                Library:Notify({ Title = "Auto Chat", Description = "The message is empty.", Duration = 4 })
+                return
+            end
+            if sendChat(msg) then
+                sentCount = sentCount + 1
+                logAction("Auto Chat sent: " .. msg)
+            else
+                Library:Notify({ Title = "Auto Chat", Description = "Couldn't find a chat system to send through.", Duration = 5 })
+            end
+        end,
+    })
+    ChatBox:AddLabel("Repeating the exact same text gets filtered by Roblox -- include a changing value like {time} if you send often.", true)
+
+    task.spawn(function()
+        local nextAt = 0
+        while not Library.Unloaded do
+            task.wait(1)
+            if enabled and os.clock() >= nextAt then
+                nextAt = os.clock() + intervalSec
+                local msg = buildMessage()
+                if msg ~= "" and sendChat(msg) then
+                    sentCount = sentCount + 1
+                end
+            end
+        end
+    end)
+end
+_initAutoChat()
+
 -- ===== Mobile (UI Settings) =====
 -- Phones have no keyboard, so every keybind action is unreachable there. This adds movable
 -- on-screen buttons for them, opt-in via a toggle. Kept in its own function so its locals
