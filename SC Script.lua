@@ -3718,8 +3718,10 @@ local function _initAutoChat()
 
     local enabled     = false
     local intervalSec = 60
-    local mode        = "Status log"
-    local customText  = "PES running -- {tower} ({status}) at {time}"
+    -- Empty means "use the status log". There is deliberately no mode setting: having one
+    -- meant you could type a message and have it silently ignored because the mode was
+    -- still on Status log, which is exactly what happened.
+    local customText  = ""
     local startedAt   = os.clock()
     local sentCount   = 0
 
@@ -3755,7 +3757,8 @@ local function _initAutoChat()
         return ("%d:%02d"):format(math.floor(seconds / 60), seconds % 60)
     end
 
-    -- The live values, shared by both modes.
+    -- The live values: used by the status log, and available to a typed message as
+    -- {placeholders}.
     local function values()
         local tower = "none"
         pcall(function() tower = tostring(Library.Options.TowerSelect.Value or "none") end)
@@ -3771,11 +3774,14 @@ local function _initAutoChat()
 
     local function buildMessage()
         local v = values()
-        if mode == "Status log" then
+        local text = customText:match("^%s*(.-)%s*$")
+        if text == "" then
+            -- Nothing typed: send the status log.
             return ("[PES] %s | %s | %s steps | up %s"):format(v.tower, v.status, v.steps, v.elapsed)
         end
-        -- Custom: substitute any {placeholder} we know, leave unknown ones alone.
-        return (customText:gsub("{(%w+)}", function(key) return v[key] end))
+        -- Whatever you typed, with any {placeholder} we know substituted in. Unknown ones
+        -- are left as-is rather than blanked.
+        return (text:gsub("{(%w+)}", function(key) return v[key] end))
     end
 
     ChatBox:AddToggle("AutoChat", {
@@ -3797,19 +3803,12 @@ local function _initAutoChat()
             intervalSec = math.max(tonumber(value) or 60, 8)
         end,
     })
-    ChatBox:AddDropdown("AutoChatMode", {
-        Text    = "Message",
-        Values  = { "Status log", "Custom message" },
-        Default = "Status log",
-        Tooltip = "Status log posts a live line about what the script is doing. Custom message sends your own text.",
-        Callback = function(value) mode = value end,
-    })
     ChatBox:AddInput("AutoChatText", {
-        Text        = "Custom text",
-        Default     = customText,
+        Text        = "Message (empty = status log)",
+        Default     = "",
         Finished    = false,
-        Placeholder = "Message, may use {tower} {status} ...",
-        Tooltip     = "Used by Custom message. Placeholders get replaced with live values: {tower} {status} {steps} {time} {elapsed} {sent}.",
+        Placeholder = "Leave empty for the status log",
+        Tooltip     = "Type a message to send that instead of the status log. Placeholders are replaced with live values: {tower} {status} {steps} {time} {elapsed} {sent}. Clear the box to go back to the status log.",
         Callback    = function(value) customText = value or "" end,
     })
     ChatBox:AddButton({
@@ -3829,7 +3828,7 @@ local function _initAutoChat()
             end
         end,
     })
-    ChatBox:AddLabel("Repeating the exact same text gets filtered by Roblox -- include a changing value like {time} if you send often.", true)
+    ChatBox:AddLabel("Empty box sends a live status line. Anything you type is sent instead, with {tower} {status} {steps} {time} {elapsed} {sent} filled in. Roblox filters identical repeats, so include a changing value like {time} if you send often.", true)
 
     task.spawn(function()
         local nextAt = 0
