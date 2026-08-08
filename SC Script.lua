@@ -1877,6 +1877,153 @@ local kb_AJTeleport = AllJumpBox:AddLabel("Teleport"):AddKeyPicker("AJTeleport",
 })
 Options.AJTeleport:OnClick(allJumpTeleport)
 
+-- ===== Game All-Jump (Pit of Misery XL) =====
+-- Not the All Jump Mode above -- that one is ours (fake checkpoints we place and teleport
+-- to). This drives the GAME's own All-Jump: a practice mode PoM XL grants you from its
+-- in-tower menu (MenuGui > MainFrame > Options > AllJump), whose handler fires
+-- ReplicatedStorage.ChangeMode with the string "All-Jump". All this does is press that
+-- button for you -- on entering a tower, and again after every respawn, since the mode
+-- lives on the Character and a new character loses it.
+--
+-- It mirrors the game handler's own three checks (in a tower / character exists / no mode
+-- active yet) instead of firing regardless, so the remote never sees a call the game
+-- itself wouldn't have sent.
+--
+-- Its own function so its locals stay out of the main chunk's 200-local budget.
+local activateGameAllJump   -- set only where the mode exists; the mobile section reads it
+
+local function _initGameAllJump()
+    local Players           = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+    -- FindFirstChild, never a bare WaitForChild: this runs during load, and in a place with
+    -- no ChangeMode an unbounded yield here would silently halt every line below it (the
+    -- exact bug getDamageEvent exists to avoid).
+    local function modeRemote()
+        local remote = ReplicatedStorage:FindFirstChild("ChangeMode")
+        return (remote and remote:IsA("RemoteEvent")) and remote or nil
+    end
+
+    -- Only build the controls where the mode actually exists. EToH has no ChangeMode, and a
+    -- toggle that can never do anything is worse than no toggle at all.
+    if not (isPomXL or modeRemote()) then return end
+
+    local MODE      = "All-Jump"
+    local enabled   = false
+    local busy      = false
+    local attempts  = 0     -- reset whenever the tower or the character changes
+    local lastTower, lastChar
+
+    -- The three things the game's own handler checks before it will fire.
+    local function towerState()
+        local plr  = Players.LocalPlayer
+        local char = plr.Character
+        return plr:GetAttribute("CurrentTower"),
+               char,
+               char and char:GetAttribute("CURRENT_TOWER_MODE") or nil
+    end
+
+    -- Fire once, then wait for the server to confirm by setting CURRENT_TOWER_MODE on the
+    -- character. Confirming rather than assuming matters because the server has its own
+    -- checks and can refuse silently. Returns ok, reason.
+    local function activate()
+        if busy then return false, "already trying" end
+        local remote = modeRemote()
+        if not remote then return false, "this place has no ChangeMode remote" end
+
+        local tower, char, mode = towerState()
+        if not tower then return false, "you're not in a tower" end
+        if not char  then return false, "no character" end
+        if mode then
+            if mode == MODE then return false, "All-Jump is already on" end
+            return false, ("the " .. tostring(mode) .. " mode is already active -- restart or leave the tower first")
+        end
+
+        busy = true
+        if not pcall(function() remote:FireServer(MODE) end) then
+            busy = false
+            return false, "the remote call was blocked"
+        end
+
+        local deadline = os.clock() + 2
+        while os.clock() < deadline do
+            task.wait(0.1)
+            local _, _, nowMode = towerState()
+            if nowMode then
+                busy = false
+                Library:Notify({ Title = "Game All-Jump", Description = "All-Jump is on.", Duration = 3 })
+                logAction("Game All-Jump activated")
+                return true
+            end
+        end
+        busy = false
+        return false, "the game didn't accept it"
+    end
+
+    -- Manual press (button / mobile button): always say why nothing happened, and hand the
+    -- auto loop a fresh set of tries.
+    local function activateAnnounced()
+        local ok, reason = activate()
+        if not ok then
+            Library:Notify({
+                Title       = "Game All-Jump",
+                Description = "Couldn't turn it on: " .. tostring(reason) .. ".",
+                Duration    = 5,
+            })
+        end
+        attempts = 0
+    end
+    activateGameAllJump = activateAnnounced
+
+    local GameAJBox = Tabs.Main:AddLeftGroupbox("Game All-Jump (PoM XL)")
+    GameAJBox:AddToggle("AutoGameAllJump", {
+        Text    = "Auto All-Jump",
+        Default = false,
+        Tooltip = "Switch on the game's own All-Jump as soon as you're in a tower, and again after every respawn.",
+        Callback = function(state)
+            enabled  = state
+            attempts = 0
+        end,
+    })
+    GameAJBox:AddButton({
+        Text     = "All-Jump Now",
+        Tooltip  = "Switch it on for the tower you're in right now.",
+        Callback = function() task.spawn(activateAnnounced) end,
+    })
+    GameAJBox:AddLabel("This is the game's own practice mode (the AllJump button in its tower menu), so the tower may not count as completed -- switch it off for real runs.", true)
+
+    -- One polling loop rather than a web of attribute/CharacterAdded connections: entering a
+    -- tower, respawning and the game clearing the mode all look the same from here. Capped
+    -- at 3 tries per tower+character so a server that keeps refusing isn't spammed; the
+    -- 1s tick plus activate()'s 2s confirm wait keeps them ~3s apart.
+    task.spawn(function()
+        while not Library.Unloaded do
+            task.wait(1)
+            if enabled and not busy then
+                local tower, char, mode = towerState()
+                if tower and char and not mode then
+                    if tower ~= lastTower or char ~= lastChar then
+                        lastTower, lastChar, attempts = tower, char, 0
+                    end
+                    if attempts < 3 then
+                        attempts = attempts + 1
+                        local ok, reason = activate()
+                        if not ok and attempts >= 3 then
+                            Library:Notify({
+                                Title       = "Game All-Jump",
+                                Description = "Gave up after 3 tries (" .. tostring(reason)
+                                    .. "). Re-enter the tower or respawn to try again.",
+                                Duration    = 6,
+                            })
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+_initGameAllJump()
+
 -- Tower Portal: type an acronym, get live matches, teleport to that tower's entry portal.
 --
 -- Kept inside its own function so its locals live in this function's registers rather than
@@ -3900,6 +4047,10 @@ local function _initMobile()
     Library:AddMobileButton("AJ Place",    function() pcall(allJumpPlace) end)
     Library:AddMobileButton("AJ Remove",   function() pcall(allJumpRemove) end)
     Library:AddMobileButton("AJ Teleport", function() pcall(allJumpTeleport) end)
+    -- Only where the game has the mode (PoM XL) -- elsewhere the button would do nothing.
+    if activateGameAllJump then
+        Library:AddMobileButton("All-Jump", function() task.spawn(activateGameAllJump) end)
+    end
 
     if onMobile then Library:SetMobileButtonsVisible(true) end
 end
