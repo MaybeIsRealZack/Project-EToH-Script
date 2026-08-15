@@ -158,6 +158,7 @@ return {
         { name = "ToTC",  category = "Ring1S", suggestedTime = { min = "3", sec = "0" } },
         { name = "SoC",  category = "Ring1S", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoHP",  category = "Ring1S", suggestedTime = { min = "2", sec = "0" } },
+        { name = "ToIS",  category = "Ring1S", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToMB",  category = "Ring1S", suggestedTime = { min = "3", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
