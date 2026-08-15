@@ -184,6 +184,7 @@ return {
     },
     TowerRush = {
         { name = "R1TR", category = "Ring1", suggestedTime = { min = "39", sec = "0" }, isTowerRush = true, },
+        { name = "R3TR", category = "Ring3", suggestedTime = { min = "39", sec = "0" }, isTowerRush = true, },
         { name = "R5TR", category = "Ring5", suggestedTime = { min = "33", sec = "0" }, isTowerRush = true, },
         { name = "R9TR", category = "Ring9", suggestedTime = { min = "40", sec = "0" }, isTowerRush = true, },
         { name = "PoMTR", category = "Pit-of-Misery", places = 15639952229, suggestedTime = { min = "200", sec = "0" }, isTowerRush = true, },
