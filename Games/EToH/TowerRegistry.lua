@@ -150,6 +150,7 @@ return {
         --Zone 9
         { name = "ToEMP",  category = "Zone9", suggestedTime = { min = "3", sec = "5" } },
         --Ring 1S
+        { name = "TIPAT",  category = "Ring1S", suggestedTime = { min = "0", sec = "10" } },
         { name = "SoMD",  category = "Ring1S", suggestedTime = { min = "2", sec = "0" } },
         { name = "ToJGF",  category = "Ring1S", suggestedTime = { min = "3", sec = "0" } },
         { name = "SoLW",  category = "Ring1S", suggestedTime = { min = "2", sec = "0" } },
