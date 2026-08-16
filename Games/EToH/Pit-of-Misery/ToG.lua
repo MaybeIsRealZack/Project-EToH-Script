@@ -30,7 +30,7 @@ return function()
         workspace.Towers["ToG"].Obby:GetChildren()[59],
         workspace.Parts:GetChildren()[10],
         workspace.Towers:GetChildren()[25]:GetChildren()[6]:GetChildren()[3]:GetChildren()[1],
-        { type = "wait", seconds = 7 },
+        { type = "wait", seconds = 13 },
         workspace.Parts:GetChildren()[251],
         workspace.Parts:GetChildren()[253],
         workspace.Parts:GetChildren()[254],
