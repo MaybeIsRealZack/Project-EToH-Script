@@ -168,7 +168,7 @@ return {
         { name = "ToBT",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToCA",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToNS",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
-        { name = "ToCP",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
+        { name = "ToCP",  category = "Ring9", suggestedTime = { min = "5", sec = "30" } },
         { name = "ToFaCT",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToBK",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToJE",  category = "Ring9", suggestedTime = { min = "3", sec = "5" } },
