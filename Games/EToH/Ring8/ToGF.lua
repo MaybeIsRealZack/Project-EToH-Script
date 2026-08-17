@@ -2142,7 +2142,6 @@ return function()
     route[#route + 1] = makeWaypoint(-1569.533, 1551.000, 2361.345)
     route[#route + 1] = makeWaypoint(-1564.540, 1550.715, 2366.688)
     route[#route + 1] = makeWaypoint(-1571.941, 1522.000, 2359.207)
-    route[#route + 1] = { type = "wait", seconds = 30 }
     route[#route + 1] = makeWaypoint(-1574.644, 1509.000, 2357.077)
     route[#route + 1] = makeWaypoint(-1572.880, 1509.000, 2366.996)
     route[#route + 1] = makeWaypoint(-1572.326, 1509.000, 2379.702)
