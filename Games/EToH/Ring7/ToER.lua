@@ -1,878 +1,754 @@
 return function()
-    return {
-        workspace.ClientParts.LightingChangers:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[27],
-        workspace.Towers.ToER.Obby:GetChildren()[31],
-        workspace.Towers.ToER.Obby:GetChildren()[32],
-        workspace.Towers.ToER.Obby:GetChildren()[30],
-        workspace.Towers.ToER.Obby:GetChildren()[33],
-        workspace.Towers.ToER.Obby:GetChildren()[34],
-        workspace.Towers.ToER.Obby:GetChildren()[1]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[1]:GetChildren()[2],
-        workspace.Towers.ToER.Obby:GetChildren()[1]:GetChildren()[3],
-        workspace.Towers.ToER.Obby:GetChildren()[1]:GetChildren()[7],
-        workspace.Towers.ToER.Obby:GetChildren()[35],
-        workspace.Towers.ToER.Obby:GetChildren()[59],
-        workspace.Towers.ToER.Obby:GetChildren()[37],
-        workspace.Towers.ToER.Obby:GetChildren()[39],
-        workspace.Towers.ToER.Obby:GetChildren()[41],
-        workspace.Towers.ToER.Obby:GetChildren()[42],
-        workspace.Towers.ToER.Obby:GetChildren()[418],
-        workspace.Towers.ToER.Obby:GetChildren()[46],
-        workspace.Towers.ToER.Obby:GetChildren()[49],
-        workspace.Towers.ToER.Obby:GetChildren()[51],
-        workspace.Towers.ToER.Obby:GetChildren()[53],
-        workspace.Towers.ToER.Obby:GetChildren()[55],
-        workspace.Towers.ToER.Obby:GetChildren()[81],
-        workspace.Towers.ToER.Obby:GetChildren()[1617],
-        workspace.Towers.ToER.Obby:GetChildren()[1619],
-        workspace.Towers.ToER.Obby:GetChildren()[1624],
-        workspace.Towers.ToER.Obby:GetChildren()[1623],
-        workspace.Towers.ToER.Obby:GetChildren()[75],
-        workspace.Towers.ToER.Obby:GetChildren()[68],
-        workspace.Towers.ToER.Obby:GetChildren()[64],
-        workspace.Towers.ToER.Obby:GetChildren()[78],
-        workspace.Towers.ToER.Obby:GetChildren()[65],
-        workspace.Towers.ToER.Obby:GetChildren()[69],
-        workspace.Towers.ToER.Obby:GetChildren()[71],
-        workspace.Towers.ToER.Obby:GetChildren()[74],
-        workspace.Towers.ToER.Obby:GetChildren()[96],
-        workspace.Towers.ToER.Obby:GetChildren()[80],
-        workspace.Towers.ToER.Obby:GetChildren()[1630],
-        workspace.Towers.ToER.Obby:GetChildren()[1751],
-        workspace.Towers.ToER.Obby:GetChildren()[1718],
-        workspace.Towers.ToER.Obby:GetChildren()[1631],
-        workspace.Towers.ToER.Obby:GetChildren()[1748],
-        workspace.Towers.ToER.Obby:GetChildren()[1632],
-        workspace.Towers.ToER.Obby:GetChildren()[84],
-        workspace.Towers.ToER.Obby:GetChildren()[85],
-        workspace.Towers.ToER.Obby:GetChildren()[87],
-        workspace.Towers.ToER.Obby:GetChildren()[88],
-        workspace.Towers.ToER.Obby:GetChildren()[89],
-        workspace.Towers.ToER.Obby:GetChildren()[91],
-        workspace.Towers.ToER.Obby:GetChildren()[93],
-        workspace.Towers.ToER.Obby:GetChildren()[1756],
-        workspace.Towers.ToER.Obby:GetChildren()[94],
-        workspace.Towers.ToER.Obby:GetChildren()[97],
-        workspace.Towers.ToER.Obby:GetChildren()[99],
-        workspace.Towers.ToER.Obby:GetChildren()[102],
-        workspace.Towers.ToER.Obby:GetChildren()[103],
-        workspace.Towers.ToER.Obby:GetChildren()[100],
-        workspace.Towers.ToER.Obby:GetChildren()[104],
-        workspace.ClientParts.KillBricks:GetChildren()[71],
-        workspace.Towers.ToER.Obby:GetChildren()[108],
-        workspace.Towers.ToER.Obby:GetChildren()[109],
-        workspace.Towers.ToER.Obby:GetChildren()[110],
-        workspace.Towers.ToER.Obby:GetChildren()[111],
-        workspace.Towers.ToER.Obby:GetChildren()[112],
-        workspace.Towers.ToER.Obby:GetChildren()[113],
-        workspace.Towers.ToER.Obby:GetChildren()[114],
-        workspace.Towers.ToER.Obby:GetChildren()[116],
-        workspace.Towers.ToER.Obby:GetChildren()[118],
-        workspace.Towers.ToER.Obby:GetChildren()[117],
-        workspace.Towers.ToER.Obby:GetChildren()[119],
-        workspace.Towers.ToER.Obby:GetChildren()[2]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[2]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[120],
-        workspace.Towers.ToER.Obby:GetChildren()[3]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[3]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[3]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[121],
-        workspace.Towers.ToER.Obby:GetChildren()[123],
-        workspace.Towers.ToER.Obby:GetChildren()[124],
-        workspace.Towers.ToER.Obby:GetChildren()[126],
-        workspace.Towers.ToER.Obby:GetChildren()[127],
-        workspace.Towers.ToER.Obby:GetChildren()[128],
-        workspace.Towers.ToER.Obby:GetChildren()[129],
-        workspace.ClientParts.KillBricks:GetChildren()[13],
-        workspace.ClientParts.KillBricks:GetChildren()[12],
-        workspace.Towers.ToER.Obby:GetChildren()[131],
-        workspace.Towers.ToER.Obby:GetChildren()[132],
-        workspace.Towers.ToER.Obby:GetChildren()[1674],
-        workspace.Towers.ToER.Obby:GetChildren()[135],
-        workspace.Towers.ToER.Obby:GetChildren()[136],
-        workspace.Towers.ToER.Obby:GetChildren()[148],
-        workspace.Towers.ToER.Obby:GetChildren()[138],
-        workspace.Towers.ToER.Obby:GetChildren()[141],
-        workspace.Towers.ToER.Obby:GetChildren()[143],
-        workspace.Towers.ToER.Obby:GetChildren()[146],
-        workspace.Towers.ToER.Obby:GetChildren()[1802],
-        workspace.Towers.ToER.Obby:GetChildren()[149],
-        workspace.Towers.ToER.Obby:GetChildren()[152],
-        workspace.Towers.ToER.Obby:GetChildren()[153],
-        workspace.Towers.ToER.Frame:GetChildren()[24],
-        workspace.Towers.ToER.Obby:GetChildren()[154],
-        workspace.Towers.ToER.Obby:GetChildren()[155],
-        workspace.Towers.ToER.Obby:GetChildren()[157],
-        workspace.Towers.ToER.Obby:GetChildren()[1665],
-        workspace.Towers.ToER.Obby:GetChildren()[160],
-        workspace.Towers.ToER.Obby:GetChildren()[164],
-        workspace.Towers.ToER.Obby:GetChildren()[165],
-        workspace.Towers.ToER.Obby:GetChildren()[1638],
-        workspace.Towers.ToER.Obby:GetChildren()[1641],
-        workspace.Towers.ToER.Obby:GetChildren()[1640],
-        workspace.Towers.ToER.Obby:GetChildren()[166],
-        workspace.Towers.ToER.Obby:GetChildren()[1639],
-        workspace.Towers.ToER.Obby:GetChildren()[159],
-        workspace.Towers.ToER.Obby:GetChildren()[1643],
-        workspace.Towers.ToER.Obby:GetChildren()[167],
-        workspace.Towers.ToER.Obby:GetChildren()[168],
-        workspace.Towers.ToER.Obby:GetChildren()[169],
-        workspace.Towers.ToER.Obby:GetChildren()[171],
-        workspace.Towers.ToER.Obby:GetChildren()[173],
-        workspace.Towers.ToER.Obby:GetChildren()[170],
-        workspace.Towers.ToER.Obby:GetChildren()[175],
-        workspace.Towers.ToER.Obby:GetChildren()[178],
-        workspace.Towers.ToER.Obby:GetChildren()[1655],
-        workspace.Towers.ToER.Obby:GetChildren()[181],
-        workspace.Towers.ToER.Obby:GetChildren()[182],
-        workspace.Towers.ToER.Obby:GetChildren()[184],
-        workspace.Towers.ToER.Frame:GetChildren()[84],
-        workspace.Towers.ToER.Frame:GetChildren()[64],
-        workspace.Towers.ToER.Frame:GetChildren()[118],
-        workspace.Towers.ToER.Frame:GetChildren()[53],
-        workspace.Towers.ToER.Frame:GetChildren()[58],
-        workspace.Towers.ToER.Frame:GetChildren()[57],
-        workspace.ClientParts.KillBricks:GetChildren()[18],
-        workspace.ClientParts.KillBricks:GetChildren()[17],
-        workspace.ClientParts.KillBricks:GetChildren()[19],
-        workspace.ClientParts.KillBricks:GetChildren()[20],
-        workspace.ClientParts.KillBricks:GetChildren()[21],
-        workspace.ClientParts:GetChildren()[10]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[10]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[211],
-        workspace.ClientParts.DistanceAnchoringObjects["Spinning Platform"]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[214],
-        workspace.Towers.ToER.Obby:GetChildren()[215],
-        workspace.Towers.ToER.Obby:GetChildren()[217],
-        workspace.Towers.ToER.Obby:GetChildren()[1646],
-        workspace.Towers.ToER.Obby:GetChildren()[220],
-        workspace.Towers.ToER.Obby:GetChildren()[218],
-        workspace.Towers.ToER.Obby:GetChildren()[1648],
-        workspace.Towers.ToER.Obby:GetChildren()[219],
-        workspace.Towers.ToER.Obby:GetChildren()[222],
-        workspace.Towers.ToER.Obby:GetChildren()[212],
-        workspace.Towers.ToER.Obby:GetChildren()[223],
-        workspace.Towers.ToER.Obby:GetChildren()[224],
-        workspace.Towers.ToER.Obby:GetChildren()[227],
-        workspace.Towers.ToER.Obby:GetChildren()[228],
-        workspace.Towers.ToER.Obby:GetChildren()[230],
-        workspace.Towers.ToER.Obby:GetChildren()[231],
-        workspace.Towers.ToER.Obby:GetChildren()[237],
-        workspace.Towers.ToER.Obby:GetChildren()[1650],
-        workspace.Towers.ToER.Obby:GetChildren()[233],
-        workspace.Towers.ToER.Obby:GetChildren()[236],
-        workspace.Towers.ToER.Obby:GetChildren()[234],
-        workspace.ClientParts:GetChildren()[15]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[15]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[1653],
-        workspace.Towers.ToER.Obby:GetChildren()[241],
-        workspace.Towers.ToER.Obby:GetChildren()[243],
-        workspace.Towers.ToER.Obby:GetChildren()[245],
-        workspace.Towers.ToER.Obby:GetChildren()[246],
-        workspace.Towers.ToER.Obby:GetChildren()[247],
-        workspace.Towers.ToER.Obby:GetChildren()[249],
-        workspace.ClientParts.KillBricks:GetChildren()[27],
-        workspace.Towers.ToER.Obby:GetChildren()[1654],
-        workspace.Towers.ToER.Obby:GetChildren()[252],
-        workspace.Towers.ToER.Obby:GetChildren()[1664],
-        workspace.Towers.ToER.Obby:GetChildren()[253],
-        workspace.Towers.ToER.Obby:GetChildren()[254],
-        workspace.Towers.ToER.Obby:GetChildren()[255],
-        workspace.Towers.ToER.Frame:GetChildren()[63],
-        workspace.Towers.ToER.Frame:GetChildren()[70],
-        workspace.Towers.ToER.Obby:GetChildren()[256],
-        workspace.Towers.ToER.Obby:GetChildren()[257],
-        workspace.Towers.ToER.Obby:GetChildren()[258],
-        workspace.Towers.ToER.Obby:GetChildren()[259],
-        workspace.Towers.ToER.Obby:GetChildren()[261],
-        workspace.Towers.ToER.Obby:GetChildren()[4]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[4]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[263],
-        workspace.Towers.ToER.Obby:GetChildren()[5]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[5]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[5]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[264],
-        workspace.Towers.ToER.Obby:GetChildren()[6]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[6]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[6]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[6]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[265],
-        workspace.Towers.ToER.Obby:GetChildren()[1649],
-        workspace.Towers.ToER.Obby:GetChildren()[267],
-        workspace.Towers.ToER.Obby:GetChildren()[270],
-        workspace.Towers.ToER.Obby:GetChildren()[271],
-        workspace.Towers.ToER.Obby:GetChildren()[273],
-        workspace.Towers.ToER.Obby:GetChildren()[274],
-        workspace.Towers.ToER.Obby:GetChildren()[275],
-        workspace.Towers.ToER.Obby:GetChildren()[276],
-        workspace.Towers.ToER.Obby:GetChildren()[1666],
-        workspace.Towers.ToER.Obby:GetChildren()[281],
-        workspace.Towers.ToER.Obby:GetChildren()[282],
-        workspace.Towers.ToER.Obby:GetChildren()[283],
-        workspace.Towers.ToER.Obby:GetChildren()[284],
-        workspace.Towers.ToER.Obby:GetChildren()[1269],
-        workspace.Towers.ToER.Obby:GetChildren()[287],
-        workspace.ClientParts.KillBricks:GetChildren()[24],
-        workspace.Towers.ToER.Obby:GetChildren()[1657],
-        workspace.Towers.ToER.Frame:GetChildren()[55],
-        workspace.Towers.ToER.Frame:GetChildren()[85],
-        workspace.Towers.ToER.Obby:GetChildren()[280],
-        workspace.Towers.ToER.Frame:GetChildren()[88],
-        workspace.ClientParts.KillBricks:GetChildren()[26],
-        workspace.ClientParts:GetChildren()[16]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[16]:GetChildren()[5],
-        workspace.Towers.ToER.Frame:GetChildren()[100],
-        workspace.Towers.ToER.Frame:GetChildren()[103],
-        workspace.Towers.ToER.Obby:GetChildren()[292],
-        workspace.Towers.ToER.Obby:GetChildren()[293],
-        workspace.Towers.ToER.Obby:GetChildren()[294],
-        workspace.Towers.ToER.Obby:GetChildren()[1669],
-        workspace.Towers.ToER.Obby:GetChildren()[297],
-        workspace.Towers.ToER.Obby:GetChildren()[298],
-        workspace.Towers.ToER.Obby:GetChildren()[301],
-        workspace.Towers.ToER.Frame:GetChildren()[105],
-        workspace.Towers.ToER.Obby:GetChildren()[302],
-        workspace.Towers.ToER.Obby:GetChildren()[304],
-        workspace.Towers.ToER.Obby:GetChildren()[305],
-        workspace.Towers.ToER.Obby:GetChildren()[306],
-        workspace.Towers.ToER.Obby:GetChildren()[288],
-        workspace.Towers.ToER.Frame:GetChildren()[82],
-        workspace.Towers.ToER.Frame:GetChildren()[116],
-        workspace.Towers.ToER.Obby:GetChildren()[367],
-        workspace.Towers.ToER.Obby:GetChildren()[368],
-        workspace.Towers.ToER.Obby:GetChildren()[369],
-        workspace.Towers.ToER.Obby:GetChildren()[370],
-        workspace.Towers.ToER.Obby:GetChildren()[377],
-        workspace.Towers.ToER.Obby:GetChildren()[379],
-        workspace.Towers.ToER.Obby:GetChildren()[380],
-        workspace.Towers.ToER.Obby:GetChildren()[382],
-        workspace.Towers.ToER.Obby:GetChildren()[1633],
-        workspace.Towers.ToER.Obby:GetChildren()[385],
-        workspace.Towers.ToER.Obby:GetChildren()[386],
-        workspace.Towers.ToER.Obby:GetChildren()[389],
-        workspace.Towers.ToER.Obby:GetChildren()[400],
-        workspace.Towers.ToER.Obby:GetChildren()[409],
-        workspace.Towers.ToER.Obby:GetChildren()[403],
-        workspace.Towers.ToER.Obby:GetChildren()[404],
-        workspace.Towers.ToER.Obby:GetChildren()[405],
-        workspace.Towers.ToER.Obby:GetChildren()[407],
-        workspace.Towers.ToER.Obby:GetChildren()[408],
-        workspace.Towers.ToER.Obby:GetChildren()[406],
-        workspace.Towers.ToER.Obby:GetChildren()[410],
-        workspace.Towers.ToER.Obby:GetChildren()[414],
-        workspace.Towers.ToER.Obby:GetChildren()[413],
-        workspace.Towers.ToER.Obby:GetChildren()[412],
-        workspace.Towers.ToER.Obby:GetChildren()[415],
-        workspace.Towers.ToER.Obby:GetChildren()[416],
-        workspace.Towers.ToER.Obby:GetChildren()[417],
-        workspace.Towers.ToER.Obby:GetChildren()[419],
-        workspace.Towers.ToER.Obby:GetChildren()[421],
-        workspace.Towers.ToER.Obby:GetChildren()[420],
-        workspace.Towers.ToER.Obby:GetChildren()[422],
-        workspace.Towers.ToER.Obby:GetChildren()[424],
-        workspace.Towers.ToER.Obby:GetChildren()[425],
-        workspace.Towers.ToER.Obby:GetChildren()[427],
-        workspace.Towers.ToER.Obby:GetChildren()[428],
-        workspace.Towers.ToER.Obby:GetChildren()[444],
-        workspace.Towers.ToER.Obby:GetChildren()[426],
-        workspace.Towers.ToER.Obby:GetChildren()[429],
-        workspace.Towers.ToER.Obby:GetChildren()[431],
-        workspace.Towers.ToER.Obby:GetChildren()[432],
-        workspace.Towers.ToER.Obby:GetChildren()[433],
-        workspace.Towers.ToER.Obby:GetChildren()[435],
-        workspace.Towers.ToER.Obby:GetChildren()[436],
-        workspace.Towers.ToER.Obby:GetChildren()[437],
-        workspace.Towers.ToER.Obby:GetChildren()[438],
-        workspace.Towers.ToER.Obby:GetChildren()[441],
-        workspace.Towers.ToER.Obby:GetChildren()[440],
-        workspace.Towers.ToER.Obby:GetChildren()[439],
-        workspace.Towers.ToER.Obby:GetChildren()[7]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[7]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[442],
-        workspace.Towers.ToER.Obby:GetChildren()[445],
-        workspace.Towers.ToER.Obby:GetChildren()[447],
-        workspace.Towers.ToER.Obby:GetChildren()[443],
-        workspace.Towers.ToER.Obby:GetChildren()[448],
-        workspace.Towers.ToER.Obby:GetChildren()[451],
-        workspace.Towers.ToER.Obby:GetChildren()[453],
-        workspace.Towers.ToER.Obby:GetChildren()[1677],
-        workspace.Towers.ToER.Obby:GetChildren()[456],
-        workspace.Towers.ToER.Obby:GetChildren()[455],
-        workspace.Towers.ToER.Obby:GetChildren()[457],
-        workspace.Towers.ToER.Obby:GetChildren()[459],
-        workspace.Towers.ToER.Obby:GetChildren()[462],
-        workspace.Towers.ToER.Obby:GetChildren()[463],
-        workspace.Towers.ToER.Obby:GetChildren()[465],
-        workspace.Towers.ToER.Obby:GetChildren()[466],
-        workspace.Towers.ToER.Obby:GetChildren()[467],
-        workspace.Towers.ToER.Obby:GetChildren()[468],
-        workspace.Towers.ToER.Obby:GetChildren()[471],
-        workspace.Towers.ToER.Obby:GetChildren()[472],
-        workspace.ClientParts:GetChildren()[14]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[14]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[476],
-        workspace.Towers.ToER.Obby:GetChildren()[477],
-        workspace.Towers.ToER.Obby:GetChildren()[478],
-        workspace.Towers.ToER.Obby:GetChildren()[479],
-        workspace.Towers.ToER.Obby:GetChildren()[481],
-        workspace.Towers.ToER.Obby:GetChildren()[482],
-        workspace.Towers.ToER.Obby:GetChildren()[483],
-        workspace.Towers.ToER.Obby:GetChildren()[484],
-        workspace.Towers.ToER.Obby:GetChildren()[486],
-        workspace.Towers.ToER.Obby:GetChildren()[487],
-        workspace.Towers.ToER.Obby:GetChildren()[488],
-        workspace.Towers.ToER.Obby:GetChildren()[489],
-        workspace.Towers.ToER.Obby:GetChildren()[492],
-        workspace.ClientParts.KillBricks:GetChildren()[49],
-        workspace.Towers.ToER.Obby:GetChildren()[494],
-        workspace.Towers.ToER.Obby:GetChildren()[495],
-        workspace.Towers.ToER.Obby:GetChildren()[1679],
-        workspace.Towers.ToER.Obby:GetChildren()[497],
-        workspace.Towers.ToER.Obby:GetChildren()[498],
-        workspace.Towers.ToER.Obby:GetChildren()[499],
-        workspace.Towers.ToER.Obby:GetChildren()[501],
-        workspace.ClientParts.KillBricks:GetChildren()[63],
-        workspace.ClientParts.KillBricks:GetChildren()[65],
-        workspace.Towers.ToER.Obby:GetChildren()[502],
-        workspace.Towers.ToER.Obby:GetChildren()[9]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[9]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[9]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[9]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[503],
-        workspace.Towers.ToER.Obby:GetChildren()[8]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[8]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[8]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[504],
-        workspace.Towers.ToER.Obby:GetChildren()[10]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[10]:GetChildren()[2],
-        workspace.Towers.ToER.Obby:GetChildren()[10]:GetChildren()[6],
-        workspace.Towers.ToER.Obby:GetChildren()[10]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[505],
-        workspace.Towers.ToER.Obby:GetChildren()[1680],
-        workspace.Towers.ToER.Obby:GetChildren()[1683],
-        workspace.Towers.ToER.Obby:GetChildren()[506],
-        workspace.ClientParts:GetChildren()[13]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[13]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[511],
-        workspace.Towers.ToER.Obby:GetChildren()[513],
-        workspace.Towers.ToER.Obby:GetChildren()[512],
-        workspace.Towers.ToER.Obby:GetChildren()[515],
-        workspace.Towers.ToER.Obby:GetChildren()[517],
-        workspace.ClientParts.KillBricks:GetChildren()[73],
-        workspace.Towers.ToER.Obby:GetChildren()[521],
-        workspace.Towers.ToER.Obby:GetChildren()[522],
-        workspace.Towers.ToER.Obby:GetChildren()[523],
-        workspace.Towers.ToER.Obby:GetChildren()[524],
-        workspace.ClientParts.KillBricks:GetChildren()[74],
-        workspace.Towers.ToER.Obby:GetChildren()[525],
-        workspace.ClientParts.KillBricks:GetChildren()[78],
-        workspace.Towers.ToER.Obby:GetChildren()[526],
-        workspace.Towers.ToER.Obby:GetChildren()[527],
-        workspace.Towers.ToER.Obby:GetChildren()[528],
-        workspace.Towers.ToER.Obby:GetChildren()[1685],
-        workspace.Towers.ToER.Obby:GetChildren()[531],
-        workspace.Towers.ToER.Obby:GetChildren()[532],
-        workspace.ClientParts:GetChildren()[3]:GetChildren()[4],
-        workspace.ClientParts.LightingChangers:GetChildren()[2],
-        workspace.Towers.ToER.Obby:GetChildren()[536],
-        workspace.Towers.ToER.Obby:GetChildren()[538],
-        workspace.Towers.ToER.Obby:GetChildren()[540],
-        workspace.Towers.ToER.Obby:GetChildren()[13],
-        workspace.Towers.ToER.Obby:GetChildren()[542],
-        workspace.Towers.ToER.Obby:GetChildren()[544],
-        workspace.Towers.ToER.Obby:GetChildren()[545],
-        workspace.Towers.ToER.Obby:GetChildren()[546],
-        workspace.Towers.ToER.Obby:GetChildren()[561],
-        workspace.Towers.ToER.Obby:GetChildren()[548],
-        workspace.Towers.ToER.Obby:GetChildren()[549],
-        workspace.Towers.ToER.Obby:GetChildren()[1799],
-        workspace.Towers.ToER.Obby:GetChildren()[550],
-        workspace.Towers.ToER.Obby:GetChildren()[551],
-        workspace.Towers.ToER.Obby:GetChildren()[553],
-        workspace.Towers.ToER.Obby:GetChildren()[559],
-        workspace.Towers.ToER.Obby:GetChildren()[562],
-        workspace.Towers.ToER.Obby:GetChildren()[565],
-        workspace.Towers.ToER.Obby:GetChildren()[566],
-        workspace.Towers.ToER.Obby:GetChildren()[568],
-        workspace.Towers.ToER.Obby:GetChildren()[570],
-        workspace.Towers.ToER.Obby:GetChildren()[572],
-        workspace.Towers.ToER.Obby:GetChildren()[573],
-        workspace.Towers.ToER.Obby:GetChildren()[574],
-        workspace.Towers.ToER.Obby:GetChildren()[1686],
-        workspace.Towers.ToER.Obby:GetChildren()[575],
-        workspace.Towers.ToER.Obby:GetChildren()[11]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[11]:GetChildren()[3],
-        workspace.Towers.ToER.Obby:GetChildren()[11]:GetChildren()[6],
-        workspace.Towers.ToER.Obby:GetChildren()[11]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[576],
-        workspace.Towers.ToER.Obby:GetChildren()[1656],
-        workspace.Towers.ToER.Obby:GetChildren()[578],
-        workspace.Towers.ToER.Obby:GetChildren()[580],
-        workspace.Towers.ToER.Obby:GetChildren()[581],
-        workspace.Towers.ToER.Obby:GetChildren()[584],
-        workspace.Towers.ToER.Obby:GetChildren()[585],
-        workspace.Towers.ToER.Obby:GetChildren()[1687],
-        workspace.Towers.ToER.Obby:GetChildren()[590],
-        workspace.Towers.ToER.Obby:GetChildren()[593],
-        workspace.Towers.ToER.Obby:GetChildren()[1688],
-        workspace.Towers.ToER.Obby:GetChildren()[602],
-        workspace.Towers.ToER.Obby:GetChildren()[603],
-        workspace.Towers.ToER.Obby:GetChildren()[604],
-        workspace.Towers.ToER.Obby:GetChildren()[1700],
-        workspace.Towers.ToER.Obby:GetChildren()[607],
-        workspace.Towers.ToER.Obby:GetChildren()[608],
-        workspace.Towers.ToER.Obby:GetChildren()[610],
-        workspace.Towers.ToER.Obby:GetChildren()[611],
-        workspace.Towers.ToER.Obby:GetChildren()[613],
-        workspace.Towers.ToER.Obby:GetChildren()[601],
-        workspace.Towers.ToER.Obby:GetChildren()[1689],
-        workspace.Towers.ToER.Obby:GetChildren()[1693],
-        workspace.Towers.ToER.Obby:GetChildren()[614],
-        workspace.Towers.ToER.Obby:GetChildren()[616],
-        workspace.Towers.ToER.Obby:GetChildren()[617],
-        workspace.Towers.ToER.Obby:GetChildren()[1697],
-        workspace.Towers.ToER.Obby:GetChildren()[618],
-        workspace.Towers.ToER.Obby:GetChildren()[619],
-        workspace.Towers.ToER.Obby:GetChildren()[635],
-        workspace.Towers.ToER.Obby:GetChildren()[622],
-        workspace.Towers.ToER.Obby:GetChildren()[623],
-        workspace.Towers.ToER.Obby:GetChildren()[628],
-        workspace.Towers.ToER.Obby:GetChildren()[629],
-        workspace.Towers.ToER.Obby:GetChildren()[632],
-        workspace.Towers.ToER.Obby:GetChildren()[634],
-        workspace.Towers.ToER.Obby:GetChildren()[630],
-        workspace.Towers.ToER.Obby:GetChildren()[621],
-        workspace.Towers.ToER.Obby:GetChildren()[636],
-        workspace.Towers.ToER.Obby:GetChildren()[638],
-        workspace.Towers.ToER.Obby:GetChildren()[639],
-        workspace.Towers.ToER.Obby:GetChildren()[640],
-        workspace.Towers.ToER.Obby:GetChildren()[642],
-        workspace.ClientParts.KillBricks:GetChildren()[77],
-        workspace.ClientParts.KillBricks:GetChildren()[79],
-        workspace.Towers.ToER.Obby:GetChildren()[645],
-        workspace.Towers.ToER.Obby:GetChildren()[646],
-        workspace.Towers.ToER.Obby:GetChildren()[647],
-        workspace.Towers.ToER.Obby:GetChildren()[648],
-        workspace.Towers.ToER.Obby:GetChildren()[649],
-        workspace.Towers.ToER.Obby:GetChildren()[651],
-        workspace.Towers.ToER.Obby:GetChildren()[652],
-        workspace.Towers.ToER.Obby:GetChildren()[654],
-        workspace.Towers.ToER.Obby:GetChildren()[666],
-        workspace.Towers.ToER.Obby:GetChildren()[668],
-        workspace.Towers.ToER.Obby:GetChildren()[670],
-        workspace.Towers.ToER.Obby:GetChildren()[671],
-        workspace.Towers.ToER.Obby:GetChildren()[672],
-        workspace.Towers.ToER.Obby:GetChildren()[673],
-        workspace.Towers.ToER.Obby:GetChildren()[678],
-        workspace.Towers.ToER.Obby:GetChildren()[680],
-        workspace.Towers.ToER.Obby:GetChildren()[682],
-        workspace.Towers.ToER.Obby:GetChildren()[685],
-        workspace.Towers.ToER.Obby:GetChildren()[686],
-        workspace.Towers.ToER.Obby:GetChildren()[1706],
-        workspace.Towers.ToER.Obby:GetChildren()[1708],
-        workspace.Towers.ToER.Obby:GetChildren()[689],
-        workspace.Towers.ToER.Obby:GetChildren()[691],
-        workspace.Towers.ToER.Obby:GetChildren()[696],
-        workspace.Towers.ToER.Obby:GetChildren()[698],
-        workspace.Towers.ToER.Obby:GetChildren()[699],
-        workspace.Towers.ToER.Obby:GetChildren()[701],
-        workspace.Towers.ToER.Obby:GetChildren()[703],
-        workspace.Towers.ToER.Obby:GetChildren()[706],
-        workspace.Towers.ToER.Obby:GetChildren()[708],
-        workspace.Towers.ToER.Obby:GetChildren()[709],
-        workspace.Towers.ToER.Obby:GetChildren()[712],
-        workspace.Towers.ToER.Obby:GetChildren()[714],
-        workspace.Towers.ToER.Obby:GetChildren()[715],
-        workspace.Towers.ToER.Obby:GetChildren()[716],
-        workspace.Towers.ToER.Obby:GetChildren()[717],
-        workspace.Towers.ToER.Obby:GetChildren()[718],
-        workspace.Towers.ToER.Obby:GetChildren()[720],
-        workspace.Towers.ToER.Obby:GetChildren()[713],
-        workspace.Towers.ToER.Obby:GetChildren()[722],
-        workspace.Towers.ToER.Obby:GetChildren()[710],
-        workspace.Towers.ToER.Obby:GetChildren()[721],
-        workspace.Towers.ToER.Obby:GetChildren()[768],
-        workspace.Towers.ToER.Obby:GetChildren()[725],
-        workspace.Towers.ToER.Obby:GetChildren()[727],
-        workspace.Towers.ToER.Obby:GetChildren()[726],
-        workspace.Towers.ToER.Obby:GetChildren()[728],
-        workspace.Towers.ToER.Obby:GetChildren()[729],
-        workspace.Towers.ToER.Obby:GetChildren()[769],
-        workspace.Towers.ToER.Obby:GetChildren()[730],
-        workspace.Towers.ToER.Obby:GetChildren()[1707],
-        workspace.Towers.ToER.Obby:GetChildren()[735],
-        workspace.Towers.ToER.Obby:GetChildren()[737],
-        workspace.Towers.ToER.Obby:GetChildren()[740],
-        workspace.Towers.ToER.Obby:GetChildren()[1711],
-        workspace.Towers.ToER.Obby:GetChildren()[742],
-        workspace.Towers.ToER.Obby:GetChildren()[1803],
-        workspace.Towers.ToER.Obby:GetChildren()[743],
-        workspace.Towers.ToER.Obby:GetChildren()[745],
-        workspace.Towers.ToER.Obby:GetChildren()[12]:GetChildren()[1],
-        workspace.Towers.ToER.Obby:GetChildren()[12]:GetChildren()[4],
-        workspace.Towers.ToER.Obby:GetChildren()[12]:GetChildren()[8],
-        workspace.Towers.ToER.Obby:GetChildren()[752],
-        workspace.Towers.ToER.Obby:GetChildren()[753],
-        workspace.Towers.ToER.Obby:GetChildren()[755],
-        workspace.Towers.ToER.Obby:GetChildren()[757],
-        workspace.Towers.ToER.Obby:GetChildren()[754],
-        workspace.Towers.ToER.Obby:GetChildren()[767],
-        workspace.ClientParts.KillBricks:GetChildren()[82],
-        workspace.Towers.ToER.Obby:GetChildren()[759],
-        workspace.Towers.ToER.Obby:GetChildren()[760],
-        workspace.Towers.ToER.Obby:GetChildren()[762],
-        workspace.Towers.ToER.Obby:GetChildren()[1796],
-        workspace.ClientParts:GetChildren()[4]:GetChildren()[4],
-        workspace.ClientParts.LightingChangers:GetChildren()[3],
-        workspace.Towers.ToER.Obby:GetChildren()[771],
-        workspace.Towers.ToER.Obby:GetChildren()[773],
-        workspace.ClientParts.KillBricks:GetChildren()[84],
-        workspace.Towers.ToER.Obby:GetChildren()[1713],
-        workspace.Towers.ToER.Obby:GetChildren()[776],
-        workspace.Towers.ToER.Obby:GetChildren()[777],
-        workspace.Towers.ToER.Obby:GetChildren()[775],
-        workspace.Towers.ToER.Obby:GetChildren()[774],
-        workspace.Towers.ToER.Obby:GetChildren()[772],
-        workspace.Towers.ToER.Obby:GetChildren()[781],
-        workspace.Towers.ToER.Obby:GetChildren()[784],
-        workspace.Towers.ToER.Obby:GetChildren()[787],
-        workspace.Towers.ToER.Obby:GetChildren()[790],
-        workspace.Towers.ToER.Obby:GetChildren()[793],
-        workspace.Towers.ToER.Obby:GetChildren()[794],
-        workspace.Towers.ToER.Obby:GetChildren()[1270],
-        workspace.Towers.ToER.Obby:GetChildren()[796],
-        workspace.Towers.ToER.Obby:GetChildren()[797],
-        workspace.Towers.ToER.Obby:GetChildren()[798],
-        workspace.ClientParts.KillBricks:GetChildren()[86],
-        workspace.Towers.ToER.Obby:GetChildren()[799],
-        workspace.Towers.ToER.Obby:GetChildren()[800],
-        workspace.Towers.ToER.Obby:GetChildren()[801],
-        workspace.Towers.ToER.Obby:GetChildren()[1720],
-        workspace.Towers.ToER.Obby:GetChildren()[803],
-        workspace.Towers.ToER.Obby:GetChildren()[804],
-        workspace.Towers.ToER.Obby:GetChildren()[805],
-        workspace.Towers.ToER.Obby:GetChildren()[806],
-        workspace.Towers.ToER.Obby:GetChildren()[807],
-        workspace.Towers.ToER.Obby:GetChildren()[810],
-        workspace.Towers.ToER.Obby:GetChildren()[811],
-        workspace.Towers.ToER.Obby:GetChildren()[812],
-        workspace.Towers.ToER.Obby:GetChildren()[813],
-        workspace.Towers.ToER.Obby:GetChildren()[814],
-        workspace.Towers.ToER.Obby:GetChildren()[815],
-        workspace.Towers.ToER.Obby:GetChildren()[816],
-        workspace.Towers.ToER.Obby:GetChildren()[820],
-        workspace.Towers.ToER.Obby:GetChildren()[822],
-        workspace.Towers.ToER.Obby:GetChildren()[890],
-        workspace.Towers.ToER.Obby:GetChildren()[824],
-        workspace.Towers.ToER.Obby:GetChildren()[823],
-        workspace.Towers.ToER.Obby:GetChildren()[827],
-        workspace.Towers.ToER.Obby:GetChildren()[829],
-        workspace.Towers.ToER.Obby:GetChildren()[831],
-        workspace.Towers.ToER.Obby:GetChildren()[832],
-        workspace.Towers.ToER.Obby:GetChildren()[834],
-        workspace.Towers.ToER.Obby:GetChildren()[836],
-        workspace.Towers.ToER.Obby:GetChildren()[838],
-        workspace.Towers.ToER.Obby:GetChildren()[839],
-        workspace.Towers.ToER.Obby:GetChildren()[840],
-        workspace.Towers.ToER.Obby:GetChildren()[837],
-        workspace.ClientParts:GetChildren()[2]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[2]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[843],
-        workspace.Towers.ToER.Obby:GetChildren()[845],
-        workspace.Towers.ToER.Obby:GetChildren()[846],
-        workspace.Towers.ToER.Obby:GetChildren()[848],
-        workspace.Towers.ToER.Obby:GetChildren()[850],
-        workspace.Towers.ToER.Obby:GetChildren()[851],
-        workspace.Towers.ToER.Obby:GetChildren()[853],
-        workspace.Towers.ToER.Obby:GetChildren()[854],
-        workspace.Towers.ToER.Obby:GetChildren()[855],
-        workspace.Towers.ToER.Obby:GetChildren()[1268],
-        workspace.ClientParts:GetChildren()[1]:GetChildren()[2],
-        workspace.ClientParts:GetChildren()[6]:GetChildren()[2],
-        workspace.Towers.ToER.Obby:GetChildren()[859],
-        workspace.Towers.ToER.Obby:GetChildren()[860],
-        workspace.Towers.ToER.Obby:GetChildren()[878],
-        workspace.Towers.ToER.Obby:GetChildren()[861],
-        workspace.Towers.ToER.Obby:GetChildren()[856],
-        workspace.Towers.ToER.Obby:GetChildren()[863],
-        workspace.ClientParts:GetChildren()[8]:GetChildren()[4],
-        workspace.ClientParts:GetChildren()[8]:GetChildren()[5],
-        workspace.Towers.ToER.Obby:GetChildren()[867],
-        workspace.Towers.ToER.Obby:GetChildren()[868],
-        workspace.Towers.ToER.Obby:GetChildren()[869],
-        workspace.Towers.ToER.Obby:GetChildren()[882],
-        workspace.Towers.ToER.Obby:GetChildren()[872],
-        workspace.Towers.ToER.Obby:GetChildren()[873],
-        workspace.Towers.ToER.Obby:GetChildren()[870],
-        workspace.Towers.ToER.Obby:GetChildren()[871],
-        workspace.Towers.ToER.Obby:GetChildren()[874],
-        workspace.Towers.ToER.Obby:GetChildren()[875],
-        workspace.Towers.ToER.Obby:GetChildren()[1734],
-        workspace.Towers.ToER.Obby:GetChildren()[879],
-        workspace.Towers.ToER.Obby:GetChildren()[880],
-        workspace.Towers.ToER.Obby:GetChildren()[877],
-        workspace.Towers.ToER.Obby:GetChildren()[1738],
-        workspace.Towers.ToER.Obby:GetChildren()[1736],
-        workspace.Towers.ToER.Obby:GetChildren()[1740],
-        workspace.Towers.ToER.Obby:GetChildren()[1735],
-        workspace.Towers.ToER.Obby:GetChildren()[1739],
-        workspace.Towers.ToER.Obby:GetChildren()[885],
-        workspace.Towers.ToER.Obby:GetChildren()[886],
-        workspace.Towers.ToER.Obby:GetChildren()[826],
-        workspace.Towers.ToER.Obby:GetChildren()[887],
-        workspace.Towers.ToER.Obby:GetChildren()[888],
-        workspace.ClientParts.KillBricks:GetChildren()[89],
-        workspace.Towers.ToER.Frame:GetChildren()[137],
-        workspace.Towers.ToER.Obby:GetChildren()[892],
-        workspace.Towers.ToER.Obby:GetChildren()[1725],
-        workspace.Towers.ToER.Obby:GetChildren()[1742],
-        workspace.Towers.ToER.Obby:GetChildren()[894],
-        workspace.Towers.ToER.Obby:GetChildren()[895],
-        workspace.Towers.ToER.Obby:GetChildren()[1744],
-        workspace.Towers.ToER.Obby:GetChildren()[898],
-        workspace.Towers.ToER.Obby:GetChildren()[899],
-        workspace.Towers.ToER.Obby:GetChildren()[902],
-        workspace.Towers.ToER.Obby:GetChildren()[903],
-        workspace.Towers.ToER.Obby:GetChildren()[904],
-        workspace.Towers.ToER.Obby:GetChildren()[1745],
-        workspace.Towers.ToER.Obby:GetChildren()[900],
-        workspace.Towers.ToER.Obby:GetChildren()[905],
-        workspace.Towers.ToER.Obby:GetChildren()[906],
-        workspace.Towers.ToER.Obby:GetChildren()[908],
-        workspace.Towers.ToER.Obby:GetChildren()[909],
-        workspace.Towers.ToER.Obby:GetChildren()[910],
-        workspace.Towers.ToER.Obby:GetChildren()[911],
-        workspace.Towers.ToER.Obby:GetChildren()[913],
-        workspace.Towers.ToER.Obby:GetChildren()[914],
-        workspace.ClientParts.KillBricks:GetChildren()[104],
-        workspace.ClientParts.KillBricks:GetChildren()[105],
-        workspace.ClientParts.KillBricks:GetChildren()[106],
-        workspace.Towers.ToER.Obby:GetChildren()[915],
-        workspace.Towers.ToER.Obby:GetChildren()[917],
-        workspace.Towers.ToER.Obby:GetChildren()[1761],
-        workspace.Towers.ToER.Obby:GetChildren()[918],
-        workspace.Towers.ToER.Obby:GetChildren()[933],
-        workspace.Towers.ToER.Obby:GetChildren()[936],
-        workspace.Towers.ToER.Obby:GetChildren()[934],
-        workspace.Towers.ToER.Obby:GetChildren()[935],
-        workspace.Towers.ToER.Obby:GetChildren()[937],
-        workspace.Towers.ToER.Obby:GetChildren()[939],
-        workspace.Towers.ToER.Obby:GetChildren()[940],
-        workspace.Towers.ToER.Obby:GetChildren()[942],
-        workspace.Towers.ToER.Obby:GetChildren()[943],
-        workspace.Towers.ToER.Obby:GetChildren()[941],
-        workspace.Towers.ToER.Obby:GetChildren()[945],
-        workspace.Towers.ToER.Obby:GetChildren()[938],
-        workspace.Towers.ToER.Obby:GetChildren()[947],
-        workspace.Towers.ToER.Obby:GetChildren()[926],
-        workspace.Towers.ToER.Obby:GetChildren()[959],
-        workspace.Towers.ToER.Obby:GetChildren()[979],
-        workspace.Towers.ToER.Obby:GetChildren()[981],
-        workspace.Towers.ToER.Obby:GetChildren()[982],
-        workspace.Towers.ToER.Obby:GetChildren()[983],
-        workspace.Towers.ToER.Obby:GetChildren()[984],
-        workspace.Towers.ToER.Obby:GetChildren()[1014],
-        workspace.Towers.ToER.Obby:GetChildren()[1016],
-        workspace.Towers.ToER.Obby:GetChildren()[1015],
-        workspace.Towers.ToER.Obby:GetChildren()[1017],
-        workspace.Towers.ToER.Obby:GetChildren()[1019],
-        workspace.Towers.ToER.Obby:GetChildren()[994],
-        workspace.Towers.ToER.Obby:GetChildren()[995],
-        workspace.Towers.ToER.Obby:GetChildren()[997],
-        workspace.Towers.ToER.Obby:GetChildren()[1000],
-        workspace.Towers.ToER.Obby:GetChildren()[1001],
-        workspace.Towers.ToER.Obby:GetChildren()[1763],
-        workspace.Towers.ToER.Obby:GetChildren()[1004],
-        workspace.Towers.ToER.Obby:GetChildren()[1810],
-        workspace.Towers.ToER.Obby:GetChildren()[1809],
-        workspace.Towers.ToER.Obby:GetChildren()[1003],
-        workspace.Towers.ToER.Obby:GetChildren()[1009],
-        workspace.Towers.ToER.Obby:GetChildren()[1010],
-        workspace.Towers.ToER.Obby:GetChildren()[1037],
-        workspace.Towers.ToER.Obby:GetChildren()[1013],
-        workspace.Towers.ToER.Obby:GetChildren()[1022],
-        workspace.Towers.ToER.Obby:GetChildren()[1024],
-        workspace.Towers.ToER.Obby:GetChildren()[1020],
-        workspace.Towers.ToER.Obby:GetChildren()[1025],
-        workspace.Towers.ToER.Obby:GetChildren()[1026],
-        workspace.Towers.ToER.Obby:GetChildren()[1027],
-        workspace.Towers.ToER.Obby:GetChildren()[1029],
-        workspace.Towers.ToER.Obby:GetChildren()[1030],
-        workspace.Towers.ToER.Obby:GetChildren()[998],
-        workspace.Towers.ToER.Frame:GetChildren()[179],
-        workspace.Towers.ToER.Obby:GetChildren()[1031],
-        workspace.Towers.ToER.Obby:GetChildren()[1032],
-        workspace.Towers.ToER.Obby:GetChildren()[1034],
-        workspace.Towers.ToER.Obby:GetChildren()[1035],
-        workspace.Towers.ToER.Obby:GetChildren()[1036],
-        workspace.Towers.ToER.Obby:GetChildren()[1040],
-        workspace.Towers.ToER.Obby:GetChildren()[1044],
-        workspace.Towers.ToER.Obby:GetChildren()[1045],
-        workspace.Towers.ToER.Obby:GetChildren()[1047],
-        workspace.Towers.ToER.Obby:GetChildren()[1048],
-        workspace.Towers.ToER.Obby:GetChildren()[1050],
-        workspace.Towers.ToER.Obby:GetChildren()[1051],
-        workspace.Towers.ToER.Obby:GetChildren()[1052],
-        workspace.Towers.ToER.Obby:GetChildren()[1055],
-        workspace.Towers.ToER.Obby:GetChildren()[1061],
-        workspace.Towers.ToER.Obby:GetChildren()[1062],
-        workspace.Towers.ToER.Obby:GetChildren()[1063],
-        workspace.Towers.ToER.Obby:GetChildren()[1064],
-        workspace.Towers.ToER.Obby:GetChildren()[1065],
-        workspace.Towers.ToER.Obby:GetChildren()[1021],
-        workspace.Towers.ToER.Obby:GetChildren()[1069],
-        workspace.Towers.ToER.Obby:GetChildren()[1070],
-        workspace.Towers.ToER.Obby:GetChildren()[1072],
-        workspace.Towers.ToER.Obby:GetChildren()[1018],
-        workspace.Towers.ToER.Obby:GetChildren()[1073],
-        workspace.Towers.ToER.Obby:GetChildren()[1074],
-        workspace.Towers.ToER.Obby:GetChildren()[1075],
-        workspace.Towers.ToER.Obby:GetChildren()[1076],
-        workspace.Towers.ToER.Obby:GetChildren()[1077],
-        workspace.Towers.ToER.Obby:GetChildren()[1801],
-        workspace.Towers.ToER.Obby:GetChildren()[1765],
-        workspace.Towers.ToER.Obby:GetChildren()[1081],
-        workspace.Towers.ToER.Obby:GetChildren()[1054],
-        workspace.Towers.ToER.Obby:GetChildren()[1082],
-        workspace.Towers.ToER.Obby:GetChildren()[1083],
-        workspace.Towers.ToER.Obby:GetChildren()[1085],
-        workspace.Towers.ToER.Obby:GetChildren()[1086],
-        workspace.Towers.ToER.Obby:GetChildren()[1088],
-        workspace.Towers.ToER.Obby:GetChildren()[1089],
-        workspace.Towers.ToER.Obby:GetChildren()[1090],
-        workspace.Towers.ToER.Obby:GetChildren()[1091],
-        workspace.Towers.ToER.Frame:GetChildren()[213],
-        workspace.Towers.ToER.Obby:GetChildren()[1093],
-        workspace.Towers.ToER.Obby:GetChildren()[1095],
-        workspace.Towers.ToER.Obby:GetChildren()[1098],
-        workspace.Towers.ToER.Obby:GetChildren()[1099],
-        workspace.Towers.ToER.Obby:GetChildren()[1101],
-        workspace.Towers.ToER.Obby:GetChildren()[1102],
-        workspace.Towers.ToER.Obby:GetChildren()[1104],
-        workspace.Towers.ToER.Obby:GetChildren()[1105],
-        workspace.Towers.ToER.Obby:GetChildren()[1106],
-        workspace.Towers.ToER.Obby:GetChildren()[1108],
-        workspace.Towers.ToER.Obby:GetChildren()[1109],
-        workspace.Towers.ToER.Obby:GetChildren()[1111],
-        workspace.Towers.ToER.Obby:GetChildren()[1113],
-        workspace.Towers.ToER.Obby:GetChildren()[1116],
-        workspace.Towers.ToER.Obby:GetChildren()[1118],
-        workspace.Towers.ToER.Obby:GetChildren()[1165],
-        workspace.Towers.ToER.Obby:GetChildren()[1119],
-        workspace.Towers.ToER.Obby:GetChildren()[1120],
-        workspace.Towers.ToER.Obby:GetChildren()[1122],
-        workspace.Towers.ToER.Obby:GetChildren()[1123],
-        workspace.Towers.ToER.Obby:GetChildren()[1124],
-        workspace.Towers.ToER.Obby:GetChildren()[1126],
-        workspace.Towers.ToER.Obby:GetChildren()[1769],
-        workspace.Towers.ToER.Obby:GetChildren()[1130],
-        workspace.Towers.ToER.Obby:GetChildren()[1773],
-        workspace.Towers.ToER.Obby:GetChildren()[1771],
-        workspace.Towers.ToER.Obby:GetChildren()[1127],
-        workspace.Towers.ToER.Obby:GetChildren()[1133],
-        workspace.Towers.ToER.Obby:GetChildren()[1135],
-        workspace.Towers.ToER.Obby:GetChildren()[1136],
-        workspace.Towers.ToER.Obby:GetChildren()[1137],
-        workspace.Towers.ToER.Obby:GetChildren()[1138],
-        workspace.Towers.ToER.Obby:GetChildren()[1139],
-        workspace.Towers.ToER.Obby:GetChildren()[1141],
-        workspace.Towers.ToER.Obby:GetChildren()[1142],
-        workspace.Towers.ToER.Obby:GetChildren()[1144],
-        workspace.Towers.ToER.Obby:GetChildren()[1146],
-        workspace.Towers.ToER.Obby:GetChildren()[1147],
-        workspace.Towers.ToER.Obby:GetChildren()[1151],
-        workspace.Towers.ToER.Obby:GetChildren()[1152],
-        workspace.Towers.ToER.Obby:GetChildren()[1154],
-        workspace.Towers.ToER.Obby:GetChildren()[1155],
-        workspace.Towers.ToER.Obby:GetChildren()[1156],
-        workspace.Towers.ToER.Obby:GetChildren()[1158],
-        workspace.Towers.ToER.Obby:GetChildren()[1159],
-        workspace.Towers.ToER.Obby:GetChildren()[1160],
-        workspace.Towers.ToER.Obby:GetChildren()[1161],
-        workspace.Towers.ToER.Obby:GetChildren()[1164],
-        workspace.Towers.ToER.Obby:GetChildren()[1117],
-        workspace.Towers.ToER.Obby:GetChildren()[1166],
-        workspace.Towers.ToER.Obby:GetChildren()[1167],
-        workspace.Towers.ToER.Obby:GetChildren()[1168],
-        workspace.Towers.ToER.Obby:GetChildren()[1169],
-        workspace.Towers.ToER.Obby:GetChildren()[1170],
-        workspace.Towers.ToER.Obby:GetChildren()[1172],
-        workspace.Towers.ToER.Obby:GetChildren()[1173],
-        workspace.Towers.ToER.Obby:GetChildren()[1175],
-        workspace.Towers.ToER.Obby:GetChildren()[1245],
-        workspace.Towers.ToER.Obby:GetChildren()[1176],
-        workspace.Towers.ToER.Obby:GetChildren()[1177],
-        workspace.Towers.ToER.Obby:GetChildren()[1178],
-        workspace.Towers.ToER.Obby:GetChildren()[1181],
-        workspace.Towers.ToER.Obby:GetChildren()[1180],
-        workspace.Towers.ToER.Obby:GetChildren()[1184],
-        workspace.Towers.ToER.Obby:GetChildren()[1182],
-        workspace.Towers.ToER.Obby:GetChildren()[1185],
-        workspace.Towers.ToER.Obby:GetChildren()[1187],
-        workspace.ClientParts.KillBricks:GetChildren()[132],
-        workspace.Towers.ToER.Obby:GetChildren()[1190],
-        workspace.Towers.ToER.Obby:GetChildren()[1191],
-        workspace.Towers.ToER.Obby:GetChildren()[1186],
-        workspace.Towers.ToER.Obby:GetChildren()[1183],
-        workspace.Towers.ToER.Obby:GetChildren()[1194],
-        workspace.Towers.ToER.Obby:GetChildren()[1195],
-        workspace.Towers.ToER.Obby:GetChildren()[1196],
-        workspace.Towers.ToER.Obby:GetChildren()[1201],
-        workspace.Towers.ToER.Obby:GetChildren()[1204],
-        workspace.Towers.ToER.Obby:GetChildren()[1206],
-        workspace.Towers.ToER.Obby:GetChildren()[1205],
-        workspace.Towers.ToER.Obby:GetChildren()[1207],
-        workspace.Towers.ToER.Obby:GetChildren()[1208],
-        workspace.Towers.ToER.Obby:GetChildren()[1211],
-        workspace.Towers.ToER.Obby:GetChildren()[1214],
-        workspace.Towers.ToER.Obby:GetChildren()[1217],
-        workspace.Towers.ToER.Obby:GetChildren()[1220],
-        workspace.Towers.ToER.Obby:GetChildren()[1223],
-        workspace.Towers.ToER.Obby:GetChildren()[1267],
-        workspace.Towers.ToER.Obby:GetChildren()[1266],
-        workspace.Towers.ToER.Obby:GetChildren()[1229],
-        workspace.Towers.ToER.Obby:GetChildren()[1230],
-        workspace.Towers.ToER.Obby:GetChildren()[1233],
-        workspace.Towers.ToER.Obby:GetChildren()[1235],
-        workspace.Towers.ToER.Obby:GetChildren()[1237],
-        workspace.Towers.ToER.Obby:GetChildren()[1239],
-        workspace.Towers.ToER.Obby:GetChildren()[1240],
-        workspace.Towers.ToER.Obby:GetChildren()[1242],
-        workspace.Towers.ToER.Obby:GetChildren()[1244],
-        workspace.Towers.ToER.Obby:GetChildren()[1243],
-        workspace.Towers.ToER.Obby:GetChildren()[1241],
-        workspace.Towers.ToER.Obby:GetChildren()[1238],
-        workspace.Towers.ToER.Obby:GetChildren()[1236],
-        workspace.Towers.ToER.Obby:GetChildren()[1247],
-        workspace.Towers.ToER.Obby:GetChildren()[1248],
-        workspace.Towers.ToER.Obby:GetChildren()[1250],
-        workspace.Towers.ToER.Obby:GetChildren()[1251],
-        workspace.Towers.ToER.Obby:GetChildren()[1253],
-        workspace.Towers.ToER.Obby:GetChildren()[1254],
-        workspace.Towers.ToER.Obby:GetChildren()[1780],
-        workspace.Towers.ToER.Obby:GetChildren()[1259],
-        workspace.Towers.ToER.Obby:GetChildren()[1261],
-        workspace.Towers.ToER.Obby:GetChildren()[1262],
-        workspace.Towers.ToER.Obby:GetChildren()[1263],
-        workspace.Towers.ToER.Obby:GetChildren()[28],
-        workspace.Towers.ToER.Obby:GetChildren()[26],
-        workspace.Towers.ToER.Obby:GetChildren()[22],
-        workspace.Towers.ToER.Obby:GetChildren()[20],
-        workspace.Towers.ToER.Obby:GetChildren()[17],
-        workspace.Towers.ToER.Obby:GetChildren()[18],
-        workspace.Towers.ToER.Obby:GetChildren()[1274],
-        workspace.Towers.ToER.Obby:GetChildren()[1275],
-        workspace.Towers.ToER.Obby:GetChildren()[1782],
-        workspace.Towers.ToER.Obby:GetChildren()[1783],
-        workspace.Towers.ToER.Obby:GetChildren()[1787],
-        workspace.Towers.ToER.Obby:GetChildren()[1788],
-        workspace.Towers.ToER.Obby:GetChildren()[1789],
-        workspace.ClientParts.KillBricks:GetChildren()[121],
-        workspace.ClientParts.KillBricks:GetChildren()[7],
-        workspace.ClientParts.KillBricks:GetChildren()[5],
-        workspace.ClientParts.KillBricks:GetChildren()[6],
-        workspace.ClientParts.KillBricks:GetChildren()[3],
-        workspace.Towers.ToER.WinPad
-    }
+    local route = {}
+    local function makeWaypoint(x, y, z)
+        local part = Instance.new("Part")
+        part.Anchored, part.CanCollide, part.Transparency = true, false, 1
+        part.Size = Vector3.new(1, 1, 1)
+        part.Position = Vector3.new(x, y, z)
+        part.Parent = workspace
+        return part
+    end
+
+    route[#route + 1] = workspace.ClientParts:GetChildren()[11]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[27]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[31]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[32]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[30]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[33]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[34]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[35]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[59]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[37]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[39]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[41]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[42]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[418]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[46]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[49]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[51]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[53]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[55]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[81]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1617]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1619]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1624]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1623]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[75]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[68]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[64]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[78]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[65]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[69]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[71]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[74]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[96]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[80]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[73]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1630]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1631]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[84]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[85]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[87]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[88]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[89]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[91]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1753]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1756]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[94]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[97]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[99]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[102]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[103]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[100]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[104]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[101]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[98]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[109]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[110]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[111]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[112]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[113]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[114]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[116]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[118]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[117]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[119]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[2]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[2]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[2]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[2]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[120]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[3]:GetChildren()[8]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[121]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[123]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[124]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[126]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[127]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[128]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[129]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[13]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[12]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[11]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1674]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[125]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[122]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[135]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[136]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[148]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[138]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[141]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[143]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[146]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[149]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[152]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[153]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[24]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[154]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[155]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[157]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1665]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[160]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[164]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[165]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1638]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1641]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1640]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[166]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1639]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[161]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[159]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1643]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[167]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[168]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[169]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[171]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[173]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[170]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[175]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[178]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1655]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[181]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[182]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[184]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[81]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[67]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[57]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[87]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[21]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[86]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[10]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[211]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[9]:GetChildren()[3]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[214]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[215]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[217]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[220]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[218]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1647]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[221]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1790]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[222]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[212]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[223]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[224]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[227]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[228]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[230]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[231]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[237]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1650]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[233]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[236]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[15]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[238]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1653]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[241]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[243]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[246]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[249]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[247]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[27]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1654]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[252]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1664]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[254]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[255]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[256]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[257]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[258]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[259]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[261]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[263]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[264]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[270]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[271]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[8]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[273]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[274]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[275]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[276]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1666]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[281]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[282]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[283]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[284]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1269]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[287]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[24]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[52]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[55]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[85]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[280]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[88]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[26]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[16]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[292]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[293]
+    route[#route + 1] = workspace.Part
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[297]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[298]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[301]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[105]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[302]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[304]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[132]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[305]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[306]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[288]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[326]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[149]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[60]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[385]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[389]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[401]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[409]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[403]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[395]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[396]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[405]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[406]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[398]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[399]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[410]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[414]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[413]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[412]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[415]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[416]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[417]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[419]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[421]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[420]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[422]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[424]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[425]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[427]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[428]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[426]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[429]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[431]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[432]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[433]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[435]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[436]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[437]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[438]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[441]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[440]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[439]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[442]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[445]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[447]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[443]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[448]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[451]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[453]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[456]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[455]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[457]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[459]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[462]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[463]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[465]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[466]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[467]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[468]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[471]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[472]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[473]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[14]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[476]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[477]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[478]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[479]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[481]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[482]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[55]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[483]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[484]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[486]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[487]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[488]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[489]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[492]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[44]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[494]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[495]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1679]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[497]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[498]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[499]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[501]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[64]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[502]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[9]:GetChildren()[7]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[503]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[8]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[8]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[504]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[10]:GetChildren()[7]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[10]:GetChildren()[8]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[505]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1680]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1683]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[13]:GetChildren()[4]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[13]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[511]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[513]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[512]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[515]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[517]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[73]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[521]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[522]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[523]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[524]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[74]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[78]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[527]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[528]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1685]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[531]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[532]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[3]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[535]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[537]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[538]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[540]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[13]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[539]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[549]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[544]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[545]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[546]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[561]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[548]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1799]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[550]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[551]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[552]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[559]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[562]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[565]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[566]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[568]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[569]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[570]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[572]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[573]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[574]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1686]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[571]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[575]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[567]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[1]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[11]:GetChildren()[6]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[576]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1656]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[578]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[580]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[581]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[584]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[585]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1687]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[590]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[593]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1688]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[602]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[603]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1700]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[604]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[607]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[608]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[611]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[613]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[601]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1689]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1693]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[614]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[588]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[616]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[617]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1697]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[618]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[619]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[635]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[622]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[623]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[628]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[629]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[632]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[630]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[625]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[636]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[638]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[639]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[640]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[642]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[644]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[645]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[646]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1795]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[648]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[649]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[651]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[652]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[654]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[666]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[668]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[670]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[671]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[672]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[673]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[678]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[680]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[682]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[685]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[686]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1706]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1708]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[689]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[696]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[698]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[699]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[701]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[703]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[706]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[708]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[712]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[714]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[715]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[716]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[717]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[718]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[720]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[664]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[722]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[710]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[721]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[727]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[726]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[704]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[728]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[729]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[681]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[769]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[730]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[732]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[733]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[736]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[738]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[739]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[742]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[743]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[745]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[752]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[753]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[755]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[757]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[754]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[756]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[82]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1712]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[764]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[4]:GetChildren()[4]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[11]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[771]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[773]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[84]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1713]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[776]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[777]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[775]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[774]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[772]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[781]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[784]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[787]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[783]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[790]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[793]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[794]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1270]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[796]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[797]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[798]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[86]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[799]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[800]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[801]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1720]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[803]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[804]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[805]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[806]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[807]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[810]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[816]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[820]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[822]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[890]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[824]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[823]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[827]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[829]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[831]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[832]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[834]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[836]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[840]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[837]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[2]:GetChildren()[4]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[844]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1816]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[843]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[845]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[848]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[850]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[851]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[853]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[854]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[856]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[855]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1268]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[1]:GetChildren()[2]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[6]:GetChildren()[2]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[859]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[878]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[858]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[861]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[857]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[852]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[8]:GetChildren()[4]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[8]:GetChildren()[5]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[867]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[868]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[869]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[882]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[873]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[870]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[871]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[874]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[875]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[880]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[879]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1734]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1738]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[144]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1736]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1740]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1735]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1739]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[885]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[886]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[887]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[888]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[146]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[137]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[892]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[835]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1725]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1742]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[894]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[895]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1744]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[898]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[899]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[902]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[903]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[904]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1745]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[900]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[905]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[906]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[908]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[907]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[910]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[911]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[913]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[914]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[104]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[105]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[106]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[915]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[917]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[918]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[935]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[934]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[937]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[938]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[939]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[940]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[941]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[943]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[945]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[947]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[191]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[198]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[981]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[982]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[984]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1014]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1015]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1016]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1017]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[980]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[979]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[960]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[169]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[946]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1019]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[994]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[995]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[107]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1031]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1032]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[179]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[998]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1030]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1029]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1027]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1022]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1024]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1020]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1025]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1023]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1034]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1035]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1036]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1041]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1040]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1044]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1045]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1047]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1048]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1051]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1052]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1055]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1061]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1062]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1063]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1064]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1065]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[181]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1155]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1154]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1152]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1151]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1147]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1146]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1144]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1142]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1141]
+    route[#route + 1] = workspace.Part
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1140]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1145]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1150]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1078]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1172]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1174]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1177]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1178]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1181]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1180]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1184]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1182]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1185]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1187]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[132]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1190]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1191]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1186]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1183]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1194]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1195]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1196]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1202]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1204]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1206]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1205]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1207]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1208]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1211]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1214]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1217]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1220]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1223]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1266]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1229]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1230]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1233]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1235]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1237]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1240]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1242]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1243]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1241]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1238]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1236]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1247]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1248]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1250]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1251]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1253]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1254]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1780]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1259]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1261]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1263]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[28]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[26]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[22]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[20]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[17]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[14]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[2]:GetChildren()[16]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1264]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[19]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1783]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1787]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1788]
+    route[#route + 1] = workspace.Towers["ToER"].Obby:GetChildren()[1789]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[121]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[7]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[5]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[6]
+    route[#route + 1] = workspace.ClientParts:GetChildren()[12]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[3]
+
+    return route
 end
