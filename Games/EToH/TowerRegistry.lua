@@ -262,6 +262,7 @@ return {
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
         { name = "ToG",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToVH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToTH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToTRP",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToEV",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToWM",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
