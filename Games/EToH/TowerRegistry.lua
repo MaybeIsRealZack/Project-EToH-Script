@@ -261,6 +261,7 @@ return {
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
         { name = "ToG",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToGF",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
         { name = "ToVH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToTH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToTRP",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
