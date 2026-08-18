@@ -21,6 +21,7 @@ local Categories = {
     -- original EToH place AND in "The Eternal Abyss" (15873244701) + its Pit of Misery
     -- subplace (121814103864070) -- the same towers are present in all of them.
     ["Pit-of-Misery"] = { 15639952229, 15873244701, 121814103864070 },
+    TheEternalAbyss = 15873244701
     TimelessManor = 131042387601353,
     ["100M-Event-Replay"] = 115856553162061,
     BIOUMS = 111393548264972,
@@ -269,6 +270,8 @@ return {
         { name = "ToWM",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToBF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToSF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        --The Eternal Abyss
+        { name = "ToMH",  category = "TheEternalAbyss", suggestedTime = { min = "16", sec = "5" } },
         --TimelessManor
         { name = "ToDC",  category = "TimelessManor", suggestedTime = { min = "5", sec = "5" } },
         --100M Event Replay
