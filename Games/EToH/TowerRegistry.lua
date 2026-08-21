@@ -265,6 +265,7 @@ return {
         { name = "SoIF",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoO",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoN",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        { name = "SoOA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
