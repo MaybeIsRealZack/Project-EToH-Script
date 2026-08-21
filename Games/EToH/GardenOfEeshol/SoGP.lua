@@ -217,11 +217,6 @@ return function()
     route[#route + 1] = makeWaypoint(973.182, 568.500, 2045.565)
     route[#route + 1] = makeWaypoint(968.287, 570.000, 2050.989)
     route[#route + 1] = makeWaypoint(959.838, 567.004, 2056.632)
-    route[#route + 1] = { type = "wait", seconds = 1 }
-    route[#route + 1] = { type = "wait", seconds = 1 }
-    route[#route + 1] = { type = "wait", seconds = 1 }
-    route[#route + 1] = { type = "wait", seconds = 1 }
-    route[#route + 1] = { type = "wait", seconds = 1 }
     route[#route + 1] = makeWaypoint(958.022, 575.504, 2055.615)
     route[#route + 1] = makeWaypoint(950.950, 581.504, 2057.740)
     route[#route + 1] = makeWaypoint(954.232, 590.004, 2059.075)
