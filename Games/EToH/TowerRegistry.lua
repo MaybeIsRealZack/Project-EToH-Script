@@ -262,6 +262,7 @@ return {
         { name = "SoTP",  category = "Ring1S", suggestedTime = { min = "2", sec = "50" } },
         --Garden of Eeshöl
         { name = "SoBJ",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        { name = "SoIF",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
