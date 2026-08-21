@@ -16,7 +16,9 @@ local Categories = {
     Zone8 = 9071002915,
     Zone9 = 9071004505,
 
-    Ring1S = 9070954594,
+    ForgottenRidge = 9070954594,
+    GardenOfEeshol = 9070960075,
+
     -- A category may map to one place id or a list of them. Pit of Misery exists in the
     -- original EToH place AND in "The Eternal Abyss" (15873244701) + its Pit of Misery
     -- subplace (121814103864070) -- the same towers are present in all of them.
