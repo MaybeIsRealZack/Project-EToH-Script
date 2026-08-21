@@ -272,6 +272,7 @@ return {
         { name = "SoLIQ",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoVV",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoFW",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        { name = "NEAF",  category = "GardenOfEeshol", suggestedTime = { min = "0", sec = "30" } },
         { name = "ToPA",  category = "GardenOfEeshol", suggestedTime = { min = "3", sec = "0" } },
         { name = "SoBA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         --Pit of Misery
