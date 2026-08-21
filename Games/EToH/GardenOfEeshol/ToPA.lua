@@ -120,7 +120,7 @@ return function()
     route[#route + 1] = makeWaypoint(1945.394, 995.865, 2593.652)
     route[#route + 1] = makeWaypoint(1945.450, 995.865, 2592.302)
     route[#route + 1] = workspace.ClientParts:GetChildren()[23]:GetChildren()[1]
-    route[#route + 1] = workspace.ClientParts:GetChildren()[41]:GetChildren()[5]:GetChildren()[2]
+    route[#route + 1] = makeWaypoint(1939.731, 1034.430, 2625.632)
     route[#route + 1] = makeWaypoint(1941.716, 1037.869, 2633.787)
     route[#route + 1] = makeWaypoint(1939.388, 1037.869, 2634.033)
     route[#route + 1] = makeWaypoint(1937.299, 1037.869, 2633.695)
@@ -179,9 +179,6 @@ return function()
     route[#route + 1] = makeWaypoint(1914.175, 1121.525, 2622.836)
     route[#route + 1] = makeWaypoint(1907.305, 1123.425, 2630.115)
     route[#route + 1] = makeWaypoint(1897.100, 1123.425, 2627.138)
-    route[#route + 1] = makeWaypoint(1870.414, 1123.425, 2642.433)
-    route[#route + 1] = "jump"
-    route[#route + 1] = makeWaypoint(1871.850, 1134.804, 2634.100)
     route[#route + 1] = makeWaypoint(1883.502, 1137.922, 2629.916)
     route[#route + 1] = makeWaypoint(1880.023, 1137.425, 2615.191)
     route[#route + 1] = makeWaypoint(1876.159, 1137.425, 2607.734)
