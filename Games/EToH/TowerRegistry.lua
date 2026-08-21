@@ -242,7 +242,7 @@ return {
         { name = "ToHR",  category = "Zone9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToPB",  category = "Zone9", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToWWW",  category = "Zone9", suggestedTime = { min = "3", sec = "5" } },
-        --Ring 1S
+        --Forgotten Ridge
         { name = "TIPAT",  category = "Ring1S", suggestedTime = { min = "0", sec = "10" } },
         { name = "SoMD",  category = "Ring1S", suggestedTime = { min = "2", sec = "0" } },
         { name = "ToJGF",  category = "Ring1S", suggestedTime = { min = "3", sec = "0" } },
@@ -267,6 +267,7 @@ return {
         { name = "SoN",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoOA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoGP",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        { name = "SoFF",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
