@@ -262,9 +262,9 @@ return {
         { name = "SoTP",  category = "Ring1S", suggestedTime = { min = "2", sec = "50" } },
         --Garden of Eeshöl
         { name = "SoBJ",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        { name = "SoDS",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoIF",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoO",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
-        { name = "SoDS",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoN",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoOA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         { name = "SoGP",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
