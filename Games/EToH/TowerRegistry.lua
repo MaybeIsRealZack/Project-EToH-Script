@@ -47,6 +47,8 @@ local Categories = {
     Zone5 = 9071002104,
     Zone6 = 9071002463,
     Zone10 = 9071004898,
+
+    Scope1 = 11516779046,
 }
 
 return {
@@ -414,6 +416,8 @@ return {
         { name = "ToTHT",  category = "Zone10", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToBP",  category = "Zone10", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToRT",  category = "Zone10", suggestedTime = { min = "3", sec = "5" } },
+        -- Scope 1
+        { name = "ToRM",  category = "Scope1", suggestedTime = { min = "3", sec = "5" } },
     },
     TowerRush = {
         { name = "R1TR", category = "Ring1", suggestedTime = { min = "39", sec = "0" }, isTowerRush = true, },
