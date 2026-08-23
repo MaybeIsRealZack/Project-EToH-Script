@@ -136,3 +136,5 @@ local Role = {
     Administrator = { 42842832, 121177141, 154377864 },
     Owner = { 121177141 }
 }
+
+return Role
