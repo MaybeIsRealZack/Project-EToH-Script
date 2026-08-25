@@ -18,6 +18,7 @@ local Categories = {
 
     ForgottenRidge = 9070954594,
     GardenOfEeshol = 9070960075,
+    DarkSideoftheMoon = 76003383649350,
 
     -- A category may map to one place id or a list of them. Pit of Misery exists in the
     -- original EToH place AND in "The Eternal Abyss" (15873244701) + its Pit of Misery
@@ -277,6 +278,8 @@ return {
         { name = "NEAF",  category = "GardenOfEeshol", suggestedTime = { min = "0", sec = "30" } },
         { name = "ToPA",  category = "GardenOfEeshol", suggestedTime = { min = "3", sec = "0" } },
         { name = "SoBA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
+        --Dark Side of the Moon
+        { name = "ToQ",  category = "DarkSideoftheMoon", suggestedTime = { min = "6", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
