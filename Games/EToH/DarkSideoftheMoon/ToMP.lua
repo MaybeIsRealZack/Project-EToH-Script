@@ -1186,7 +1186,7 @@ return function()
     route[#route + 1] = makeWaypoint(-8467.857, 1545.975, 6214.113)
     route[#route + 1] = makeWaypoint(-8467.712, 1545.975, 6204.146)
     route[#route + 1] = makeWaypoint(-8467.497, 1545.975, 6189.282)
-    route[#route + 1] = workspace.Towers:GetChildren()[7]:GetChildren()[3]
+    route[#route + 1] = workspace.Towers.ToMP.WinPad
 
     return route
 end
