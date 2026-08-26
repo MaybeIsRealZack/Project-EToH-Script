@@ -281,6 +281,7 @@ return {
         --Dark Side of the Moon
         { name = "ToQ",  category = "DarkSideoftheMoon", suggestedTime = { min = "6", sec = "0" } },
         { name = "ToPW",  category = "DarkSideoftheMoon", suggestedTime = { min = "4", sec = "0" } },
+        { name = "ToMG",  category = "DarkSideoftheMoon", suggestedTime = { min = "6", sec = "0" } },
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
