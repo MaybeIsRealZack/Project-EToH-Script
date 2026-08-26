@@ -79,11 +79,11 @@ return {
         { name = "ToKY",  category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToS",   category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToSP",  category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
-        { name = "ToSP:SE", category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
+        { name = "ToSP_SE", category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToR",   category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToIE",  category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "CoLS",  category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
-        { name = "CoLS:SE", category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
+        { name = "CoLS_SE", category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToTS",  category = "Ring1", suggestedTime = { min = "3", sec = "5" } },
         { name = "ToIG",  category = "Ring1", suggestedTime = { min = "5", sec = "0" } },
         --Ring 2
