@@ -690,7 +690,7 @@ return function()
     route[#route + 1] = makeWaypoint(-863.252, 432.989, 4893.598)
     route[#route + 1] = makeWaypoint(-955.379, 432.987, 4986.098)
     route[#route + 1] = makeWaypoint(-983.092, 432.980, 5013.755)
-    route[#route = 1] = workspace.Towers.ToFC.WinPad
+    route[#route + 1] = workspace.Towers.ToFC.WinPad
 
     return route
 end
