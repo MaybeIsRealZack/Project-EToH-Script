@@ -299,6 +299,7 @@ return {
         { name = "ToSF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         --The Eternal Abyss
         { name = "ToMH",  category = "TheEternalAbyss", suggestedTime = { min = "16", sec = "5" } },
+        { name = "ToP",  category = "TheEternalAbyss", suggestedTime = { min = "7", sec = "5" } },
         --TimelessManor
         { name = "ToDC",  category = "TimelessManor", suggestedTime = { min = "5", sec = "5" } },
         --100M Event Replay
