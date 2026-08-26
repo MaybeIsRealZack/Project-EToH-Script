@@ -279,6 +279,7 @@ return {
         { name = "ToPA",  category = "GardenOfEeshol", suggestedTime = { min = "3", sec = "0" } },
         { name = "SoBA",  category = "GardenOfEeshol", suggestedTime = { min = "2", sec = "0" } },
         --Dark Side of the Moon
+        { name = "ToFC",  category = "DarkSideoftheMoon", suggestedTime = { min = "3", sec = "0" } },
         { name = "ToQ",  category = "DarkSideoftheMoon", suggestedTime = { min = "6", sec = "0" } },
         { name = "ToPW",  category = "DarkSideoftheMoon", suggestedTime = { min = "4", sec = "0" } },
         { name = "ToMG",  category = "DarkSideoftheMoon", suggestedTime = { min = "6", sec = "0" } },
