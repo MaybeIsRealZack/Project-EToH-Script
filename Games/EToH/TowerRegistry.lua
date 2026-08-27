@@ -23,7 +23,7 @@ local Categories = {
     -- A category may map to one place id or a list of them. Pit of Misery exists in the
     -- original EToH place AND in "The Eternal Abyss" (15873244701) + its Pit of Misery
     -- subplace (121814103864070) -- the same towers are present in all of them.
-    ["Pit-of-Misery"] = { 15639952229, 15873244701, 121814103864070 },
+    ["Pit-of-Misery"] = 15639952229,
     TheEternalAbyss = 15873244701,
     TimelessManor = 131042387601353,
     ["100M-Event-Replay"] = 115856553162061,
@@ -298,10 +298,6 @@ return {
         { name = "ToP",  category = "PitOfMisery", suggestedTime = { min = "7", sec = "5" } },
         { name = "ToBF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToSF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
-        --The Eternal Abyss
-        { name = "ToMH",  category = "TheEternalAbyss", suggestedTime = { min = "16", sec = "5" } },
-        --TimelessManor
-        { name = "ToDC",  category = "TimelessManor", suggestedTime = { min = "5", sec = "5" } },
         --100M Event Replay
         { name = "100MC",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "10" } },
         { name = "100MT",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "10" } },
