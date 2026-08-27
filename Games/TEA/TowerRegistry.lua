@@ -1,6 +1,6 @@
 
 local Categories = {
-    ["Pit-of-Misery"] = { 15639952229, 15873244701, 121814103864070 },
+    ["Pit-of-Misery"] = 121814103864070,
     TheEternalAbyss = 15873244701,
     TimelessManor = 131042387601353,
 }

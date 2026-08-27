@@ -287,15 +287,10 @@ return {
         --Pit of Misery
         { name = "ToMDC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "WAT",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
-        { name = "ToG",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
-        { name = "ToGF",  category = "Pit-of-Misery", suggestedTime = { min = "0", sec = "5" } },
-        { name = "ToVH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
-        { name = "ToSE",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
-        { name = "ToTH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToVH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },      
         { name = "ToTRP",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToEV",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToWM",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
-        { name = "ToP",  category = "PitOfMisery", suggestedTime = { min = "7", sec = "5" } },
         { name = "ToBF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToSF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         --100M Event Replay
