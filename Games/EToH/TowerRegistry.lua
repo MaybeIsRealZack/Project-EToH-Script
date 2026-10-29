@@ -50,6 +50,8 @@ local Categories = {
     Zone10 = 9071004898,
 
     Scope1 = 11516779046,
+    --Halloween Event
+    ApolloNull = 18892014130,
 }
 
 return {
