@@ -347,6 +347,242 @@ function Library:Notify(info)
 end
 
 --============================================================================
+-- Loading screen
+--============================================================================
+
+-- The script builds this before the main window: progress for its boot steps, a sidebar
+-- page for the diagnostics it prints mid-load, and an error page with Retry/Close when a
+-- mandatory fetch dies. Obsidian exposes the same API shape, so the script keeps one set
+-- of call sites no matter which UI style it picked.
+function Library:CreateLoading(info)
+    info = info or {}
+    local totalSteps = math.max(tonumber(info.TotalSteps) or 1, 1)
+
+    -- A Retry re-runs the whole script, which calls CreateLoading again while the old
+    -- screen is still on screen. Replace it instead of stacking two.
+    if Library._Loading then
+        pcall(function() Library._Loading:Destroy() end)
+        Library._Loading = nil
+    end
+
+    local width  = Library.IsMobile and 300 or 420
+    local height = Library.IsMobile and 180 or 190
+    local gui = newScreenGui()
+    gui.Name = "PESUI_Loading"
+
+    local panel = create("Frame", {
+        Parent           = gui,
+        AnchorPoint      = Vector2.new(0.5, 0.5),
+        Position         = UDim2.new(0.5, 0, 0.5, 0),
+        Size             = UDim2.new(0, width, 0, height),
+        BackgroundColor3 = Theme.Background,
+    })
+    corner(panel)
+    stroke(panel)
+    padding(panel, 16)
+    local layout = listLayout(panel, 8)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local titleLabel = create("TextLabel", {
+        Parent                 = panel,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 16),
+        Font                   = FONT_BOLD,
+        Text                   = info.Title or "Project EToH Script",
+        TextColor3             = Theme.Accent,
+        TextSize               = TEXT_SIZE + 1,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextTruncate           = Enum.TextTruncate.AtEnd,
+        LayoutOrder            = 1,
+    })
+    accent(titleLabel, "TextColor3")
+
+    local msgLabel = create("TextLabel", {
+        Parent                 = panel,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 18),
+        Font                   = FONT_BOLD,
+        Text                   = "",
+        TextColor3             = Theme.Text,
+        TextSize               = TEXT_SIZE + 1,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextTruncate           = Enum.TextTruncate.AtEnd,
+        LayoutOrder            = 2,
+    })
+
+    local descLabel = create("TextLabel", {
+        Parent                 = panel,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 14),
+        Font                   = FONT,
+        Text                   = "",
+        TextColor3             = Theme.SubText,
+        TextSize               = TEXT_SIZE - 1,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextTruncate           = Enum.TextTruncate.AtEnd,
+        LayoutOrder            = 3,
+    })
+
+    local barOuter = create("Frame", {
+        Parent           = panel,
+        BackgroundColor3 = Theme.Control,
+        Size             = UDim2.new(1, 0, 0, 6),
+        BorderSizePixel  = 0,
+        LayoutOrder      = 4,
+    })
+    corner(barOuter)
+    local barFill = create("Frame", {
+        Parent           = barOuter,
+        BackgroundColor3 = Theme.Accent,
+        Size             = UDim2.new(0, 0, 1, 0),
+        BorderSizePixel  = 0,
+    })
+    accent(barFill, "BackgroundColor3")
+    corner(barFill)
+
+    -- Sidebar page: the script flips to it mid-load to show Player/PlaceId/Version lines.
+    local sidebarPage = create("Frame", {
+        Parent                 = panel,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 70),
+        Visible                = false,
+        LayoutOrder            = 5,
+    })
+    listLayout(sidebarPage, 3)
+
+    -- Error page: message + the script's Retry/Close buttons. Shown instead of the
+    -- progress content, which gets hidden so nothing fights for the space.
+    local errorPage = create("Frame", {
+        Parent                 = panel,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 112),
+        Visible                = false,
+        LayoutOrder            = 6,
+    })
+    local errorLayout = listLayout(errorPage, 8)
+    local errorLabel = create("TextLabel", {
+        Parent                 = errorPage,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 78),
+        Font                   = FONT,
+        Text                   = "",
+        TextColor3             = Theme.Text,
+        TextSize               = TEXT_SIZE - 1,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextYAlignment         = Enum.TextYAlignment.Top,
+        TextWrapped            = true,
+        LayoutOrder            = 1,
+    })
+    local errorButtonRow = create("Frame", {
+        Parent                 = errorPage,
+        BackgroundTransparency = 1,
+        Size                   = UDim2.new(1, 0, 0, 26),
+        LayoutOrder            = 2,
+    })
+    local btnLayout = listLayout(errorButtonRow, 8, Enum.SortOrder.LayoutOrder)
+    btnLayout.FillDirection = Enum.FillDirection.Horizontal
+    btnLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+
+    local loading = {}
+    Library._Loading = loading
+
+    local function setProgress(n)
+        barFill.Size = UDim2.new(math.clamp(n / totalSteps, 0, 1), 0, 1, 0)
+    end
+    local function showPage(page)
+        sidebarPage.Visible = page == "sidebar"
+        errorPage.Visible   = page == "error"
+        -- The error page owns the middle of the panel; the progress content backs off.
+        local errorShown = page == "error"
+        msgLabel.Visible    = not errorShown
+        descLabel.Visible   = not errorShown
+        barOuter.Visible    = not errorShown
+        sidebarPage.Visible = page == "sidebar"
+        panel.Size = UDim2.new(0, width, 0, errorShown and (height + 30) or height)
+    end
+
+    function loading:SetMessage(text)
+        msgLabel.Text = tostring(text or "")
+    end
+
+    function loading:SetDescription(text)
+        descLabel.Text = tostring(text or "")
+    end
+
+    function loading:SetCurrentStep(n)
+        setProgress(tonumber(n) or 0)
+    end
+
+    function loading:ShowSidebarPage(state)
+        showPage(state and "sidebar" or "progress")
+    end
+
+    function loading:ShowErrorPage(state)
+        showPage(state and "error" or "progress")
+    end
+
+    function loading:SetErrorMessage(text)
+        errorLabel.Text = tostring(text or "")
+    end
+
+    function loading:SetErrorButtons(buttons)
+        for _, child in ipairs(errorButtonRow:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        for name, btn in pairs(buttons or {}) do
+            local b = create("TextButton", {
+                Parent           = errorButtonRow,
+                BackgroundColor3 = (btn.Variant == "Primary") and Theme.Accent or Theme.Control,
+                Size             = UDim2.new(0, 84, 1, 0),
+                Font             = FONT_BOLD,
+                Text             = btn.Title or tostring(name),
+                TextColor3       = Theme.Text,
+                TextSize         = TEXT_SIZE,
+                AutoButtonColor  = true,
+                BorderSizePixel  = 0,
+            })
+            corner(b)
+            b.Activated:Connect(function()
+                pcall(btn.Callback or function() end)
+                pcall(function() loading:Destroy() end)
+            end)
+        end
+    end
+
+    loading.Sidebar = {
+        AddLabel = function(_, text)
+            return create("TextLabel", {
+                Parent                 = sidebarPage,
+                BackgroundTransparency = 1,
+                Size                   = UDim2.new(1, 0, 0, 14),
+                Font                   = FONT,
+                Text                   = tostring(text or ""),
+                TextColor3             = Theme.SubText,
+                TextSize               = TEXT_SIZE - 1,
+                TextXAlignment         = Enum.TextXAlignment.Left,
+                TextTruncate           = Enum.TextTruncate.AtEnd,
+            })
+        end,
+    }
+
+    -- Loading done -- the script calls this right before building the main window, so
+    -- the screen's job is finished and it can leave.
+    function loading:Continue()
+        loading:Destroy()
+    end
+
+    function loading:Destroy()
+        if Library._Loading == loading then
+            Library._Loading = nil
+        end
+        pcall(function() gui:Destroy() end)
+    end
+
+    setProgress(0)
+    return loading
+end
+
+--============================================================================
 -- Control base: registration, disabling, change signalling
 --============================================================================
 
@@ -1550,6 +1786,10 @@ function Library:Unload()
         pcall(function() conn:Disconnect() end)
     end
     Library.Connections = {}
+    if Library._Loading then
+        pcall(function() Library._Loading:Destroy() end)
+        Library._Loading = nil
+    end
     pcall(function() ScreenGui:Destroy() end)
     return self
 end
