@@ -212,7 +212,7 @@ local AreaData = {
         AF2022 = { Name = "Terrain World",            PlaceID = 9247591798        },
         AF2023 = { Name = "Something Otherworldly...", PlaceID = 12966817992      },
         AF2024 = { Name = "The Doghouse",             PlaceID = 16976865869       },
-        AF2025 = { Name = "BIOUMS",                   PlaceID = 111393548264970   },
+        AF2025 = { Name = "BIOUMS",                   PlaceID = 111393548264972   },
 
         -- Summer / Spring Events
         SE2019 = { Name = "Beggmuda Triangle",        PlaceID = 9070946020        },
@@ -228,11 +228,11 @@ local AreaData = {
 
         -- Misc
         PoM    = { Name = "Pit of Misery",            PlaceID = 15639952229       },
-        LF     = { Name = "Legacy Fortress",          PlaceID = 116826560849730   },
+        LF     = { Name = "Legacy Fortress",          PlaceID = 116826560849733   },
         SoM    = { Name = "Summit of Memories",       PlaceID = 90713610472463    },
         WP     = { Name = "Windswept Peak",           PlaceID = 112597732892200   },
         ER     = { Name = "Event Realm",              PlaceID = 82312199603536    },
-        ["100M"] = { Name = "100M Replay",            PlaceID = 115856553162060   },
+        ["100M"] = { Name = "100M Replay",            PlaceID = 115856553162061   },
         TEST   = { Name = "🍵 test place",            PlaceID = 14631353950       },
     },
 }
