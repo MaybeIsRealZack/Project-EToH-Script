@@ -7,7 +7,10 @@ local Categories = {
     Ring5 = 9070980846,
     Ring6 = 9070981164,
     Ring7 = 9070981409,
-    Ring8 = 8700866519,
+    -- 9070981722 is the live "Ring 8: Fraud" place (checked in game). The old id here,
+    -- 8700866519, belongs to an unrelated personal place and made Ring 8 unknown to the
+    -- place filter, so its towers only ever showed through the folder-name fallback.
+    Ring8 = 9070981722,
     Ring9 = 9070982474,
     Zone1 = 9071001075,
     Zone2 = 9071001366,
@@ -295,6 +298,12 @@ return {
         { name = "ToWM",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToBF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         { name = "ToSF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToG",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToGF",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToOLC",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToP",  category = "Pit-of-Misery", suggestedTime = { min = "7", sec = "5" } },
+        { name = "ToSE",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
+        { name = "ToTH",  category = "Pit-of-Misery", suggestedTime = { min = "5", sec = "5" } },
         --100M Event Replay
         { name = "100MC",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "10" } },
         { name = "100MT",  category = "100M-Event-Replay", suggestedTime = { min = "0", sec = "10" } },
