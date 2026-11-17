@@ -775,7 +775,47 @@ function Groupbox:AddButton(a, b)
     end))
 
     self:Resize()
-    return { Instance = button, SetText = function(_, t) button.Text = t end }
+    return {
+        Instance = button,
+        SetText = function(_, t) button.Text = t end,
+        AddButton = function(_, sub)
+            local sinfo = type(sub) == "table" and sub or { Text = sub, Func = sub }
+            button.Size = UDim2.new(0.5, -4, 1, 0)
+            local second = create("TextButton", {
+                Parent           = row,
+                AnchorPoint      = Vector2.new(1, 0),
+                Position         = UDim2.new(1, 0, 0, 0),
+                Size             = UDim2.new(0.5, -4, 1, 0),
+                BackgroundColor3 = Theme.Control,
+                Font             = FONT,
+                Text             = sinfo.Text or "Button",
+                TextColor3       = Theme.Text,
+                TextSize         = TEXT_SIZE,
+                AutoButtonColor  = false,
+            })
+            corner(second)
+            stroke(second)
+            track(second.MouseEnter:Connect(function()
+                tween(second, 0.12, { BackgroundColor3 = Theme.ControlHover })
+            end))
+            track(second.MouseLeave:Connect(function()
+                tween(second, 0.12, { BackgroundColor3 = Theme.Control })
+            end))
+            track(second.MouseButton1Click:Connect(function()
+                if sinfo.Func then
+                    task.spawn(function()
+                        local ok, err = pcall(sinfo.Func)
+                        if not ok then warn("[PES UI] button error: " .. tostring(err)) end
+                    end)
+                end
+            end))
+            self:Resize()
+            return {
+                Instance = second,
+                SetText = function(_, t) second.Text = t end,
+            }
+        end,
+    }
 end
 
 --------------------------------------------------------------------- Label
