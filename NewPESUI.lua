@@ -438,6 +438,761 @@ function Library:CreateWindow(config)
 	})
 	self.NotificationHolder = notifyHolder
 
+	local function getOverlayParent()
+		local overlayFrame = selfLib.OverlayFrame
+		if (not overlayFrame or not overlayFrame.Parent) and selfLib.ScreenGui then
+			overlayFrame = selfLib.ScreenGui:FindFirstChild("Overlay")
+			if not overlayFrame then
+				overlayFrame = create("Frame", {
+					Name = "Overlay",
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					ZIndex = 5000,
+					Parent = selfLib.ScreenGui,
+				})
+			end
+			selfLib.OverlayFrame = overlayFrame
+		end
+		return overlayFrame or selfLib.ScreenGui or screenGui
+	end
+
+	local function closeOpenColorPicker(exceptPicker)
+		local closer = selfLib._OpenColorPickerCloser
+		if closer and closer._picker ~= exceptPicker then
+			pcall(closer)
+		end
+	end
+
+	local function createColorPickerControl(id, info, opts)
+		opts = opts or {}
+		info = info or {}
+		local defaultColor = info.Default
+		if typeof(defaultColor) ~= "Color3" then
+			defaultColor = Color3.new(1, 1, 1)
+		end
+		local hasTransparency = info.Transparency ~= nil
+		local defaultTransparency = hasTransparency and math.clamp(tonumber(info.Transparency) or 0, 0, 1) or 0
+
+		local picker = createOptionObject("ColorPicker", id, { Value = defaultColor })
+		picker.Title = info.Title or info.Text or opts.LabelText or id
+		picker.Callback = info.Callback
+		picker.Changed = info.Changed
+		picker.Transparency = defaultTransparency
+		picker.HasTransparency = hasTransparency
+		picker.Hue, picker.Sat, picker.Vib = defaultColor:ToHSV()
+		picker.Open = false
+		picker.Destroyed = false
+		picker.Connections = picker.Connections or {}
+
+		local function registerPicker(value)
+			picker.Value = value
+			selfLib.Flags[id] = value
+			selfLib.Options[id] = picker
+		end
+
+		local labelText = tostring(info.Text or info.Title or opts.LabelText or id or "")
+
+		local instance
+		local label
+		local swatch
+		local swatchTransparency
+		local swatchStroke
+
+		if opts.Variant == "Row" then
+			instance = createBaseElement(opts.Holder, 30)
+			label = create("TextLabel", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, -60, 1, 0),
+				Font = selfLib.Theme.Font,
+				TextSize = 14,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = selfLib.Theme.Text,
+				Text = labelText,
+				Parent = instance,
+			})
+			swatch = create("TextButton", {
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.new(1, 0, 0.5, 0),
+				Size = UDim2.fromOffset(42, 22),
+				BackgroundColor3 = defaultColor,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Parent = instance,
+			})
+		else
+			swatch = create("TextButton", {
+				Size = opts.SwatchSize or UDim2.fromOffset(28, 18),
+				BackgroundColor3 = defaultColor,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Parent = opts.AddonsParent,
+			})
+			instance = swatch
+			label = opts.LabelRef
+		end
+
+		addCorner(swatch, 4)
+		swatchStroke = addStroke(swatch, selfLib.Theme.Outline)
+
+		swatchTransparency = create("ImageLabel", {
+			Name = "Transparency",
+			BackgroundTransparency = 1,
+			Image = "rbxassetid://18274452449",
+			ScaleType = Enum.ScaleType.Tile,
+			TileSize = UDim2.fromOffset(6, 6),
+			Size = UDim2.fromScale(1, 1),
+			ImageTransparency = hasTransparency and (1 - defaultTransparency) or 1,
+			ZIndex = (swatch.ZIndex or 1),
+			Parent = swatch,
+		})
+		addCorner(swatchTransparency, 4)
+
+		local menu = create("Frame", {
+			Name = "ColorPickerMenu",
+			Visible = false,
+			Active = true,
+			ClipsDescendants = false,
+			BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+			BorderSizePixel = 0,
+			ZIndex = 6005,
+			Size = UDim2.fromOffset(hasTransparency and 226 or 204, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Parent = getOverlayParent(),
+		})
+		addCorner(menu, selfLib.Theme.CornerRadius)
+		addStroke(menu, selfLib.Theme.Outline)
+		local menuList = create("UIListLayout", {
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = menu,
+		})
+		addPadding(menu, 8)
+
+		if picker.Title and picker.Title ~= "" then
+			create("TextLabel", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 0, 16),
+				Font = selfLib.Theme.Font,
+				TextSize = 14,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = selfLib.Theme.Text,
+				Text = tostring(picker.Title),
+				LayoutOrder = 0,
+				Parent = menu,
+			})
+		end
+
+		local mapRow = create("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 0, 150),
+			LayoutOrder = 1,
+			Parent = menu,
+		})
+		local mapLayout = create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = mapRow,
+		})
+
+		local svMap = create("TextButton", {
+			AutoButtonColor = false,
+			Text = "",
+			BorderSizePixel = 0,
+			Size = UDim2.fromOffset(150, 150),
+			BackgroundColor3 = Color3.fromHSV(picker.Hue, 1, 1),
+			LayoutOrder = 1,
+			Parent = mapRow,
+		})
+		addCorner(svMap, 4)
+		addStroke(svMap, selfLib.Theme.Outline)
+
+		local satOverlay = create("Frame", {
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BorderSizePixel = 0,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = svMap.ZIndex + 1,
+			Parent = svMap,
+		})
+		addCorner(satOverlay, 4)
+		create("UIGradient", {
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+			Parent = satOverlay,
+		})
+
+		local valOverlay = create("Frame", {
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BorderSizePixel = 0,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = svMap.ZIndex + 2,
+			Parent = svMap,
+		})
+		addCorner(valOverlay, 4)
+		create("UIGradient", {
+			Rotation = 90,
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(1, 0),
+			}),
+			Parent = valOverlay,
+		})
+
+		local svCursor = create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(8, 8),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BorderSizePixel = 0,
+			ZIndex = svMap.ZIndex + 5,
+			Parent = svMap,
+		})
+		addCorner(svCursor, 99)
+		addStroke(svCursor, Color3.new(0, 0, 0), 0.3)
+
+		local hueBar = create("TextButton", {
+			AutoButtonColor = false,
+			Text = "",
+			BorderSizePixel = 0,
+			Size = UDim2.fromOffset(16, 150),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			LayoutOrder = 2,
+			Parent = mapRow,
+		})
+		addCorner(hueBar, 4)
+		addStroke(hueBar, selfLib.Theme.Outline)
+		create("UIGradient", {
+			Rotation = 90,
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+				ColorSequenceKeypoint.new(1/6, Color3.fromRGB(255, 255, 0)),
+				ColorSequenceKeypoint.new(2/6, Color3.fromRGB(0, 255, 0)),
+				ColorSequenceKeypoint.new(3/6, Color3.fromRGB(0, 255, 255)),
+				ColorSequenceKeypoint.new(4/6, Color3.fromRGB(0, 0, 255)),
+				ColorSequenceKeypoint.new(5/6, Color3.fromRGB(255, 0, 255)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0)),
+			}),
+			Parent = hueBar,
+		})
+
+		local hueCursor = create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.new(1, 4, 0, 2),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BorderSizePixel = 0,
+			ZIndex = hueBar.ZIndex + 2,
+			Parent = hueBar,
+		})
+		addCorner(hueCursor, 2)
+		addStroke(hueCursor, Color3.new(0, 0, 0), 0.4)
+
+		local transparencyBar
+		local transparencyColorOverlay
+		local transparencyCursor
+		if hasTransparency then
+			transparencyBar = create("TextButton", {
+				AutoButtonColor = false,
+				Text = "",
+				BorderSizePixel = 0,
+				Size = UDim2.fromOffset(16, 150),
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				LayoutOrder = 3,
+				Parent = mapRow,
+			})
+			addCorner(transparencyBar, 4)
+			addStroke(transparencyBar, selfLib.Theme.Outline)
+			create("ImageLabel", {
+				BackgroundTransparency = 1,
+				Image = "rbxassetid://18274452449",
+				ScaleType = Enum.ScaleType.Tile,
+				TileSize = UDim2.fromOffset(6, 6),
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = transparencyBar.ZIndex + 1,
+				Parent = transparencyBar,
+			})
+			transparencyColorOverlay = create("Frame", {
+				BackgroundColor3 = defaultColor,
+				BorderSizePixel = 0,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = transparencyBar.ZIndex + 2,
+				Parent = transparencyBar,
+			})
+			addCorner(transparencyColorOverlay, 4)
+			create("UIGradient", {
+				Rotation = 90,
+				Transparency = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 0),
+					NumberSequenceKeypoint.new(1, 1),
+				}),
+				Parent = transparencyColorOverlay,
+			})
+			transparencyCursor = create("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.new(1, 4, 0, 2),
+				BackgroundColor3 = Color3.new(1, 1, 1),
+				BorderSizePixel = 0,
+				ZIndex = transparencyBar.ZIndex + 3,
+				Parent = transparencyBar,
+			})
+			addCorner(transparencyCursor, 2)
+			addStroke(transparencyCursor, Color3.new(0, 0, 0), 0.4)
+		end
+
+		local infoHolder = create("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 0, 24),
+			LayoutOrder = 2,
+			Parent = menu,
+		})
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = infoHolder,
+		})
+
+		local hexBox = create("TextBox", {
+			BackgroundColor3 = selfLib.Theme.Surface,
+			BorderSizePixel = 0,
+			ClearTextOnFocus = false,
+			Font = selfLib.Theme.Font,
+			TextSize = 13,
+			TextColor3 = selfLib.Theme.Text,
+			PlaceholderText = "Hex",
+			PlaceholderColor3 = selfLib.Theme.SubText,
+			Size = UDim2.new(0.42, -3, 1, 0),
+			Text = "#FFFFFF",
+			LayoutOrder = 1,
+			Parent = infoHolder,
+		})
+		addCorner(hexBox, 4)
+		addStroke(hexBox, selfLib.Theme.Outline)
+
+		local rgbBox = create("TextBox", {
+			BackgroundColor3 = selfLib.Theme.Surface,
+			BorderSizePixel = 0,
+			ClearTextOnFocus = false,
+			Font = selfLib.Theme.Font,
+			TextSize = 13,
+			TextColor3 = selfLib.Theme.Text,
+			PlaceholderText = "R, G, B",
+			PlaceholderColor3 = selfLib.Theme.SubText,
+			Size = UDim2.new(0.58, -3, 1, 0),
+			Text = "255, 255, 255",
+			LayoutOrder = 2,
+			Parent = infoHolder,
+		})
+		addCorner(rgbBox, 4)
+		addStroke(rgbBox, selfLib.Theme.Outline)
+
+		local function getOverlayGui()
+			return selfLib.OverlayFrame or (selfLib.ScreenGui and selfLib.ScreenGui:FindFirstChild("Overlay")) or selfLib.ScreenGui or screenGui
+		end
+
+		local function isDragInput(input)
+			return input and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)
+		end
+
+		local function readMouse()
+			local loc = UserInputService:GetMouseLocation()
+			return Vector2.new(loc.X, loc.Y)
+		end
+
+		local function setMenuOpen(state)
+			state = state and true or false
+			if picker.Destroyed then
+				return
+			end
+			if state then
+				if selfLib._OpenDropdownCloser then
+					pcall(selfLib._OpenDropdownCloser)
+				end
+				closeOpenColorPicker(picker)
+				menu.Parent = getOverlayGui()
+				menu.Visible = true
+				picker.Open = true
+				local closer
+				closer = function()
+					if picker.Destroyed then
+						return
+					end
+					menu.Visible = false
+					picker.Open = false
+					if selfLib._OpenColorPickerCloser == closer then
+						selfLib._OpenColorPickerCloser = nil
+					end
+				end
+				closer._picker = picker
+				selfLib._OpenColorPickerCloser = closer
+			else
+				menu.Visible = false
+				picker.Open = false
+				if selfLib._OpenColorPickerCloser and selfLib._OpenColorPickerCloser._picker == picker then
+					selfLib._OpenColorPickerCloser = nil
+				end
+			end
+		end
+
+		local function updateMenuPosition()
+			if not menu.Visible or not swatch or not swatch.Parent then
+				return
+			end
+			local absPos = swatch.AbsolutePosition
+			local absSize = swatch.AbsoluteSize
+			local menuSize = menu.AbsoluteSize
+			local gui = selfLib.ScreenGui
+			local viewport = gui and gui.AbsoluteSize or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
+			local x = absPos.X
+			if opts.Variant == "Row" then
+				x = absPos.X + absSize.X - menuSize.X
+			end
+			local y = absPos.Y + absSize.Y + 4
+			if y + menuSize.Y > viewport.Y - 8 then
+				y = absPos.Y - menuSize.Y - 4
+			end
+			x = math.clamp(x, 8, math.max(8, viewport.X - menuSize.X - 8))
+			y = math.clamp(y, 8, math.max(8, viewport.Y - menuSize.Y - 8))
+			menu.Position = UDim2.fromOffset(math.floor(x), math.floor(y))
+		end
+
+		local function currentColor()
+			return Color3.fromHSV(math.clamp(picker.Hue or 0, 0, 1), math.clamp(picker.Sat or 0, 0, 1), math.clamp(picker.Vib or 0, 0, 1))
+		end
+
+		local function display()
+			local color = currentColor()
+			picker.Value = color
+			registerPicker(color)
+
+			svMap.BackgroundColor3 = Color3.fromHSV(picker.Hue, 1, 1)
+			svCursor.Position = UDim2.fromScale(math.clamp(picker.Sat, 0, 1), 1 - math.clamp(picker.Vib, 0, 1))
+			hueCursor.Position = UDim2.fromScale(0.5, math.clamp(picker.Hue, 0, 1))
+			if transparencyCursor then
+				transparencyCursor.Position = UDim2.fromScale(0.5, math.clamp(picker.Transparency, 0, 1))
+			end
+			if transparencyColorOverlay then
+				transparencyColorOverlay.BackgroundColor3 = color
+			end
+
+			swatch.BackgroundColor3 = color
+			if swatchStroke then
+				swatchStroke.Color = selfLib.Theme.Outline
+			end
+			if swatchTransparency then
+				swatchTransparency.ImageTransparency = hasTransparency and (1 - math.clamp(picker.Transparency, 0, 1)) or 1
+			end
+
+			if not hexBox:IsFocused() then
+				hexBox.Text = "#" .. string.upper(color:ToHex())
+			end
+			if not rgbBox:IsFocused() then
+				rgbBox.Text = string.format("%d, %d, %d", math.floor(color.R * 255 + 0.5), math.floor(color.G * 255 + 0.5), math.floor(color.B * 255 + 0.5))
+			end
+		end
+
+		local function fireChanged()
+			picker.Value = currentColor()
+			registerPicker(picker.Value)
+
+			if type(picker.Changed) == "function" then
+				selfLib:SafeCallback(picker.Changed, picker.Value, picker.Transparency)
+			end
+
+			for _, fn in ipairs(picker.ChangedCallbacks) do
+				if fn ~= picker.Changed then
+					selfLib:SafeCallback(fn, picker.Value, picker.Transparency)
+				end
+			end
+
+			if type(picker.Callback) == "function" then
+				selfLib:SafeCallback(picker.Callback, picker.Value, picker.Transparency)
+			end
+		end
+
+		local function setHSVFromRGB(color)
+			if typeof(color) ~= "Color3" then
+				return
+			end
+			picker.Hue, picker.Sat, picker.Vib = color:ToHSV()
+		end
+
+		function picker:Display()
+			display()
+		end
+
+		function picker:Update(silent)
+			display()
+			if not silent then
+				fireChanged()
+			end
+			if menu.Visible then
+				task.defer(updateMenuPosition)
+			end
+		end
+
+		function picker:SetValueHSVFromRGB(color)
+			setHSVFromRGB(color)
+		end
+
+		function picker:SetValueRGB(a, b, c, d)
+			local color
+			local transparency
+			if typeof(a) == "Color3" then
+				color = a
+				transparency = b
+			else
+				color = Color3.fromRGB(
+					math.clamp(tonumber(a) or 0, 0, 255),
+					math.clamp(tonumber(b) or 0, 0, 255),
+					math.clamp(tonumber(c) or 0, 0, 255)
+				)
+				transparency = d
+			end
+
+			if color then
+				setHSVFromRGB(color)
+			end
+			if hasTransparency and transparency ~= nil then
+				picker.Transparency = math.clamp(tonumber(transparency) or picker.Transparency, 0, 1)
+			end
+			picker:Update()
+		end
+
+		function picker:SetValueHSV(h, s, v, transparency)
+			if type(h) == "table" then
+				transparency = s
+				h, s, v = h[1] or h.H or 0, h[2] or h.S or 0, h[3] or h.V or 0
+			end
+			if typeof(h) == "Color3" then
+				setHSVFromRGB(h)
+			else
+				picker.Hue = math.clamp(tonumber(h) or 0, 0, 1)
+				picker.Sat = math.clamp(tonumber(s) or 0, 0, 1)
+				picker.Vib = math.clamp(tonumber(v) or 0, 0, 1)
+			end
+			if hasTransparency and transparency ~= nil then
+				picker.Transparency = math.clamp(tonumber(transparency) or picker.Transparency, 0, 1)
+			end
+			picker:Update()
+		end
+
+		picker._setter = function(value, transparency)
+			if type(value) == "table" and typeof(value) ~= "Color3" then
+				picker:SetValueHSV(value, transparency)
+				return
+			end
+			if typeof(value) == "Color3" then
+				picker:SetValueRGB(value, transparency)
+				return
+			end
+			setHSVFromRGB(defaultColor)
+			if hasTransparency and transparency ~= nil then
+				picker.Transparency = math.clamp(tonumber(transparency) or defaultTransparency, 0, 1)
+			end
+			display()
+			fireChanged()
+		end
+
+		function picker:SetValue(value, transparency)
+			if type(value) == "table" and typeof(value) ~= "Color3" then
+				picker:SetValueHSV(value, transparency)
+				return
+			end
+			picker:SetValueRGB(value, transparency)
+		end
+
+		function picker:SetText(text)
+			local newText = tostring(text or "")
+			picker.Title = newText
+			if label and label:IsA("TextLabel") then
+				label.Text = newText
+			end
+		end
+
+		function picker:OnChanged(fn)
+			if type(fn) == "function" then
+				table.insert(picker.ChangedCallbacks, fn)
+				fn(picker.Value, picker.Transparency)
+			end
+			return fn
+		end
+
+		function picker:Toggle(state)
+			if state == nil then
+				setMenuOpen(not menu.Visible)
+			else
+				setMenuOpen(state)
+			end
+			if menu.Visible then
+				task.defer(updateMenuPosition)
+			end
+		end
+
+		table.insert(picker.Connections, swatch.MouseButton1Click:Connect(function()
+			picker:Toggle()
+		end))
+
+		local function beginDrag(target, callback)
+			table.insert(picker.Connections, target.InputBegan:Connect(function(input)
+				if not isDragInput(input) then
+					return
+				end
+				local function applyFromMouse()
+					if picker.Destroyed or not target.Parent then
+						return
+					end
+					local m = readMouse()
+					local rel = m - target.AbsolutePosition
+					local size = target.AbsoluteSize
+					local x = size.X > 0 and math.clamp(rel.X / size.X, 0, 1) or 0
+					local y = size.Y > 0 and math.clamp(rel.Y / size.Y, 0, 1) or 0
+					callback(x, y)
+				end
+
+				applyFromMouse()
+				local conn
+				conn = RunService.RenderStepped:Connect(function()
+					local down = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+						or UserInputService:IsMouseButtonPressed(Enum.UserInputType.Touch)
+					if not down or picker.Destroyed or not target.Parent then
+						if conn then
+							conn:Disconnect()
+						end
+						return
+					end
+					applyFromMouse()
+				end)
+				table.insert(picker.Connections, conn)
+			end))
+		end
+
+		beginDrag(svMap, function(x, y)
+			picker.Sat = x
+			picker.Vib = 1 - y
+			picker:Update()
+		end)
+		beginDrag(hueBar, function(_, y)
+			picker.Hue = math.clamp(y, 0, 0.9999)
+			picker:Update()
+		end)
+		if transparencyBar then
+			beginDrag(transparencyBar, function(_, y)
+				picker.Transparency = y
+				picker:Update()
+			end)
+		end
+
+		table.insert(picker.Connections, hexBox.FocusLost:Connect(function(enterPressed)
+			if not enterPressed then
+				picker:Update(true)
+				return
+			end
+			local text = tostring(hexBox.Text or ""):gsub("#", ""):gsub("%s+", "")
+			if #text == 3 then
+				text = text:sub(1,1)..text:sub(1,1)..text:sub(2,2)..text:sub(2,2)..text:sub(3,3)..text:sub(3,3)
+			end
+			if #text == 6 then
+				local r = tonumber(text:sub(1, 2), 16)
+				local g = tonumber(text:sub(3, 4), 16)
+				local b = tonumber(text:sub(5, 6), 16)
+				if r and g and b then
+					picker:SetValueRGB(Color3.fromRGB(r, g, b))
+					return
+				end
+			end
+			picker:Update(true)
+		end))
+
+		table.insert(picker.Connections, rgbBox.FocusLost:Connect(function(enterPressed)
+			if not enterPressed then
+				picker:Update(true)
+				return
+			end
+			local nums = {}
+			for n in tostring(rgbBox.Text or ""):gmatch("%-?%d+%.?%d*") do
+				table.insert(nums, tonumber(n))
+				if #nums >= 3 then
+					break
+				end
+			end
+			if #nums == 3 then
+				local r = math.clamp(math.floor(nums[1] or 0), 0, 255)
+				local g = math.clamp(math.floor(nums[2] or 0), 0, 255)
+				local b = math.clamp(math.floor(nums[3] or 0), 0, 255)
+				picker:SetValueRGB(Color3.fromRGB(r, g, b))
+				return
+			end
+			picker:Update(true)
+		end))
+
+		table.insert(picker.Connections, selfLib:Connect(UserInputService.InputBegan, function(input)
+			if not menu.Visible then
+				return
+			end
+			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
+				return
+			end
+			local pos = input.Position
+			local mx, my = pos.X, pos.Y
+			local function inside(guiObj)
+				if not guiObj or not guiObj.Parent then
+					return false
+				end
+				if guiObj:IsA("GuiObject") and not guiObj.Visible then
+					return false
+				end
+				local ap = guiObj.AbsolutePosition
+				local as = guiObj.AbsoluteSize
+				return mx >= ap.X and mx <= ap.X + as.X and my >= ap.Y and my <= ap.Y + as.Y
+			end
+			if not inside(menu) and not inside(swatch) then
+				setMenuOpen(false)
+			end
+		end))
+
+		table.insert(picker.Connections, menu:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			if menu.Visible then
+				updateMenuPosition()
+			end
+		end))
+		if swatch and swatch:IsA("GuiObject") then
+			table.insert(picker.Connections, swatch:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				if menu.Visible then
+					updateMenuPosition()
+				end
+			end))
+		end
+
+		function picker:Destroy()
+			picker.Destroyed = true
+			setMenuOpen(false)
+			for _, conn in ipairs(picker.Connections or {}) do
+				pcall(function()
+					conn:Disconnect()
+				end)
+			end
+			safeDestroy(menu)
+			if instance and instance.Parent then
+				safeDestroy(instance)
+			elseif swatch and swatch.Parent then
+				safeDestroy(swatch)
+			end
+			picker.Instance = nil
+		end
+
+		display()
+		registerPicker(picker.Value)
+		picker.Instance = instance
+		picker.Swatch = swatch
+		picker.Menu = menu
+
+		return picker
+	end
+
+
 	local main = create("Frame", {
 		Name = "Main",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -911,44 +1666,22 @@ function Library:CreateWindow(config)
 					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelColor_" .. HttpService:GenerateGUID(false))
 				end
 				infoArg = infoArg or {}
-				local default = infoArg.Default or Color3.new(1, 1, 1)
-				local picker = createOptionObject("ColorPicker", idArg, { Value = default })
-				picker.Callback = infoArg.Callback
-				picker.Transparency = infoArg.Transparency or 0
-				local swatch = create("TextButton", {
-					Size = UDim2.fromOffset(28, 18),
-					BackgroundColor3 = default,
-					BorderSizePixel = 0,
-					AutoButtonColor = false,
-					Text = "",
-					Parent = addons,
+				idArg = idArg or infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelColor_" .. HttpService:GenerateGUID(false))
+
+				local picker = createColorPickerControl(idArg, infoArg, {
+					Variant = "Addon",
+					AddonsParent = addons,
+					LabelRef = label,
+					SwatchSize = UDim2.fromOffset(28, 18),
 				})
-				addCorner(swatch, 4)
-				addStroke(swatch, selfLib.Theme.Outline)
-				local palette = {
-					Color3.fromRGB(255,255,255), Color3.fromRGB(255,90,90), Color3.fromRGB(255,170,70),
-					Color3.fromRGB(255,230,90), Color3.fromRGB(120,220,120), Color3.fromRGB(120,180,255),
-					Color3.fromRGB(180,120,255), Color3.fromRGB(0,0,0),
-				}
-				local index = 1
-				swatch.MouseButton1Click:Connect(function()
-					index += 1
-					if index > #palette then index = 1 end
-					picker:SetValue(palette[index])
-				end)
-				picker._setter = function(value)
-					local color = typeof(value) == "Color3" and value or default
-					swatch.BackgroundColor3 = color
-					picker:Fire(color, picker.Transparency)
+
+				function picker:AddColorPicker(cid2, cinfo2)
+					return obj:AddColorPicker(cid2, cinfo2)
 				end
-				function picker:SetValueRGB(r,g,b) picker:SetValue(Color3.fromRGB(r,g,b)) end
-				function picker:SetValueHSV(h,s,v) picker:SetValue(Color3.fromHSV(h,s,v)) end
-				function picker:SetText(_) end
-				function picker:AddColorPicker(cid2, cinfo2) return obj:AddColorPicker(cid2, cinfo2) end
-				function picker:AddKeyPicker(kid2, kinfo2) return obj:AddKeyPicker(kid2, kinfo2) end
-				picker:SetValue(default)
-				selfLib.Options[idArg] = picker
-				selfLib.Flags[idArg] = picker.Value
+				function picker:AddKeyPicker(kid2, kinfo2)
+					return obj:AddKeyPicker(kid2, kinfo2)
+				end
+
 				task.defer(updateLabelPadding)
 				return picker
 			end
@@ -1930,6 +2663,48 @@ function Library:CreateWindow(config)
 				Parent = itemsScroll,
 			})
 
+			local positionConn
+			local function stopPositionTracking()
+				if positionConn then
+					pcall(function()
+						positionConn:Disconnect()
+					end)
+					positionConn = nil
+				end
+			end
+			local function startPositionTracking()
+				stopPositionTracking()
+				positionConn = RunService.RenderStepped:Connect(function()
+					local ok = pcall(function()
+						if dropdown.Destroyed or not menu or not menu.Parent or not menu.Visible then
+							stopPositionTracking()
+							return
+						end
+						if not button or not button.Parent then
+							stopPositionTracking()
+							return
+						end
+						updateMenuPosition()
+					end)
+					if not ok then
+						stopPositionTracking()
+					end
+				end)
+			end
+
+			dropdown.Destroyed = false
+			function dropdown:Destroy()
+				dropdown.Destroyed = true
+				stopPositionTracking()
+				closeList()
+				if dropdown.Instance then
+					safeDestroy(dropdown.Instance)
+				end
+				if menu then
+					safeDestroy(menu)
+				end
+			end
+
 			local function closeList()
 				if menu.Visible then
 					menu.Visible = false
@@ -1938,42 +2713,69 @@ function Library:CreateWindow(config)
 						selfLib._OpenDropdownCloser = nil
 					end
 				end
+				stopPositionTracking()
 			end
 
 			local function updateMenuPosition()
 				if not menu.Visible then
 					return
 				end
+				if not button or not button.Parent then
+					return
+				end
+
 				local absPos = button.AbsolutePosition
 				local absSize = button.AbsoluteSize
 				local width = math.max(absSize.X, 140)
 				menu.Size = UDim2.fromOffset(width, 0)
 
 				local itemHeight = 24
+				local itemPad = 4
 				local visibleCount = 0
 				for _, child in ipairs(itemsScroll:GetChildren()) do
 					if child:IsA("TextButton") and child.Visible then
 						visibleCount += 1
 					end
 				end
-				local searchHeight = (searchable and searchRow and searchRow.Visible ~= false) and 28 or 0
+
 				local listContent = itemsLayout.AbsoluteContentSize.Y
-				local desiredList = math.max(itemHeight, math.min(listContent, (itemHeight + 4) * maxVisible))
+				if listContent <= 0 and visibleCount > 0 then
+					listContent = visibleCount * itemHeight + math.max(0, visibleCount - 1) * itemPad
+				end
+
+				local searchHeight = (searchable and searchRow and searchRow.Visible ~= false) and 28 or 0
+				local maxListHeight = maxVisible * itemHeight + math.max(0, maxVisible - 1) * itemPad
+				local desiredList
 				if visibleCount == 0 then
 					desiredList = itemHeight
+				else
+					desiredList = math.clamp(listContent, itemHeight, math.max(itemHeight, maxListHeight))
 				end
-				itemsScroll.Size = UDim2.new(1, 0, 0, desiredList)
-				local totalHeight = desiredList + searchHeight + 12 + (searchable and 4 or 0)
 
-				local viewportY = (selfLib.ScreenGui and selfLib.ScreenGui.AbsoluteSize.Y) or workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 1000
+				itemsScroll.Size = UDim2.new(1, 0, 0, desiredList)
+
+				local menuPadding = 12
+				local gap = (searchable and 4 or 0)
+				local totalHeight = desiredList + searchHeight + menuPadding + gap
+
+				local gui = selfLib.ScreenGui
+				local viewport = gui and gui.AbsoluteSize or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
 				local yBelow = absPos.Y + absSize.Y + 4
 				local yAbove = absPos.Y - totalHeight - 4
 				local yPos = yBelow
-				if yBelow + totalHeight > viewportY - 8 and yAbove >= 8 then
+				if yBelow + totalHeight > viewport.Y - 8 and yAbove >= 8 then
 					yPos = yAbove
 				end
-				menu.Position = UDim2.fromOffset(absPos.X, math.max(8, yPos))
+
+				local xPos = math.clamp(absPos.X, 8, math.max(8, viewport.X - width - 8))
+				menu.Position = UDim2.fromOffset(math.floor(xPos), math.floor(math.max(8, yPos)))
 			end
+
+			itemsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+				if menu.Visible then
+					task.defer(updateMenuPosition)
+				end
+			end)
 
 			local function syncSpecialValues()
 				if dropdown.SpecialType == "Player" then
@@ -2020,16 +2822,19 @@ function Library:CreateWindow(config)
 			end
 
 			local function openList()
-				if dropdown.Disabled then
+				if dropdown.Disabled or dropdown.Visible == false then
 					return
 				end
 				if selfLib._OpenDropdownCloser and selfLib._OpenDropdownCloser ~= closeList then
 					pcall(selfLib._OpenDropdownCloser)
 				end
+				if selfLib._OpenColorPickerCloser then
+					pcall(selfLib._OpenColorPickerCloser)
+				end
 				if dropdown.SpecialType == "Player" or dropdown.SpecialType == "Team" then
 					syncSpecialValues()
 				end
-				menu.Parent = overlay or menu.Parent
+				menu.Parent = overlay or (selfLib.OverlayFrame or menu.Parent)
 				menu.Visible = true
 				dropdown.Open = true
 				selfLib._OpenDropdownCloser = closeList
@@ -2037,6 +2842,7 @@ function Library:CreateWindow(config)
 					searchBox.Text = ""
 				end
 				dropdown:Refresh()
+				startPositionTracking()
 				task.defer(updateMenuPosition)
 			end
 
@@ -2320,8 +3126,22 @@ function Library:CreateWindow(config)
 			if searchBox then
 				searchBox:GetPropertyChangedSignal("Text"):Connect(function()
 					dropdown:Refresh()
+					if menu.Visible then
+						task.defer(updateMenuPosition)
+					end
 				end)
 			end
+
+			button:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+				if menu.Visible then
+					task.defer(updateMenuPosition)
+				end
+			end)
+			button:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+				if menu.Visible then
+					task.defer(updateMenuPosition)
+				end
+			end)
 
 			button.MouseButton1Click:Connect(function()
 				if dropdown.Disabled then
@@ -2542,71 +3362,12 @@ function Library:CreateWindow(config)
 
 		function groupbox:AddColorPicker(id, info)
 			info = info or {}
-			local default = info.Default or Color3.new(1, 1, 1)
-			local picker = createOptionObject("ColorPicker", id, { Value = default })
-			picker.Callback = info.Callback
-			picker.Transparency = info.Transparency or 0
-
-			local wrapper = createBaseElement(self.Holder, 30)
-			local label = create("TextLabel", {
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, -60, 1, 0),
-				Font = selfLib.Theme.Font,
-				TextSize = 14,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextColor3 = selfLib.Theme.Text,
-				Text = tostring(info.Text or info.Title or id),
-				Parent = wrapper,
+			local picker = createColorPickerControl(id, info, {
+				Variant = "Row",
+				Holder = self.Holder,
+				LabelText = info.Text or info.Title or id,
 			})
-			local swatch = create("TextButton", {
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, 0, 0.5, 0),
-				Size = UDim2.fromOffset(42, 22),
-				BackgroundColor3 = default,
-				BorderSizePixel = 0,
-				AutoButtonColor = false,
-				Text = "",
-				Parent = wrapper,
-			})
-			addCorner(swatch, 4)
-			addStroke(swatch, selfLib.Theme.Outline)
 
-			local palette = {
-				Color3.fromRGB(255, 255, 255),
-				Color3.fromRGB(255, 90, 90),
-				Color3.fromRGB(255, 170, 70),
-				Color3.fromRGB(255, 230, 90),
-				Color3.fromRGB(120, 220, 120),
-				Color3.fromRGB(120, 180, 255),
-				Color3.fromRGB(180, 120, 255),
-				Color3.fromRGB(0, 0, 0),
-			}
-			local index = 1
-			swatch.MouseButton1Click:Connect(function()
-				index += 1
-				if index > #palette then
-					index = 1
-				end
-				picker:SetValue(palette[index])
-			end)
-
-			picker.Instance = wrapper
-			picker._setter = function(value)
-				local color = typeof(value) == "Color3" and value or default
-				swatch.BackgroundColor3 = color
-				picker:Fire(color, picker.Transparency)
-			end
-			function picker:SetValueRGB(r, g, b)
-				picker:SetValue(Color3.fromRGB(r, g, b))
-			end
-			function picker:SetValueHSV(h, s, v)
-				picker:SetValue(Color3.fromHSV(h, s, v))
-			end
-			function picker:SetText(text)
-				label.Text = tostring(text or "")
-			end
-
-			picker:SetValue(default)
 			selfLib.Options[id] = picker
 			selfLib.Flags[id] = picker.Value
 			return picker
@@ -2812,8 +3573,12 @@ function Library:CreateWindow(config)
 			if closeDropdown then
 				pcall(closeDropdown)
 			end
+			if selfLib._OpenColorPickerCloser then
+				pcall(selfLib._OpenColorPickerCloser)
+			end
 
 			local pagesContainer = Window.Pages
+
 			if pagesContainer then
 				for _, child in ipairs(pagesContainer:GetChildren()) do
 					if child:IsA("GuiObject") then
@@ -2823,26 +3588,27 @@ function Library:CreateWindow(config)
 			end
 
 			for _, other in ipairs(Window.Tabs) do
-				if other and other.Page then
-					other.Page.Visible = false
-				end
-				if other and other.Button then
-					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
-				end
-			end
-			for key, other in pairs(Window.Tabs) do
-				if type(key) == "string" and type(other) == "table" and other.Button then
-					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+				if type(other) == "table" then
+					if other.Page and other.Page:IsA("GuiObject") then
+						other.Page.Visible = false
+					end
+					if other.Button and other.Button:IsA("GuiObject") then
+						other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+					end
 				end
 			end
 
 			if self.Page then
+				if pagesContainer and self.Page.Parent ~= pagesContainer then
+					self.Page.Parent = pagesContainer
+				end
 				self.Page.Visible = true
-				self.Page.Parent = pagesContainer or self.Page.Parent
+				self.Page.ZIndex = 2
 			end
 			if self.Button then
 				self.Button.BackgroundColor3 = selfLib.Theme.AccentDark
 			end
+
 			Window.ActiveTab = self
 			selfLib.ActiveTab = self
 		end
@@ -3032,11 +3798,6 @@ function Library:CreateWindow(config)
 		attachTabMethods(tab)
 
 		button.MouseButton1Click:Connect(function()
-			if tab and tab.Show then
-				tab:Show()
-			end
-		end)
-		button.MouseButton1Down:Connect(function()
 			if tab and tab.Show then
 				tab:Show()
 			end
