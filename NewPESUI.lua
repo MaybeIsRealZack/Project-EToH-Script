@@ -82,9 +82,16 @@ local Library = {
 }
 
 local env = (getgenv and getgenv()) or _G
-env.Toggles = env.Toggles or Library.Toggles
-env.Options = env.Options or Library.Options
-env.Library = env.Library or Library
+-- Always point the globals at the *current* Library so re-executing the
+-- script never leaves Toggles/Options pointing at a stale table.
+if env.Library and env.Library ~= Library and type(env.Library.Unload) == "function" then
+	pcall(function()
+		env.Library:Unload()
+	end)
+end
+env.Toggles = Library.Toggles
+env.Options = Library.Options
+env.Library = Library
 
 function Library:SafeCallback(fn, ...)
 	if type(fn) ~= "function" then
@@ -124,6 +131,16 @@ function Library:Unload()
 	table.clear(self.Connections)
 	if self.ScreenGui then
 		safeDestroy(self.ScreenGui)
+	end
+	table.clear(self.Toggles)
+	table.clear(self.Options)
+	table.clear(self.Flags)
+	table.clear(self.Labels)
+	table.clear(self.Registry)
+	if env.Library == self then
+		env.Library = nil
+		env.Toggles = nil
+		env.Options = nil
 	end
 end
 
@@ -815,6 +832,7 @@ function Library:CreateWindow(config)
 			return Vector2.new(loc.X - inset.X, loc.Y - inset.Y)
 		end
 
+		local updateMenuPosition -- forward declaration (defined below)
 		local positionConn
 		local function stopMenuTracking()
 			if positionConn then
@@ -886,7 +904,7 @@ function Library:CreateWindow(config)
 			end
 		end
 
-		local function updateMenuPosition()
+		function updateMenuPosition()
 			if not menu.Visible or not swatch or not swatch.Parent then
 				return
 			end
@@ -2226,7 +2244,8 @@ function Library:CreateWindow(config)
 				end
 			end)
 
-			bar.InputEnded:Connect(function(input)
+			-- Listen globally so releasing the mouse outside the bar still ends the drag.
+			selfLib:Connect(UserInputService.InputEnded, function(input)
 				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 					dragging = false
 				end
@@ -2726,6 +2745,8 @@ function Library:CreateWindow(config)
 				Parent = itemsScroll,
 			})
 
+			local closeList -- forward declarations (defined below)
+			local updateMenuPosition
 			local positionConn
 			local function stopPositionTracking()
 				if positionConn then
@@ -2768,7 +2789,7 @@ function Library:CreateWindow(config)
 				end
 			end
 
-			local function closeList()
+			function closeList()
 				if menu.Visible then
 					menu.Visible = false
 					dropdown.Open = false
@@ -2779,7 +2800,7 @@ function Library:CreateWindow(config)
 				stopPositionTracking()
 			end
 
-			local function updateMenuPosition()
+			function updateMenuPosition()
 				if not menu.Visible then
 					return
 				end
