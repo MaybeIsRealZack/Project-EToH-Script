@@ -2091,11 +2091,123 @@ function Library:CreateWindow(config)
 			return picker
 		end
 
+		local function createDependencyContainer(parentHolder)
+			local depContainer = create("Frame", {
+				Size = UDim2.new(1, 0, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundTransparency = 1,
+				Parent = parentHolder,
+			})
+			local depHolder = create("Frame", {
+				Size = UDim2.new(1, 0, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundTransparency = 1,
+				Parent = depContainer,
+			})
+			create("UIListLayout", {
+				Padding = UDim.new(0, 6),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Parent = depHolder,
+			})
+
+			local depbox = {
+				Container = depContainer,
+				Holder = depHolder,
+				Dependencies = {},
+				_DependencyConnections = {},
+			}
+			attachGroupboxMethods(depbox)
+
+			-- copy element methods from groupbox
+			for k, v in pairs(groupbox) do
+				if depbox[k] == nil and type(v) == "function" then
+					depbox[k] = v
+				end
+			end
+
+			local function getOptionValue(opt)
+				if opt == nil then
+					return nil
+				end
+				return opt.Value
+			end
+
+			local function conditionMet(dep)
+				local obj = dep[1]
+				local expected = dep[2]
+				if type(expected) == "function" then
+					local ok, res = pcall(expected, obj)
+					return ok and res == true
+				end
+				local val = getOptionValue(obj)
+				if type(val) == "table" then
+					-- multi dropdown map or table value
+					if val[expected] == true then
+						return true
+					end
+					-- array contains expected
+					for _, v in ipairs(val) do
+						if v == expected then
+							return true
+						end
+					end
+					-- fallback direct compare
+					return val == expected
+				end
+				return val == expected
+			end
+
+			function depbox:EvaluateDependencies()
+				local visible = true
+				for _, dep in ipairs(self.Dependencies or {}) do
+					if not conditionMet(dep) then
+						visible = false
+						break
+					end
+				end
+				if self.Container then
+					self.Container.Visible = visible
+				end
+				return visible
+			end
+
+			function depbox:SetupDependencies(deps)
+				self.Dependencies = deps or {}
+				for _, conn in ipairs(self._DependencyConnections) do
+					pcall(function() conn:Disconnect() end)
+				end
+				table.clear(self._DependencyConnections)
+
+				for _, dep in ipairs(self.Dependencies) do
+					local obj = dep[1]
+					if obj and type(obj.OnChanged) == "function" then
+						local cb = obj:OnChanged(function()
+							depbox:EvaluateDependencies()
+						end)
+						-- OnChanged in our impl returns fn and calls immediately; no disconnect handle, but fine
+					end
+					if obj and type(obj.ChangedCallbacks) == "table" then
+						-- already covered by OnChanged
+					end
+				end
+				self:EvaluateDependencies()
+			end
+
+			function depbox:AddDependencyBox()
+				return createDependencyContainer(depbox.Holder)
+			end
+			function depbox:AddDependencyGroupbox()
+				return createDependencyContainer(depbox.Holder)
+			end
+
+			return depbox
+		end
+
 		function groupbox:AddDependencyBox()
-			return self
+			return createDependencyContainer(self.Holder)
 		end
 		function groupbox:AddDependencyGroupbox()
-			return self
+			return createDependencyContainer(self.Holder)
 		end
 
 		return groupbox
