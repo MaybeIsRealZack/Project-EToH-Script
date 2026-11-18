@@ -557,13 +557,13 @@ function Library:CreateWindow(config)
 			BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 			BorderSizePixel = 0,
 			ZIndex = 6005,
-			Size = UDim2.fromOffset(hasTransparency and 226 or 204, 0),
+			Size = UDim2.fromOffset(hasTransparency and 228 or 206, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Parent = getOverlayParent(),
 		})
 		addCorner(menu, selfLib.Theme.CornerRadius)
 		addStroke(menu, selfLib.Theme.Outline)
-		local menuList = create("UIListLayout", {
+		create("UIListLayout", {
 			Padding = UDim.new(0, 6),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = menu,
@@ -590,7 +590,7 @@ function Library:CreateWindow(config)
 			LayoutOrder = 1,
 			Parent = menu,
 		})
-		local mapLayout = create("UIListLayout", {
+		create("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
 			Padding = UDim.new(0, 6),
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -603,7 +603,9 @@ function Library:CreateWindow(config)
 			BorderSizePixel = 0,
 			Size = UDim2.fromOffset(150, 150),
 			BackgroundColor3 = Color3.fromHSV(picker.Hue, 1, 1),
+			ClipsDescendants = true,
 			LayoutOrder = 1,
+			ZIndex = 6006,
 			Parent = mapRow,
 		})
 		addCorner(svMap, 4)
@@ -613,7 +615,8 @@ function Library:CreateWindow(config)
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(1, 1),
-			ZIndex = svMap.ZIndex + 1,
+			ZIndex = 6007,
+			Active = false,
 			Parent = svMap,
 		})
 		addCorner(satOverlay, 4)
@@ -629,7 +632,8 @@ function Library:CreateWindow(config)
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(1, 1),
-			ZIndex = svMap.ZIndex + 2,
+			ZIndex = 6008,
+			Active = false,
 			Parent = svMap,
 		})
 		addCorner(valOverlay, 4)
@@ -647,11 +651,12 @@ function Library:CreateWindow(config)
 			Size = UDim2.fromOffset(8, 8),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BorderSizePixel = 0,
-			ZIndex = svMap.ZIndex + 5,
+			ZIndex = 6010,
+			Active = false,
 			Parent = svMap,
 		})
 		addCorner(svCursor, 99)
-		addStroke(svCursor, Color3.new(0, 0, 0), 0.3)
+		addStroke(svCursor, Color3.new(0, 0, 0), 0.35)
 
 		local hueBar = create("TextButton", {
 			AutoButtonColor = false,
@@ -659,7 +664,9 @@ function Library:CreateWindow(config)
 			BorderSizePixel = 0,
 			Size = UDim2.fromOffset(16, 150),
 			BackgroundColor3 = Color3.new(1, 1, 1),
+			ClipsDescendants = true,
 			LayoutOrder = 2,
+			ZIndex = 6006,
 			Parent = mapRow,
 		})
 		addCorner(hueBar, 4)
@@ -683,7 +690,8 @@ function Library:CreateWindow(config)
 			Size = UDim2.new(1, 4, 0, 2),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BorderSizePixel = 0,
-			ZIndex = hueBar.ZIndex + 2,
+			ZIndex = 6010,
+			Active = false,
 			Parent = hueBar,
 		})
 		addCorner(hueCursor, 2)
@@ -699,7 +707,9 @@ function Library:CreateWindow(config)
 				BorderSizePixel = 0,
 				Size = UDim2.fromOffset(16, 150),
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				ClipsDescendants = true,
 				LayoutOrder = 3,
+				ZIndex = 6006,
 				Parent = mapRow,
 			})
 			addCorner(transparencyBar, 4)
@@ -710,14 +720,16 @@ function Library:CreateWindow(config)
 				ScaleType = Enum.ScaleType.Tile,
 				TileSize = UDim2.fromOffset(6, 6),
 				Size = UDim2.fromScale(1, 1),
-				ZIndex = transparencyBar.ZIndex + 1,
+				ZIndex = 6007,
+				Active = false,
 				Parent = transparencyBar,
 			})
 			transparencyColorOverlay = create("Frame", {
 				BackgroundColor3 = defaultColor,
 				BorderSizePixel = 0,
 				Size = UDim2.fromScale(1, 1),
-				ZIndex = transparencyBar.ZIndex + 2,
+				ZIndex = 6008,
+				Active = false,
 				Parent = transparencyBar,
 			})
 			addCorner(transparencyColorOverlay, 4)
@@ -734,7 +746,8 @@ function Library:CreateWindow(config)
 				Size = UDim2.new(1, 4, 0, 2),
 				BackgroundColor3 = Color3.new(1, 1, 1),
 				BorderSizePixel = 0,
-				ZIndex = transparencyBar.ZIndex + 3,
+				ZIndex = 6010,
+				Active = false,
 				Parent = transparencyBar,
 			})
 			addCorner(transparencyCursor, 2)
@@ -811,9 +824,14 @@ function Library:CreateWindow(config)
 					pcall(selfLib._OpenDropdownCloser)
 				end
 				closeOpenColorPicker(picker)
-				menu.Parent = getOverlayGui()
+
+				local overlayGui = getOverlayGui()
+				if menu.Parent ~= overlayGui then
+					menu.Parent = overlayGui
+				end
 				menu.Visible = true
 				picker.Open = true
+
 				local closer
 				closer = function()
 					if picker.Destroyed then
@@ -827,6 +845,13 @@ function Library:CreateWindow(config)
 				end
 				closer._picker = picker
 				selfLib._OpenColorPickerCloser = closer
+
+				task.defer(updateMenuPosition)
+				task.delay(0.05, function()
+					if picker.Open and menu.Visible and not picker.Destroyed then
+						updateMenuPosition()
+					end
+				end)
 			else
 				menu.Visible = false
 				picker.Open = false
@@ -840,19 +865,26 @@ function Library:CreateWindow(config)
 			if not menu.Visible or not swatch or not swatch.Parent then
 				return
 			end
+
 			local absPos = swatch.AbsolutePosition
 			local absSize = swatch.AbsoluteSize
 			local menuSize = menu.AbsoluteSize
+			if menuSize.X <= 0 or menuSize.Y <= 0 then
+				menuSize = Vector2.new(hasTransparency and 228 or 206, 230)
+			end
+
 			local gui = selfLib.ScreenGui
 			local viewport = gui and gui.AbsoluteSize or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
 			local x = absPos.X
 			if opts.Variant == "Row" then
 				x = absPos.X + absSize.X - menuSize.X
 			end
+
 			local y = absPos.Y + absSize.Y + 4
 			if y + menuSize.Y > viewport.Y - 8 then
 				y = absPos.Y - menuSize.Y - 4
 			end
+
 			x = math.clamp(x, 8, math.max(8, viewport.X - menuSize.X - 8))
 			y = math.clamp(y, 8, math.max(8, viewport.Y - menuSize.Y - 8))
 			menu.Position = UDim2.fromOffset(math.floor(x), math.floor(y))
