@@ -1613,17 +1613,31 @@ function Library:CreateWindow(config)
 						table.insert(list, p.Name)
 					end
 				end
+				table.sort(list)
 				return list
 			end
 
 			local function getTeams()
-				local teams = game:GetService("Teams")
+				local teamsService = game:FindService("Teams") or game:GetService("Teams")
 				local list = {}
-				for _, t in ipairs(teams:GetChildren()) do
-					if t:IsA("Team") then
+				local children = {}
+				if teamsService and teamsService.GetTeams then
+					local ok, res = pcall(function()
+						return teamsService:GetTeams()
+					end)
+					if ok and type(res) == "table" then
+						children = res
+					end
+				end
+				if #children == 0 and teamsService then
+					children = teamsService:GetChildren()
+				end
+				for _, t in ipairs(children) do
+					if typeof(t) == "Instance" and t:IsA("Team") then
 						table.insert(list, t.Name)
 					end
 				end
+				table.sort(list)
 				return list
 			end
 
@@ -1934,12 +1948,53 @@ function Library:CreateWindow(config)
 				menu.Position = UDim2.fromOffset(absPos.X, math.max(8, yPos))
 			end
 
+			local function syncSpecialValues()
+				if dropdown.SpecialType == "Player" then
+					dropdown.Values = getPlayers(dropdown.ExcludeLocalPlayer)
+				elseif dropdown.SpecialType == "Team" then
+					dropdown.Values = getTeams()
+				end
+
+				if dropdown.Multi then
+					local map = normalizeMultiMap(dropdown.Value)
+					for k in pairs(map) do
+						local found = false
+						for _, v in ipairs(dropdown.Values) do
+							if v == k then
+								found = true
+								break
+							end
+						end
+						if not found then
+							map[k] = nil
+						end
+					end
+					dropdown.Value = map
+					selfLib.Flags[id] = dropdown.Value
+				else
+					local found = false
+					for _, v in ipairs(dropdown.Values) do
+						if v == dropdown.Value then
+							found = true
+							break
+						end
+					end
+					if not found then
+						dropdown.Value = #dropdown.Values > 0 and dropdown.Values[1] or nil
+						selfLib.Flags[id] = dropdown.Value
+					end
+				end
+			end
+
 			local function openList()
 				if dropdown.Disabled then
 					return
 				end
 				if selfLib._OpenDropdownCloser and selfLib._OpenDropdownCloser ~= closeList then
 					pcall(selfLib._OpenDropdownCloser)
+				end
+				if dropdown.SpecialType == "Player" or dropdown.SpecialType == "Team" then
+					syncSpecialValues()
 				end
 				menu.Parent = overlay or menu.Parent
 				menu.Visible = true
