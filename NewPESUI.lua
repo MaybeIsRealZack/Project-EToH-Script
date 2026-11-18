@@ -2377,15 +2377,19 @@ function Library:CreateWindow(config)
 		function tab:SetTooltip(_) end
 
 		function tab:Show()
-			for _, other in pairs(Window.Tabs) do
-				if type(other) == "table" and other.Page then
-					other.Page.Visible = false
-					if other.Button then
-						other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
-					end
+			if Window.Pages then
+				for _, child in ipairs(Window.Pages:GetChildren()) do
+					child.Visible = false
 				end
 			end
-			self.Page.Visible = true
+			for _, other in pairs(Window.Tabs) do
+				if type(other) == "table" and other.Button then
+					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+				end
+			end
+			if self.Page then
+				self.Page.Visible = true
+			end
 			if self.Button then
 				self.Button.BackgroundColor3 = selfLib.Theme.AccentDark
 			end
