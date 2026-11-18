@@ -218,20 +218,38 @@ local function getTextSize(text, size, font, maxWidth)
 	return Vector2.new(#tostring(text or "") * 7, size or 14)
 end
 
--- The ScreenGui is created with IgnoreGuiInset = true, so GUI coordinates are
--- plain screen coordinates (origin = top-left of the screen).
---  * GetMouseLocation() is already in screen coordinates  -> use as is.
---  * InputObject.Position excludes the top-bar inset       -> add the inset back.
+-- Mouse -> GUI-space conversion.
+-- Instead of assuming how IgnoreGuiInset is honoured (it can differ between
+-- CoreGui / gethui containers), measure where GUI (0,0) really sits on screen:
+-- if the ScreenGui is shorter than the viewport, its origin is pushed down by
+-- the difference.
+Library.MouseOffset = Vector2.new(0, 0) -- manual fine-tune (pixels), added last
+
+local function getGuiOrigin()
+	local gui = Library.ScreenGui
+	local cam = workspace.CurrentCamera
+	if gui and gui.Parent and cam then
+		local diffY = cam.ViewportSize.Y - gui.AbsoluteSize.Y
+		if diffY > 0 and diffY < 200 then
+			return Vector2.new(0, diffY)
+		end
+	end
+	return Vector2.new(0, 0)
+end
+
 local function getMouseLocation()
-	return UserInputService:GetMouseLocation()
+	return UserInputService:GetMouseLocation() - getGuiOrigin() + Library.MouseOffset
 end
 
 local function getInputPosition(input)
-	if input and input.UserInputType ~= Enum.UserInputType.Touch then
-		return UserInputService:GetMouseLocation()
+	local screenPos
+	if input and input.UserInputType == Enum.UserInputType.Touch then
+		-- InputObject.Position excludes the top-bar inset; GetMouseLocation does not.
+		screenPos = Vector2.new(input.Position.X, input.Position.Y) + GuiService:GetGuiInset()
+	else
+		screenPos = UserInputService:GetMouseLocation()
 	end
-	local inset = GuiService:GetGuiInset()
-	return Vector2.new(input.Position.X + inset.X, input.Position.Y + inset.Y)
+	return screenPos - getGuiOrigin() + Library.MouseOffset
 end
 
 local function makeDraggable(handle, target)
