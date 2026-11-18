@@ -1664,16 +1664,30 @@ function Library:CreateWindow(config)
 			addStroke(button, selfLib.Theme.Outline)
 			addPadding(button, 6)
 
+			local overlay = selfLib.OverlayFrame
+			if not overlay and selfLib.ScreenGui then
+				overlay = selfLib.ScreenGui:FindFirstChild("Overlay")
+				if not overlay then
+					overlay = create("Frame", {
+						Name = "Overlay",
+						Size = UDim2.fromScale(1, 1),
+						BackgroundTransparency = 1,
+						ZIndex = 100,
+						Parent = selfLib.ScreenGui,
+					})
+				end
+				selfLib.OverlayFrame = overlay
+			end
+
 			local listFrame = create("Frame", {
 				Visible = false,
 				ClipsDescendants = true,
-				Size = UDim2.new(1, 0, 0, 0),
+				Size = UDim2.fromOffset(0, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
-				Position = UDim2.new(0, 0, 1, 4),
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
-				ZIndex = 20,
-				Parent = wrapper,
+				ZIndex = 1000,
+				Parent = overlay or wrapper,
 			})
 			addCorner(listFrame, selfLib.Theme.CornerRadius)
 			addStroke(listFrame, selfLib.Theme.Outline)
@@ -1683,6 +1697,53 @@ function Library:CreateWindow(config)
 				Parent = listFrame,
 			})
 			addPadding(listFrame, 6)
+
+			local function closeList()
+				if listFrame.Visible then
+					listFrame.Visible = false
+					selfLib._OpenDropdown = nil
+				end
+			end
+
+			local function openList()
+				if not overlay then
+					listFrame.Parent = wrapper
+					listFrame.Position = UDim2.new(0, 0, 0, 54)
+					listFrame.Size = UDim2.new(1, 0, 0, 0)
+					listFrame.Visible = true
+					return
+				end
+				if selfLib._OpenDropdown and selfLib._OpenDropdown ~= closeList then
+					pcall(selfLib._OpenDropdown)
+				end
+				local absPos = button.AbsolutePosition
+				local absSize = button.AbsoluteSize
+				listFrame.Parent = overlay
+				listFrame.Position = UDim2.fromOffset(absPos.X, absPos.Y + absSize.Y + 4)
+				listFrame.Size = UDim2.fromOffset(math.max(absSize.X, 120), 0)
+				listFrame.Visible = true
+				selfLib._OpenDropdown = closeList
+			end
+
+			selfLib:Connect(UserInputService.InputBegan, function(input)
+				if not listFrame.Visible then
+					return
+				end
+				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
+					return
+				end
+				local pos = input.Position
+				local mx, my = pos.X, pos.Y
+				local function inside(gui)
+					if not gui or not gui.Visible then return false end
+					local ap = gui.AbsolutePosition
+					local as = gui.AbsoluteSize
+					return mx >= ap.X and mx <= ap.X + as.X and my >= ap.Y and my <= ap.Y + as.Y
+				end
+				if not inside(listFrame) and not inside(button) then
+					closeList()
+				end
+			end)
 
 			local function isSelected(value)
 				if multi then
@@ -1702,8 +1763,7 @@ function Library:CreateWindow(config)
 					dropdown:Fire(deepCopy(dropdown.Value))
 				else
 					dropdown:Fire(value)
-					listFrame.Visible = false
-					wrapper.Size = UDim2.new(1, 0, 0, 52)
+					closeList()
 				end
 				dropdown:Refresh()
 			end
@@ -1742,7 +1802,7 @@ function Library:CreateWindow(config)
 						TextXAlignment = Enum.TextXAlignment.Left,
 						TextColor3 = selfLib.Theme.Text,
 						Text = tostring(value),
-						ZIndex = 21,
+						ZIndex = 1001,
 						Parent = listFrame,
 					})
 					addCorner(optionButton, 4)
@@ -1805,6 +1865,9 @@ function Library:CreateWindow(config)
 			end
 			function dropdown:SetVisible(state)
 				wrapper.Visible = state and true or false
+				if not state then
+					closeList()
+				end
 			end
 			function dropdown:GetActiveValues(asCount)
 				if asCount and multi then
@@ -1843,13 +1906,11 @@ function Library:CreateWindow(config)
 				if dropdown.Disabled then
 					return
 				end
-				listFrame.Visible = not listFrame.Visible
-				wrapper.Size = UDim2.new(1, 0, 0, listFrame.Visible and math.min(52 + listLayout.AbsoluteContentSize.Y + 12, 220) or 52)
-			end)
-
-			listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 				if listFrame.Visible then
-					wrapper.Size = UDim2.new(1, 0, 0, math.min(52 + listLayout.AbsoluteContentSize.Y + 12, 220))
+					closeList()
+				else
+					dropdown:Refresh()
+					openList()
 				end
 			end)
 
