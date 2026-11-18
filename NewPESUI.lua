@@ -54,10 +54,11 @@ local function deepCopy(tbl)
 end
 
 local Library = {
-	Version = "1.1.0-compat",
+	Version = "1.2.0-compat",
 	Flags = {},
 	Options = {},
 	Toggles = {},
+	Labels = {},
 	Theme = {
 		Background = Color3.fromRGB(20, 20, 24),
 		Surface = Color3.fromRGB(28, 28, 34),
@@ -814,26 +815,285 @@ function Library:CreateWindow(config)
 			return div
 		end
 
-		function groupbox:AddLabel(text, doesWrap)
+		function groupbox:AddLabel(arg1, arg2, arg3)
+			local text, doesWrap, idx
+			local info
+			if type(arg1) == "table" then
+				info = arg1
+				text = info.Text or info.Name or ""
+				doesWrap = info.DoesWrap
+				idx = info.Idx or info.Index
+			elseif type(arg2) == "table" then
+				idx = arg1
+				info = arg2
+				text = info.Text or info.Name or tostring(idx or "")
+				doesWrap = info.DoesWrap
+			else
+				text = arg1
+				doesWrap = arg2
+				idx = arg3
+			end
+			if doesWrap == nil then
+				doesWrap = false
+			end
+
+			local wrapper = create("Frame", {
+				Size = UDim2.new(1, 0, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundTransparency = 1,
+				Parent = self.Holder,
+			})
+
+			local addons = create("Frame", {
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.fromScale(1, 0),
+				AutomaticSize = Enum.AutomaticSize.X,
+				Size = UDim2.new(0, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Parent = wrapper,
+			})
+			local addonsLayout = create("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				Padding = UDim.new(0, 4),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Parent = addons,
+			})
+
 			local label = create("TextLabel", {
 				Size = UDim2.new(1, 0, 0, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundTransparency = 1,
 				Font = selfLib.Theme.Font,
 				TextSize = 14,
-				TextWrapped = doesWrap ~= false,
+				TextWrapped = doesWrap and true or false,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Top,
 				TextColor3 = selfLib.Theme.SubText,
 				Text = tostring(text or ""),
-				Parent = self.Holder,
+				Parent = wrapper,
 			})
+
+			local function updateLabelPadding()
+				local pad = addonsLayout.AbsoluteContentSize.X
+				if pad > 0 then
+					pad += 6
+				end
+				label.Size = UDim2.new(1, -pad, 0, 0)
+			end
+			addonsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateLabelPadding)
+
 			local obj = {
-				Instance = label,
+				Instance = wrapper,
 				TextLabel = label,
+				Addons = addons,
 			}
 			function obj:SetText(newText)
 				label.Text = tostring(newText or "")
+			end
+
+			function obj:AddColorPicker(cid, cinfo)
+				local idArg, infoArg = cid, cinfo
+				if type(cid) == "table" then
+					infoArg = cid
+					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelColor_" .. HttpService:GenerateGUID(false))
+				end
+				infoArg = infoArg or {}
+				local default = infoArg.Default or Color3.new(1, 1, 1)
+				local picker = createOptionObject("ColorPicker", idArg, { Value = default })
+				picker.Callback = infoArg.Callback
+				picker.Transparency = infoArg.Transparency or 0
+				local swatch = create("TextButton", {
+					Size = UDim2.fromOffset(28, 18),
+					BackgroundColor3 = default,
+					BorderSizePixel = 0,
+					AutoButtonColor = false,
+					Text = "",
+					Parent = addons,
+				})
+				addCorner(swatch, 4)
+				addStroke(swatch, selfLib.Theme.Outline)
+				local palette = {
+					Color3.fromRGB(255,255,255), Color3.fromRGB(255,90,90), Color3.fromRGB(255,170,70),
+					Color3.fromRGB(255,230,90), Color3.fromRGB(120,220,120), Color3.fromRGB(120,180,255),
+					Color3.fromRGB(180,120,255), Color3.fromRGB(0,0,0),
+				}
+				local index = 1
+				swatch.MouseButton1Click:Connect(function()
+					index += 1
+					if index > #palette then index = 1 end
+					picker:SetValue(palette[index])
+				end)
+				picker._setter = function(value)
+					local color = typeof(value) == "Color3" and value or default
+					swatch.BackgroundColor3 = color
+					picker:Fire(color)
+				end
+				function picker:SetValueRGB(r,g,b) picker:SetValue(Color3.fromRGB(r,g,b)) end
+				function picker:SetValueHSV(h,s,v) picker:SetValue(Color3.fromHSV(h,s,v)) end
+				function picker:SetText(_) end
+				picker:SetValue(default)
+				selfLib.Options[idArg] = picker
+				selfLib.Flags[idArg] = picker.Value
+				task.defer(updateLabelPadding)
+				return picker
+			end
+
+			function obj:AddKeyPicker(cid, cinfo)
+				local idArg, infoArg = cid, cinfo
+				if type(cid) == "table" then
+					infoArg = cid
+					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelKey_" .. HttpService:GenerateGUID(false))
+				end
+				infoArg = infoArg or {}
+				local picker = createOptionObject("KeyPicker", idArg, { Value = infoArg.Default or "None" })
+				picker.Mode = infoArg.Mode or "Toggle"
+				picker.Callback = infoArg.Callback
+				picker.ChangedCallback = infoArg.ChangedCallback
+				picker.Toggled = false
+				picker.ClickCallbacks = {}
+				picker.ChangedCallbacks2 = {}
+				picker.Modifiers = {}
+				local keyBtn = create("TextButton", {
+					Size = UDim2.fromOffset(64, 18),
+					BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+					BorderSizePixel = 0,
+					AutoButtonColor = false,
+					Font = selfLib.Theme.Font,
+					TextSize = 12,
+					TextColor3 = selfLib.Theme.Text,
+					Text = tostring(picker.Value),
+					Parent = addons,
+				})
+				addCorner(keyBtn, 4)
+				addStroke(keyBtn, selfLib.Theme.Outline)
+
+				local function keyToString(input)
+					if input.UserInputType == Enum.UserInputType.Keyboard then return input.KeyCode.Name end
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then return "MB1" end
+					if input.UserInputType == Enum.UserInputType.MouseButton2 then return "MB2" end
+					if input.UserInputType == Enum.UserInputType.MouseButton3 then return "MB3" end
+					return nil
+				end
+				local function matchesInput(input)
+					local key = tostring(picker.Value)
+					if key == "None" or key == "" then return false end
+					if input.UserInputType == Enum.UserInputType.Keyboard then return input.KeyCode.Name == key end
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then return key == "MB1" end
+					if input.UserInputType == Enum.UserInputType.MouseButton2 then return key == "MB2" end
+					if input.UserInputType == Enum.UserInputType.MouseButton3 then return key == "MB3" end
+					return false
+				end
+				local function fireClick(state)
+					selfLib:SafeCallback(picker.Callback, state)
+					for _, cb in ipairs(picker.ClickCallbacks) do selfLib:SafeCallback(cb, state) end
+				end
+				local function fireChanged(key, mods)
+					selfLib:SafeCallback(picker.ChangedCallback, key, mods)
+					for _, cb in ipairs(picker.ChangedCallbacks2) do selfLib:SafeCallback(cb, key, mods) end
+				end
+
+				local listening = false
+				keyBtn.MouseButton1Click:Connect(function()
+					listening = true
+					keyBtn.Text = "..."
+				end)
+				selfLib:Connect(UserInputService.InputBegan, function(input, gpe)
+					if listening then
+						local keyStr = keyToString(input)
+						if keyStr then
+							picker:SetValue(keyStr)
+							listening = false
+							fireChanged(picker.Value, picker.Modifiers)
+							return
+						end
+						if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Escape then
+							picker:SetValue("None")
+							listening = false
+							fireChanged(picker.Value, picker.Modifiers)
+						end
+						return
+					end
+					if not matchesInput(input) then return end
+					if gpe and input.UserInputType == Enum.UserInputType.Keyboard then return end
+					if picker.Mode == "Toggle" then
+						picker.Toggled = not picker.Toggled
+						fireClick(picker.Toggled)
+					elseif picker.Mode == "Always" or picker.Mode == "Press" then
+						fireClick(true)
+					elseif picker.Mode == "Hold" then
+						picker.Toggled = true
+						fireClick(true)
+					end
+				end)
+				selfLib:Connect(UserInputService.InputEnded, function(input)
+					if not matchesInput(input) then return end
+					if picker.Mode == "Hold" then
+						picker.Toggled = false
+						fireClick(false)
+					end
+				end)
+
+				picker._setter = function(value)
+					if type(value) == "table" then
+						if value[1] ~= nil then
+							picker.Value = value[1]
+						end
+						if value[2] and type(value[2]) == "string" then
+							picker.Mode = value[2]
+						end
+						if type(value.Modifiers) == "table" then
+							picker.Modifiers = value.Modifiers
+						end
+					else
+						picker.Value = value or "None"
+					end
+					keyBtn.Text = tostring(picker.Value)
+					selfLib.Flags[idArg] = picker.Value
+				end
+				function picker:SetValue(v)
+					local old = picker.Value
+					picker._setter(v)
+					if old ~= picker.Value then
+						fireChanged(picker.Value, picker.Modifiers)
+					end
+				end
+				function picker:GetState() return picker.Toggled == true end
+				function picker:OnClick(cb) if type(cb) == "function" then table.insert(picker.ClickCallbacks, cb) end return cb end
+				function picker:OnChanged(cb) if type(cb) == "function" then table.insert(picker.ChangedCallbacks2, cb) end return cb end
+				function picker:SetText(_) end
+				function picker:Update() end
+				picker._setter(infoArg.Default or "None")
+				selfLib.Options[idArg] = picker
+				selfLib.Flags[idArg] = picker.Value
+				task.defer(updateLabelPadding)
+				return picker
+			end
+
+			function obj:AddDropdown(cid, cinfo)
+				local idArg, infoArg = cid, cinfo
+				if type(cid) == "table" then
+					infoArg = cid
+					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelDropdown_" .. HttpService:GenerateGUID(false))
+				end
+				infoArg = infoArg or {}
+				local dd = groupbox:AddDropdown(idArg, infoArg)
+				if dd and dd.Instance then
+					dd.Instance.Size = UDim2.new(0, 140, 0, 52)
+					dd.Instance.Parent = addons
+				end
+				task.defer(updateLabelPadding)
+				return dd
+			end
+
+			updateLabelPadding()
+			if idx then
+				selfLib.Registry[idx] = obj
+				if selfLib.Labels == nil then
+					selfLib.Labels = {}
+				end
+				selfLib.Labels[idx] = obj
 			end
 			return obj
 		end
@@ -1894,10 +2154,12 @@ function Library:CreateWindow(config)
 		function tab:SetTooltip(_) end
 
 		function tab:Show()
-			for _, other in ipairs(Window.Tabs) do
-				other.Page.Visible = false
-				if other.Button then
-					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+			for _, key, other in pairs(Window.Tabs) do
+				if type(key) == "number" and type(other) == "table" and other.Page then
+					other.Page.Visible = false
+					if other.Button then
+						other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+					end
 				end
 			end
 			self.Page.Visible = true
@@ -2093,6 +2355,7 @@ function Library:CreateWindow(config)
 
 		attachTabMethods(tab)
 		table.insert(self.Tabs, tab)
+		self.Tabs[name] = tab
 		if #self.Tabs == 1 then
 			tab:Show()
 		end
@@ -2121,13 +2384,66 @@ function Library:CreateWindow(config)
 		Window:Toggle()
 	end)
 
+	selfLib.KeybindFrame = selfLib.KeybindFrame or create("Frame", {
+		Name = "KeybindFrame",
+		Size = UDim2.fromOffset(220, 120),
+		Position = UDim2.fromOffset(20, 20),
+		BackgroundColor3 = selfLib.Theme.Surface,
+		BorderSizePixel = 0,
+		Visible = false,
+		Parent = screenGui,
+	}, {
+		create("TextLabel", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+			Font = selfLib.Theme.Font,
+			TextSize = 14,
+			TextColor3 = selfLib.Theme.SubText,
+			Text = "Keybinds",
+		}),
+	})
+	addCorner(selfLib.KeybindFrame, selfLib.Theme.CornerRadius)
+	addStroke(selfLib.KeybindFrame, selfLib.Theme.Outline)
+	if selfLib.ToggleKeybind == nil then
+		selfLib.ToggleKeybind = toggleKey
+	end
+
+	local function getToggleKey()
+		local tk = selfLib.ToggleKeybind or Window.ToggleKeybind or toggleKey
+		if typeof(tk) == "EnumItem" then
+			return tk
+		end
+		if type(tk) == "table" then
+			local v = tk.Value or tk.Key or (tk.GetState and nil)
+			if typeof(v) == "EnumItem" then
+				return v
+			end
+			if type(v) == "string" and v ~= "None" and v ~= "" then
+				local ok, enumVal = pcall(function()
+					return Enum.KeyCode[v]
+				end)
+				if ok then
+					return enumVal
+				end
+			end
+		end
+		if type(tk) == "string" and tk ~= "None" and tk ~= "" then
+			local ok, enumVal = pcall(function()
+				return Enum.KeyCode[tk]
+			end)
+			if ok then
+				return enumVal
+			end
+		end
+		return nil
+	end
+
 	self:Connect(UserInputService.InputBegan, function(input, gpe)
 		if gpe then
 			return
 		end
-		if input.KeyInputType == Enum.KeyInputType and toggleKey and input.KeyCode == toggleKey then
-			Window:Toggle()
-		elseif toggleKey and input.KeyCode == toggleKey then
+		local tk = getToggleKey()
+		if tk and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == tk then
 			Window:Toggle()
 		end
 	end)
