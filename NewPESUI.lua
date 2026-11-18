@@ -2377,8 +2377,8 @@ function Library:CreateWindow(config)
 		function tab:SetTooltip(_) end
 
 		function tab:Show()
-			for _, key, other in pairs(Window.Tabs) do
-				if type(key) == "number" and type(other) == "table" and other.Page then
+			for _, other in pairs(Window.Tabs) do
+				if type(other) == "table" and other.Page then
 					other.Page.Visible = false
 					if other.Button then
 						other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
