@@ -218,10 +218,20 @@ local function getTextSize(text, size, font, maxWidth)
 	return Vector2.new(#tostring(text or "") * 7, size or 14)
 end
 
+-- The ScreenGui is created with IgnoreGuiInset = true, so GUI coordinates are
+-- plain screen coordinates (origin = top-left of the screen).
+--  * GetMouseLocation() is already in screen coordinates  -> use as is.
+--  * InputObject.Position excludes the top-bar inset       -> add the inset back.
 local function getMouseLocation()
-	local loc = UserInputService:GetMouseLocation()
+	return UserInputService:GetMouseLocation()
+end
+
+local function getInputPosition(input)
+	if input and input.UserInputType ~= Enum.UserInputType.Touch then
+		return UserInputService:GetMouseLocation()
+	end
 	local inset = GuiService:GetGuiInset()
-	return Vector2.new(loc.X, loc.Y - inset.Y)
+	return Vector2.new(input.Position.X + inset.X, input.Position.Y + inset.Y)
 end
 
 local function makeDraggable(handle, target)
@@ -475,7 +485,7 @@ function Library:CreateWindow(config)
 
 	local function closeOpenColorPicker(exceptPicker)
 		local closer = selfLib._OpenColorPickerCloser
-		if closer and closer._picker ~= exceptPicker then
+		if closer and selfLib._OpenColorPickerOwner ~= exceptPicker then
 			pcall(closer)
 		end
 	end
@@ -826,12 +836,6 @@ function Library:CreateWindow(config)
 			return input and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)
 		end
 
-		local function readMouse()
-			local loc = UserInputService:GetMouseLocation()
-			local inset = GuiService:GetGuiInset()
-			return Vector2.new(loc.X - inset.X, loc.Y - inset.Y)
-		end
-
 		local updateMenuPosition -- forward declaration (defined below)
 		local positionConn
 		local function stopMenuTracking()
@@ -881,9 +885,10 @@ function Library:CreateWindow(config)
 					stopMenuTracking()
 					if selfLib._OpenColorPickerCloser == closer then
 						selfLib._OpenColorPickerCloser = nil
+						selfLib._OpenColorPickerOwner = nil
 					end
 				end
-				closer._picker = picker
+				selfLib._OpenColorPickerOwner = picker
 				selfLib._OpenColorPickerCloser = closer
 
 				startMenuTracking()
@@ -898,8 +903,9 @@ function Library:CreateWindow(config)
 				menu.Visible = false
 				picker.Open = false
 				stopMenuTracking()
-				if selfLib._OpenColorPickerCloser and selfLib._OpenColorPickerCloser._picker == picker then
+				if selfLib._OpenColorPickerOwner == picker then
 					selfLib._OpenColorPickerCloser = nil
+					selfLib._OpenColorPickerOwner = nil
 				end
 			end
 		end
@@ -1120,32 +1126,49 @@ function Library:CreateWindow(config)
 				if not isDragInput(input) then
 					return
 				end
-				local function applyFromMouse()
+				local function applyAt(pos)
 					if picker.Destroyed or not target.Parent then
 						return
 					end
-					local m = readMouse()
-					local rel = m - target.AbsolutePosition
+					local rel = pos - target.AbsolutePosition
 					local size = target.AbsoluteSize
 					local x = size.X > 0 and math.clamp(rel.X / size.X, 0, 1) or 0
 					local y = size.Y > 0 and math.clamp(rel.Y / size.Y, 0, 1) or 0
 					callback(x, y)
 				end
 
-				applyFromMouse()
-				local conn
-				conn = RunService.RenderStepped:Connect(function()
-					local down = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-						or UserInputService:IsMouseButtonPressed(Enum.UserInputType.Touch)
-					if not down or picker.Destroyed or not target.Parent then
-						if conn then
-							conn:Disconnect()
-						end
+				applyAt(getInputPosition(input))
+
+				local moveConn, endConn
+				local function stop()
+					if moveConn then
+						moveConn:Disconnect()
+						moveConn = nil
+					end
+					if endConn then
+						endConn:Disconnect()
+						endConn = nil
+					end
+				end
+				moveConn = UserInputService.InputChanged:Connect(function(changed)
+					if picker.Destroyed or not target.Parent then
+						stop()
 						return
 					end
-					applyFromMouse()
+					if changed.UserInputType == Enum.UserInputType.MouseMovement
+						or (changed.UserInputType == Enum.UserInputType.Touch and changed == input) then
+						applyAt(getInputPosition(changed))
+					end
 				end)
-				table.insert(picker.Connections, conn)
+				endConn = UserInputService.InputEnded:Connect(function(ended)
+					if ended == input
+						or (input.UserInputType == Enum.UserInputType.MouseButton1
+							and ended.UserInputType == Enum.UserInputType.MouseButton1) then
+						stop()
+					end
+				end)
+				table.insert(picker.Connections, moveConn)
+				table.insert(picker.Connections, endConn)
 			end))
 		end
 
@@ -1215,8 +1238,8 @@ function Library:CreateWindow(config)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
 				return
 			end
-			local inset = GuiService:GetGuiInset()
-			local mx, my = input.Position.X - inset.X, input.Position.Y - inset.Y
+			local clickPos = getInputPosition(input)
+			local mx, my = clickPos.X, clickPos.Y
 			local function inside(guiObj)
 				if not guiObj or not guiObj.Parent then
 					return false
@@ -2937,8 +2960,8 @@ function Library:CreateWindow(config)
 				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
 					return
 				end
-				local inset = GuiService:GetGuiInset()
-				local mx, my = input.Position.X - inset.X, input.Position.Y - inset.Y
+				local clickPos = getInputPosition(input)
+				local mx, my = clickPos.X, clickPos.Y
 				local function inside(guiObj)
 					if not guiObj or not guiObj.Visible then
 						return false
