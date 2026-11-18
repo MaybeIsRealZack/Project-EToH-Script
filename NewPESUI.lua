@@ -1608,30 +1608,57 @@ function Library:CreateWindow(config)
 
 			local function getPlayers(excludeLocal)
 				local list = {}
-				for _, p in ipairs(Players:GetPlayers()) do
-					if not (excludeLocal and LocalPlayer and p == LocalPlayer) then
-						table.insert(list, p.Name)
+				local ok, players = pcall(function()
+					return Players:GetPlayers()
+				end)
+				if not ok or type(players) ~= "table" then
+					return list
+				end
+
+				local lp = LocalPlayer
+				if lp == nil then
+					pcall(function()
+						lp = Players.LocalPlayer
+					end)
+				end
+
+				for _, p in ipairs(players) do
+					local okName, name = pcall(function()
+						if excludeLocal and lp and p == lp then
+							return nil
+						end
+						return p.Name
+					end)
+					if okName and type(name) == "string" and name ~= "" then
+						table.insert(list, name)
 					end
 				end
+
 				table.sort(list)
 				return list
 			end
 
 			local function getTeams()
-				local teamsService = game:FindService("Teams") or game:GetService("Teams")
+				local teamsService = game:GetService("Teams")
 				local list = {}
 				local children = {}
-				if teamsService and teamsService.GetTeams then
+
+				if teamsService then
 					local ok, res = pcall(function()
 						return teamsService:GetTeams()
 					end)
 					if ok and type(res) == "table" then
 						children = res
+					else
+						local ok2, res2 = pcall(function()
+							return teamsService:GetChildren()
+						end)
+						if ok2 and type(res2) == "table" then
+							children = res2
+						end
 					end
 				end
-				if #children == 0 and teamsService then
-					children = teamsService:GetChildren()
-				end
+
 				for _, t in ipairs(children) do
 					if typeof(t) == "Instance" and t:IsA("Team") then
 						table.insert(list, t.Name)
@@ -1971,6 +1998,7 @@ function Library:CreateWindow(config)
 					end
 					dropdown.Value = map
 					selfLib.Flags[id] = dropdown.Value
+					selfLib.Options[id] = dropdown
 				else
 					local found = false
 					for _, v in ipairs(dropdown.Values) do
@@ -1980,9 +2008,14 @@ function Library:CreateWindow(config)
 						end
 					end
 					if not found then
-						dropdown.Value = #dropdown.Values > 0 and dropdown.Values[1] or nil
-						selfLib.Flags[id] = dropdown.Value
+						if #dropdown.Values > 0 then
+							dropdown.Value = dropdown.Values[1]
+						else
+							dropdown.Value = nil
+						end
 					end
+					selfLib.Flags[id] = dropdown.Value
+					selfLib.Options[id] = dropdown
 				end
 			end
 
@@ -2303,21 +2336,40 @@ function Library:CreateWindow(config)
 
 			if info.SpecialType == "Player" then
 				selfLib:Connect(Players.PlayerAdded, function()
-					dropdown:SetValues(getPlayers(dropdown.ExcludeLocalPlayer))
+					syncSpecialValues()
+					dropdown:Refresh()
 				end)
 				selfLib:Connect(Players.PlayerRemoving, function()
-					dropdown:SetValues(getPlayers(dropdown.ExcludeLocalPlayer))
+					task.defer(function()
+						syncSpecialValues()
+						dropdown:Refresh()
+					end)
 				end)
-			elseif info.SpecialType == "Team" then
-				local teams = game:GetService("Teams")
-				selfLib:Connect(teams.ChildAdded, function(child)
-					if child:IsA("Team") then
-						dropdown:SetValues(getTeams())
+				task.defer(function()
+					if dropdown and dropdown.Refresh then
+						syncSpecialValues()
+						dropdown:Refresh()
 					end
 				end)
-				selfLib:Connect(teams.ChildRemoved, function(child)
-					if child:IsA("Team") then
-						dropdown:SetValues(getTeams())
+			elseif info.SpecialType == "Team" then
+				local teamsService = game:GetService("Teams")
+				selfLib:Connect(teamsService.ChildAdded, function()
+					task.defer(function()
+						syncSpecialValues()
+						dropdown:Refresh()
+					end)
+				end)
+				selfLib:Connect(teamsService.ChildRemoved, function()
+					task.defer(function()
+						syncSpecialValues()
+						dropdown:Refresh()
+					end)
+				end)
+				selfLib:Connect(teamsService:GetPropertyChangedSignal("Name"), function() end)
+				task.defer(function()
+					if dropdown and dropdown.Refresh then
+						syncSpecialValues()
+						dropdown:Refresh()
 					end
 				end)
 			end
