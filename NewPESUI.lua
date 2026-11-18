@@ -811,7 +811,28 @@ function Library:CreateWindow(config)
 
 		local function readMouse()
 			local loc = UserInputService:GetMouseLocation()
-			return Vector2.new(loc.X, loc.Y)
+			local inset = GuiService:GetGuiInset()
+			return Vector2.new(loc.X - inset.X, loc.Y - inset.Y)
+		end
+
+		local positionConn
+		local function stopMenuTracking()
+			if positionConn then
+				pcall(function()
+					positionConn:Disconnect()
+				end)
+				positionConn = nil
+			end
+		end
+		local function startMenuTracking()
+			stopMenuTracking()
+			positionConn = RunService.RenderStepped:Connect(function()
+				if picker.Destroyed or not menu or not menu.Parent or not menu.Visible or not picker.Open then
+					stopMenuTracking()
+					return
+				end
+				updateMenuPosition()
+			end)
 		end
 
 		local function setMenuOpen(state)
@@ -839,6 +860,7 @@ function Library:CreateWindow(config)
 					end
 					menu.Visible = false
 					picker.Open = false
+					stopMenuTracking()
 					if selfLib._OpenColorPickerCloser == closer then
 						selfLib._OpenColorPickerCloser = nil
 					end
@@ -846,6 +868,8 @@ function Library:CreateWindow(config)
 				closer._picker = picker
 				selfLib._OpenColorPickerCloser = closer
 
+				startMenuTracking()
+				updateMenuPosition()
 				task.defer(updateMenuPosition)
 				task.delay(0.05, function()
 					if picker.Open and menu.Visible and not picker.Destroyed then
@@ -855,6 +879,7 @@ function Library:CreateWindow(config)
 			else
 				menu.Visible = false
 				picker.Open = false
+				stopMenuTracking()
 				if selfLib._OpenColorPickerCloser and selfLib._OpenColorPickerCloser._picker == picker then
 					selfLib._OpenColorPickerCloser = nil
 				end
@@ -875,14 +900,19 @@ function Library:CreateWindow(config)
 
 			local gui = selfLib.ScreenGui
 			local viewport = gui and gui.AbsoluteSize or (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
+
 			local x = absPos.X
 			if opts.Variant == "Row" then
 				x = absPos.X + absSize.X - menuSize.X
+			else
+				x = absPos.X - 1
 			end
 
-			local y = absPos.Y + absSize.Y + 4
-			if y + menuSize.Y > viewport.Y - 8 then
-				y = absPos.Y - menuSize.Y - 4
+			local belowY = absPos.Y + absSize.Y + 4
+			local aboveY = absPos.Y - menuSize.Y - 4
+			local y = belowY
+			if belowY + menuSize.Y > viewport.Y - 8 and aboveY >= 8 then
+				y = aboveY
 			end
 
 			x = math.clamp(x, 8, math.max(8, viewport.X - menuSize.X - 8))
@@ -1167,8 +1197,8 @@ function Library:CreateWindow(config)
 			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
 				return
 			end
-			local pos = input.Position
-			local mx, my = pos.X, pos.Y
+			local inset = GuiService:GetGuiInset()
+			local mx, my = input.Position.X - inset.X, input.Position.Y - inset.Y
 			local function inside(guiObj)
 				if not guiObj or not guiObj.Parent then
 					return false
@@ -1201,6 +1231,7 @@ function Library:CreateWindow(config)
 		function picker:Destroy()
 			picker.Destroyed = true
 			setMenuOpen(false)
+			stopMenuTracking()
 			for _, conn in ipairs(picker.Connections or {}) do
 				pcall(function()
 					conn:Disconnect()
@@ -2885,8 +2916,8 @@ function Library:CreateWindow(config)
 				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
 					return
 				end
-				local pos = input.Position
-				local mx, my = pos.X, pos.Y
+				local inset = GuiService:GetGuiInset()
+				local mx, my = input.Position.X - inset.X, input.Position.Y - inset.Y
 				local function inside(guiObj)
 					if not guiObj or not guiObj.Visible then
 						return false
