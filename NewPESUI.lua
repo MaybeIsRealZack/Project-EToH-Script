@@ -1589,18 +1589,136 @@ function Library:CreateWindow(config)
 
 		function groupbox:AddDropdown(id, info)
 			info = info or {}
-			local values = deepCopy(info.Values or {})
-			local multi = info.Multi == true
-			local isArray = (#values > 0)
 
-			local function normalizeMultiDefault(v)
+			local function copyValues(tbl)
+				if type(tbl) ~= "table" then
+					return {}
+				end
+				local out = {}
+				for i, v in ipairs(tbl) do
+					out[i] = v
+				end
+				if #out == 0 then
+					for k, v in pairs(tbl) do
+						out[k] = v
+					end
+				end
+				return out
+			end
+
+			local function getPlayers(excludeLocal)
+				local list = {}
+				for _, p in ipairs(Players:GetPlayers()) do
+					if not (excludeLocal and LocalPlayer and p == LocalPlayer) then
+						table.insert(list, p.Name)
+					end
+				end
+				return list
+			end
+
+			local function getTeams()
+				local teams = game:GetService("Teams")
+				local list = {}
+				for _, t in ipairs(teams:GetChildren()) do
+					if t:IsA("Team") then
+						table.insert(list, t.Name)
+					end
+				end
+				return list
+			end
+
+			local values = copyValues(info.Values or {})
+			if info.SpecialType == "Player" then
+				values = getPlayers(info.ExcludeLocalPlayer)
+			elseif info.SpecialType == "Team" then
+				values = getTeams()
+			end
+
+			local multi = info.Multi == true
+			local disabledValues = copyValues(info.DisabledValues or {})
+			local searchable = info.Searchable == true
+			local maxVisible = tonumber(info.MaxVisibleDropdownItems) or 8
+			if maxVisible < 1 then
+				maxVisible = 8
+			end
+
+			local function isArray(t)
+				if type(t) ~= "table" then
+					return false
+				end
+				local n = #t
+				for k in pairs(t) do
+					if type(k) ~= "number" or k < 1 or k > n then
+						return false
+					end
+				end
+				return true
+			end
+
+			local function isDisabledValue(value)
+				for _, dv in ipairs(disabledValues) do
+					if dv == value then
+						return true
+					end
+				end
+				return false
+			end
+
+			local function formatDisplay(value)
+				if value == nil then
+					return "None"
+				end
+				local formatter = info.FormatDisplayValue
+				if type(formatter) == "function" then
+					local ok, res = pcall(formatter, value)
+					if ok and res ~= nil then
+						return tostring(res)
+					end
+				end
+				return tostring(value)
+			end
+
+			local function valueToText(value)
+				if value == nil then
+					return "None"
+				end
+				return formatDisplay(value)
+			end
+
+			local function resolveSingleDefault(v)
+				if v == nil then
+					if #values > 0 then
+						return values[1]
+					end
+					return nil
+				end
+				if type(v) == "number" and #values > 0 and values[v] ~= nil then
+					local foundLiteral = false
+					for _, item in ipairs(values) do
+						if item == v then
+							foundLiteral = true
+							break
+						end
+					end
+					if not foundLiteral then
+						return values[v]
+					end
+				end
+				return v
+			end
+
+			local function normalizeMultiMap(v)
 				if type(v) ~= "table" then
 					return {}
 				end
 				local out = {}
 				local count = 0
-				for _, _ in pairs(v) do
+				local arrayLike = true
+				for k, val in pairs(v) do
 					count += 1
+					if type(k) ~= "number" or val ~= true then
+						arrayLike = false
+					end
 				end
 				if count == #v and #v > 0 then
 					for _, item in ipairs(v) do
@@ -1609,43 +1727,57 @@ function Library:CreateWindow(config)
 					return out
 				end
 				for k, val in pairs(v) do
-					if val == true then
-						out[k] = true
-					elseif type(k) == "number" and val ~= nil and val ~= false then
+					if type(k) == "number" and val ~= true and val ~= false and val ~= nil then
 						out[val] = true
+					elseif val == true then
+						out[k] = true
 					end
 				end
 				return out
 			end
 
-			local default = info.Default
-			if multi then
-				default = normalizeMultiDefault(default)
-			else
-				if default == nil and isArray then
-					default = values[1]
-				elseif type(default) == "number" and isArray and values[default] ~= nil then
+			local function resolveMultiDefault(v)
+				if v == nil then
+					return {}
+				end
+				if type(v) == "number" and #values > 0 and values[v] ~= nil then
 					local foundLiteral = false
-					for _, v in ipairs(values) do
-						if v == default then
+					for _, item in ipairs(values) do
+						if item == v then
 							foundLiteral = true
 							break
 						end
 					end
-					if not foundLiteral then
-						default = values[default]
+					if foundLiteral then
+						return { [v] = true }
 					end
+					return { [values[v]] = true }
 				end
+				if type(v) == "table" then
+					return normalizeMultiMap(v)
+				end
+				return { [v] = true }
 			end
 
-			local dropdown = createOptionObject("Dropdown", id, { Value = default })
+			local dropdown = createOptionObject("Dropdown", id, { Value = multi and resolveMultiDefault(info.Default) or resolveSingleDefault(info.Default) })
 			dropdown.Callback = info.Callback
 			dropdown.Values = values
 			dropdown.Multi = multi
-			dropdown.DisabledValues = {}
-			dropdown._normalizeMultiDefault = normalizeMultiDefault
+			dropdown.DisabledValues = disabledValues
+			dropdown.Searchable = searchable
+			dropdown.MaxVisibleDropdownItems = maxVisible
+			dropdown.SpecialType = info.SpecialType
+			dropdown.ExcludeLocalPlayer = info.ExcludeLocalPlayer == true
+			dropdown.EnablePlayerImages = info.EnablePlayerImages == true
+			dropdown.Disabled = info.Disabled == true
+			dropdown.Visible = info.Visible ~= false
+			dropdown._normalizeMultiDefault = resolveMultiDefault
+			dropdown.Open = false
 
-			local wrapper = createBaseElement(self.Holder, 52)
+			local wrapperHeight = (info.Text or info.Title or id) and 52 or 30
+			local wrapper = createBaseElement(self.Holder, wrapperHeight)
+			wrapper.Visible = dropdown.Visible
+
 			local label = create("TextLabel", {
 				BackgroundTransparency = 1,
 				Size = UDim2.new(1, 0, 0, 18),
@@ -1658,8 +1790,8 @@ function Library:CreateWindow(config)
 			})
 
 			local button = create("TextButton", {
-				AnchorPoint = Vector2.new(0, 1),
-				Position = UDim2.new(0, 0, 1, 0),
+				AnchorPoint = (info.Text or info.Title or id) and Vector2.new(0, 1) or Vector2.new(0, 0),
+				Position = (info.Text or info.Title or id) and UDim2.new(0, 0, 1, 0) or UDim2.new(0, 0, 0, 0),
 				Size = UDim2.new(1, 0, 0, 28),
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
@@ -1667,13 +1799,14 @@ function Library:CreateWindow(config)
 				Font = selfLib.Theme.Font,
 				TextSize = 14,
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
 				TextColor3 = selfLib.Theme.Text,
 				Text = "",
 				Parent = wrapper,
 			})
 			addCorner(button, selfLib.Theme.CornerRadius)
 			addStroke(button, selfLib.Theme.Outline)
-			addPadding(button, 6)
+			addPadding(button, 8)
 
 			local overlay = selfLib.OverlayFrame
 			if not overlay and selfLib.ScreenGui then
@@ -1683,79 +1816,144 @@ function Library:CreateWindow(config)
 						Name = "Overlay",
 						Size = UDim2.fromScale(1, 1),
 						BackgroundTransparency = 1,
-						ZIndex = 100,
+						ZIndex = 5000,
 						Parent = selfLib.ScreenGui,
 					})
 				end
 				selfLib.OverlayFrame = overlay
 			end
 
-			local listFrame = create("Frame", {
+			local menu = create("Frame", {
 				Visible = false,
 				ClipsDescendants = true,
 				Size = UDim2.fromOffset(0, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
-				ZIndex = 5001,
+				ZIndex = 5005,
 				Parent = overlay or wrapper,
 			})
-			addCorner(listFrame, selfLib.Theme.CornerRadius)
-			addStroke(listFrame, selfLib.Theme.Outline)
-			local listLayout = create("UIListLayout", {
+			addCorner(menu, selfLib.Theme.CornerRadius)
+			addStroke(menu, selfLib.Theme.Outline)
+
+			local menuList = create("UIListLayout", {
 				Padding = UDim.new(0, 4),
 				SortOrder = Enum.SortOrder.LayoutOrder,
-				Parent = listFrame,
+				Parent = menu,
 			})
-			addPadding(listFrame, 6)
+			addPadding(menu, 6)
+
+			local searchBox
+			local searchRow
+			if searchable then
+				searchRow = create("Frame", {
+					Size = UDim2.new(1, 0, 0, 24),
+					BackgroundTransparency = 1,
+					LayoutOrder = 0,
+					Parent = menu,
+				})
+				searchBox = create("TextBox", {
+					Size = UDim2.new(1, 0, 1, 0),
+					BackgroundColor3 = selfLib.Theme.Surface,
+					BorderSizePixel = 0,
+					ClearTextOnFocus = false,
+					Font = selfLib.Theme.Font,
+					TextSize = 13,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextColor3 = selfLib.Theme.Text,
+					PlaceholderText = "Search...",
+					PlaceholderColor3 = selfLib.Theme.SubText,
+					Text = "",
+					Parent = searchRow,
+				})
+				addCorner(searchBox, 4)
+				addStroke(searchBox, selfLib.Theme.Outline)
+				addPadding(searchBox, 6)
+			end
+
+			local itemsScroll = create("ScrollingFrame", {
+				Size = UDim2.new(1, 0, 0, 0),
+				CanvasSize = UDim2.new(),
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				ScrollBarThickness = 3,
+				ScrollBarImageColor3 = selfLib.Theme.Outline,
+				ScrollingDirection = Enum.ScrollingDirection.Y,
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				LayoutOrder = 1,
+				Parent = menu,
+			})
+			local itemsLayout = create("UIListLayout", {
+				Padding = UDim.new(0, 4),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Parent = itemsScroll,
+			})
 
 			local function closeList()
-				if listFrame.Visible then
-					listFrame.Visible = false
-					selfLib._OpenDropdown = nil
+				if menu.Visible then
+					menu.Visible = false
+					dropdown.Open = false
+					if selfLib._OpenDropdownCloser == closeList then
+						selfLib._OpenDropdownCloser = nil
+					end
 				end
 			end
 
-			local function openList()
-				if not overlay then
-					listFrame.Parent = wrapper
-					listFrame.Position = UDim2.new(0, 0, 0, 54)
-					listFrame.Size = UDim2.new(1, 0, 0, 0)
-					listFrame.Visible = true
+			local function updateMenuPosition()
+				if not menu.Visible then
 					return
-				end
-				if selfLib._OpenDropdown and selfLib._OpenDropdown ~= closeList then
-					pcall(selfLib._OpenDropdown)
 				end
 				local absPos = button.AbsolutePosition
 				local absSize = button.AbsoluteSize
-				local width = math.max(absSize.X, 120)
-				listFrame.Parent = overlay
-				listFrame.Size = UDim2.fromOffset(width, 0)
-				listFrame.Visible = true
+				local width = math.max(absSize.X, 140)
+				menu.Size = UDim2.fromOffset(width, 0)
 
-				task.defer(function()
-					if not listFrame.Visible then
-						return
+				local itemHeight = 24
+				local visibleCount = 0
+				for _, child in ipairs(itemsScroll:GetChildren()) do
+					if child:IsA("TextButton") and child.Visible then
+						visibleCount += 1
 					end
-					local contentHeight = listLayout.AbsoluteContentSize.Y + 12
-					local maxHeight = 240
-					local listHeight = math.min(contentHeight, maxHeight)
-					local viewportY = (selfLib.ScreenGui and selfLib.ScreenGui.AbsoluteSize.Y) or 1000
-					local yBelow = absPos.Y + absSize.Y + 4
-					local yAbove = absPos.Y - listHeight - 4
-					local yPos = yBelow
-					if yBelow + listHeight > viewportY - 8 and yAbove >= 8 then
-						yPos = yAbove
-					end
-					listFrame.Position = UDim2.fromOffset(absPos.X, math.max(8, yPos))
-				end)
+				end
+				local searchHeight = (searchable and searchRow and searchRow.Visible ~= false) and 28 or 0
+				local listContent = itemsLayout.AbsoluteContentSize.Y
+				local desiredList = math.max(itemHeight, math.min(listContent, (itemHeight + 4) * maxVisible))
+				if visibleCount == 0 then
+					desiredList = itemHeight
+				end
+				itemsScroll.Size = UDim2.new(1, 0, 0, desiredList)
+				local totalHeight = desiredList + searchHeight + 12 + (searchable and 4 or 0)
 
-				selfLib._OpenDropdown = closeList
+				local viewportY = (selfLib.ScreenGui and selfLib.ScreenGui.AbsoluteSize.Y) or workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 1000
+				local yBelow = absPos.Y + absSize.Y + 4
+				local yAbove = absPos.Y - totalHeight - 4
+				local yPos = yBelow
+				if yBelow + totalHeight > viewportY - 8 and yAbove >= 8 then
+					yPos = yAbove
+				end
+				menu.Position = UDim2.fromOffset(absPos.X, math.max(8, yPos))
+			end
+
+			local function openList()
+				if dropdown.Disabled then
+					return
+				end
+				if selfLib._OpenDropdownCloser and selfLib._OpenDropdownCloser ~= closeList then
+					pcall(selfLib._OpenDropdownCloser)
+				end
+				menu.Parent = overlay or menu.Parent
+				menu.Visible = true
+				dropdown.Open = true
+				selfLib._OpenDropdownCloser = closeList
+				if searchBox then
+					searchBox.Text = ""
+				end
+				dropdown:Refresh()
+				task.defer(updateMenuPosition)
 			end
 
 			selfLib:Connect(UserInputService.InputBegan, function(input)
-				if not listFrame.Visible then
+				if not menu.Visible then
 					return
 				end
 				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
@@ -1763,46 +1961,82 @@ function Library:CreateWindow(config)
 				end
 				local pos = input.Position
 				local mx, my = pos.X, pos.Y
-				local function inside(gui)
-					if not gui or not gui.Visible then return false end
-					local ap = gui.AbsolutePosition
-					local as = gui.AbsoluteSize
+				local function inside(guiObj)
+					if not guiObj or not guiObj.Visible then
+						return false
+					end
+					local ap = guiObj.AbsolutePosition
+					local as = guiObj.AbsoluteSize
 					return mx >= ap.X and mx <= ap.X + as.X and my >= ap.Y and my <= ap.Y + as.Y
 				end
-				if not inside(listFrame) and not inside(button) then
+				if not inside(menu) and not inside(button) then
 					closeList()
 				end
 			end)
 
 			local function isSelected(value)
 				if multi then
-					return dropdown.Value and dropdown.Value[value] == true
+					return type(dropdown.Value) == "table" and dropdown.Value[value] == true
 				end
 				return dropdown.Value == value
 			end
 
-			local function setSelected(value)
-				if multi then
-					dropdown.Value = dropdown.Value or {}
-					if dropdown.Value[value] then
-						dropdown.Value[value] = nil
-					else
-						dropdown.Value[value] = true
-					end
-					dropdown:Fire(deepCopy(dropdown.Value))
+			local function setSingleValue(value)
+				dropdown.Value = value
+				selfLib.Flags[id] = value
+				if dropdown.Type == "Toggle" then
+					selfLib.Toggles[id] = dropdown
 				else
-					dropdown:Fire(value)
-					closeList()
+					selfLib.Options[id] = dropdown
 				end
-				dropdown:Refresh()
+				for _, fn in ipairs(dropdown.ChangedCallbacks) do
+					selfLib:SafeCallback(fn, value)
+				end
+				if dropdown.Callback then
+					selfLib:SafeCallback(dropdown.Callback, value)
+				end
+			end
+
+			local function fireValue(value)
+				dropdown.Value = value
+				selfLib.Flags[id] = value
+				selfLib.Options[id] = dropdown
+				for _, fn in ipairs(dropdown.ChangedCallbacks) do
+					selfLib:SafeCallback(fn, value)
+				end
+				if dropdown.Callback then
+					selfLib:SafeCallback(dropdown.Callback, value)
+				end
+			end
+
+			local function selectValue(value)
+				if isDisabledValue(value) then
+					return
+				end
+				if multi then
+					local map = normalizeMultiMap(dropdown.Value)
+					if map[value] then
+						map[value] = nil
+					else
+						map[value] = true
+					end
+					dropdown.Value = map
+					fireValue(deepCopy(map))
+					dropdown:Refresh()
+					task.defer(updateMenuPosition)
+				else
+					setSingleValue(value)
+					closeList()
+					dropdown:Refresh()
+				end
 			end
 
 			function dropdown:DisplayText()
 				if multi then
 					local picked = {}
-					for _, v in ipairs(dropdown.Values) do
-						if dropdown.Value and dropdown.Value[v] then
-							table.insert(picked, tostring(v))
+					for _, v in ipairs(dropdown.Values or {}) do
+						if type(dropdown.Value) == "table" and dropdown.Value[v] == true then
+							table.insert(picked, valueToText(v))
 						end
 					end
 					if #picked == 0 then
@@ -1810,41 +2044,87 @@ function Library:CreateWindow(config)
 					end
 					return table.concat(picked, ", ")
 				end
-				return dropdown.Value == nil and "None" or tostring(dropdown.Value)
+				if dropdown.Value == nil then
+					return "None"
+				end
+				return valueToText(dropdown.Value)
+			end
+
+			local function passesSearch(value)
+				if not searchable or not searchBox then
+					return true
+				end
+				local q = string.lower(tostring(searchBox.Text or ""))
+				if q == "" then
+					return true
+				end
+				local txt = string.lower(valueToText(value))
+				return string.find(txt, q, 1, true) ~= nil
 			end
 
 			function dropdown:Refresh()
 				button.Text = self:DisplayText()
-				for _, child in ipairs(listFrame:GetChildren()) do
+				button.TextColor3 = dropdown.Disabled and selfLib.Theme.SubText or selfLib.Theme.Text
+
+				for _, child in ipairs(itemsScroll:GetChildren()) do
 					if child:IsA("TextButton") then
 						child:Destroy()
 					end
 				end
-				for _, value in ipairs(dropdown.Values) do
-					local optionButton = create("TextButton", {
-						Size = UDim2.new(1, 0, 0, 24),
-						BackgroundColor3 = isSelected(value) and selfLib.Theme.AccentDark or selfLib.Theme.Surface,
-						BorderSizePixel = 0,
-						AutoButtonColor = false,
-						Font = selfLib.Theme.Font,
-						TextSize = 13,
-						TextXAlignment = Enum.TextXAlignment.Left,
-						TextColor3 = selfLib.Theme.Text,
-						Text = tostring(value),
-						ZIndex = 5002,
-						Parent = listFrame,
-					})
-					addCorner(optionButton, 4)
-					addPadding(optionButton, 6)
-					optionButton.MouseButton1Click:Connect(function()
-						setSelected(value)
-					end)
+
+				for _, value in ipairs(dropdown.Values or {}) do
+					if passesSearch(value) then
+						local disabled = isDisabledValue(value)
+						local selected = isSelected(value)
+						local opt = create("TextButton", {
+							Size = UDim2.new(1, 0, 0, 24),
+							BackgroundColor3 = selected and selfLib.Theme.AccentDark or selfLib.Theme.Surface,
+							BorderSizePixel = 0,
+							AutoButtonColor = false,
+							Font = selfLib.Theme.Font,
+							TextSize = 13,
+							TextXAlignment = Enum.TextXAlignment.Left,
+							TextTruncate = Enum.TextTruncate.AtEnd,
+							TextColor3 = disabled and selfLib.Theme.SubText or selfLib.Theme.Text,
+							Text = valueToText(value),
+							ZIndex = 5006,
+							Parent = itemsScroll,
+						})
+						addCorner(opt, 4)
+						addPadding(opt, 6)
+						if not disabled then
+							opt.MouseButton1Click:Connect(function()
+								selectValue(value)
+							end)
+						end
+					end
+				end
+
+				if menu.Visible then
+					task.defer(updateMenuPosition)
 				end
 			end
 
 			function dropdown:SetValues(newValues)
-				dropdown.Values = deepCopy(newValues or {})
-				if not multi and dropdown.Value ~= nil then
+				dropdown.Values = copyValues(newValues or {})
+				if info.SpecialType == "Player" then
+					dropdown.Values = getPlayers(dropdown.ExcludeLocalPlayer)
+				elseif info.SpecialType == "Team" then
+					dropdown.Values = getTeams()
+				end
+				if multi then
+					local map = normalizeMultiMap(dropdown.Value)
+					for k in pairs(map) do
+						local found = false
+						for _, v in ipairs(dropdown.Values) do
+							if v == k then found = true break end
+						end
+						if not found then
+							map[k] = nil
+						end
+					end
+					dropdown.Value = map
+				else
 					local found = false
 					for _, v in ipairs(dropdown.Values) do
 						if v == dropdown.Value then
@@ -1853,12 +2133,20 @@ function Library:CreateWindow(config)
 						end
 					end
 					if not found then
-						dropdown.Value = dropdown.Values[1]
+						dropdown.Value = #dropdown.Values > 0 and dropdown.Values[1] or nil
 					end
 				end
 				dropdown:Refresh()
 			end
 			function dropdown:AddValues(newValues)
+				if info.SpecialType == "Player" then
+					dropdown:SetValues(getPlayers(dropdown.ExcludeLocalPlayer))
+					return
+				end
+				if info.SpecialType == "Team" then
+					dropdown:SetValues(getTeams())
+					return
+				end
 				if type(newValues) == "table" then
 					for _, v in ipairs(newValues) do
 						table.insert(dropdown.Values, v)
@@ -1869,18 +2157,19 @@ function Library:CreateWindow(config)
 				dropdown:Refresh()
 			end
 			function dropdown:SetDisabledValues(vals)
-				dropdown.DisabledValues = deepCopy(vals or {})
+				disabledValues = copyValues(vals or {})
+				dropdown.DisabledValues = disabledValues
 				dropdown:Refresh()
 			end
 			function dropdown:AddDisabledValues(vals)
-				dropdown.DisabledValues = dropdown.DisabledValues or {}
 				if type(vals) == "table" then
 					for _, v in ipairs(vals) do
-						table.insert(dropdown.DisabledValues, v)
+						table.insert(disabledValues, v)
 					end
 				elseif vals ~= nil then
-					table.insert(dropdown.DisabledValues, vals)
+					table.insert(disabledValues, vals)
 				end
+				dropdown.DisabledValues = disabledValues
 				dropdown:Refresh()
 			end
 			function dropdown:SetValueImages(_) end
@@ -1891,57 +2180,92 @@ function Library:CreateWindow(config)
 			end
 			function dropdown:SetDisabled(state)
 				dropdown.Disabled = state and true or false
+				button.Active = not dropdown.Disabled
+				dropdown:Refresh()
+				if dropdown.Disabled then
+					closeList()
+				end
 			end
 			function dropdown:SetVisible(state)
-				wrapper.Visible = state and true or false
-				if not state then
+				dropdown.Visible = state and true or false
+				wrapper.Visible = dropdown.Visible
+				if not dropdown.Visible then
 					closeList()
 				end
 			end
 			function dropdown:GetActiveValues(asCount)
-				if asCount and multi then
-					local n = 0
-					for _ in pairs(dropdown.Value or {}) do
-						n += 1
+				if multi then
+					if asCount then
+						local n = 0
+						for _, v in ipairs(dropdown.Values or {}) do
+							if type(dropdown.Value) == "table" and dropdown.Value[v] == true then
+								n += 1
+							end
+						end
+						return n
 					end
-					return n
+					local map = {}
+					for _, v in ipairs(dropdown.Values or {}) do
+						if type(dropdown.Value) == "table" and dropdown.Value[v] == true then
+							map[v] = true
+						end
+					end
+					return map
 				end
-				return deepCopy(dropdown.Value)
+				return dropdown.Value
 			end
 
 			dropdown.Instance = wrapper
+			dropdown.Menu = menu
+			dropdown.Button = button
 			dropdown._setter = function(value)
 				if multi then
-					dropdown.Value = dropdown._normalizeMultiDefault(value)
+					dropdown.Value = resolveMultiDefault(value)
+					fireValue(deepCopy(dropdown.Value))
 				else
-					if type(value) == "number" and #dropdown.Values > 0 and dropdown.Values[value] ~= nil then
-						local foundLiteral = false
-						for _, v in ipairs(dropdown.Values) do
-							if v == value then
-								foundLiteral = true
-								break
-							end
-						end
-						dropdown.Value = foundLiteral and value or dropdown.Values[value]
-					else
-						dropdown.Value = value
-					end
+					dropdown.Value = resolveSingleDefault(value)
+					setSingleValue(dropdown.Value)
 				end
-				dropdown:Fire(deepCopy(dropdown.Value))
 				dropdown:Refresh()
+			end
+
+			if searchBox then
+				searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+					dropdown:Refresh()
+				end)
 			end
 
 			button.MouseButton1Click:Connect(function()
 				if dropdown.Disabled then
 					return
 				end
-				if listFrame.Visible then
+				if menu.Visible then
 					closeList()
 				else
-					dropdown:Refresh()
 					openList()
 				end
 			end)
+
+			if info.SpecialType == "Player" then
+				selfLib:Connect(Players.PlayerAdded, function()
+					dropdown:SetValues(getPlayers(dropdown.ExcludeLocalPlayer))
+				end)
+				selfLib:Connect(Players.PlayerRemoving, function()
+					dropdown:SetValues(getPlayers(dropdown.ExcludeLocalPlayer))
+				end)
+			elseif info.SpecialType == "Team" then
+				local teams = game:GetService("Teams")
+				selfLib:Connect(teams.ChildAdded, function(child)
+					if child:IsA("Team") then
+						dropdown:SetValues(getTeams())
+					end
+				end)
+				selfLib:Connect(teams.ChildRemoved, function(child)
+					if child:IsA("Team") then
+						dropdown:SetValues(getTeams())
+					end
+				end)
+			end
 
 			dropdown:Refresh()
 			selfLib.Options[id] = dropdown
@@ -2352,7 +2676,7 @@ function Library:CreateWindow(config)
 			end
 			if state == false and Window.ActiveTab == self then
 				for _, other in ipairs(Window.Tabs) do
-					if other ~= self and other.Button and other.Button.Visible then
+					if other ~= self and other.Button and other.Button.Visible and other.Show then
 						other:Show()
 						break
 					end
@@ -2377,23 +2701,43 @@ function Library:CreateWindow(config)
 		function tab:SetTooltip(_) end
 
 		function tab:Show()
-			if Window.Pages then
-				for _, child in ipairs(Window.Pages:GetChildren()) do
-					child.Visible = false
+			local closeDropdown = selfLib._OpenDropdownCloser or selfLib._OpenDropdown
+			if closeDropdown then
+				pcall(closeDropdown)
+			end
+
+			local pagesContainer = Window.Pages
+			if pagesContainer then
+				for _, child in ipairs(pagesContainer:GetChildren()) do
+					if child:IsA("GuiObject") then
+						child.Visible = false
+					end
 				end
 			end
-			for _, other in pairs(Window.Tabs) do
-				if type(other) == "table" and other.Button then
+
+			for _, other in ipairs(Window.Tabs) do
+				if other and other.Page then
+					other.Page.Visible = false
+				end
+				if other and other.Button then
 					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
 				end
 			end
+			for key, other in pairs(Window.Tabs) do
+				if type(key) == "string" and type(other) == "table" and other.Button then
+					other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+				end
+			end
+
 			if self.Page then
 				self.Page.Visible = true
+				self.Page.Parent = pagesContainer or self.Page.Parent
 			end
 			if self.Button then
 				self.Button.BackgroundColor3 = selfLib.Theme.AccentDark
 			end
 			Window.ActiveTab = self
+			selfLib.ActiveTab = self
 		end
 
 		function tab:AddGroupbox(info)
@@ -2560,7 +2904,8 @@ function Library:CreateWindow(config)
 			description = arg3
 		end
 
-		local button, buttonLabel = createTabButton(name, icon, #self.Tabs + 1)
+		local order = #self.Tabs + 1
+		local button, buttonLabel = createTabButton(name, icon, order)
 		local page, leftColumn, rightColumn = createPageContainer()
 
 		local tab = {
@@ -2574,16 +2919,25 @@ function Library:CreateWindow(config)
 			LeftColumn = leftColumn,
 			RightColumn = rightColumn,
 			Groupboxes = {},
+			Window = Window,
 		}
 
+		attachTabMethods(tab)
+
 		button.MouseButton1Click:Connect(function()
-			tab:Show()
+			if tab and tab.Show then
+				tab:Show()
+			end
+		end)
+		button.MouseButton1Down:Connect(function()
+			if tab and tab.Show then
+				tab:Show()
+			end
 		end)
 
-		attachTabMethods(tab)
 		table.insert(self.Tabs, tab)
 		self.Tabs[name] = tab
-		if #self.Tabs == 1 then
+		if #self.Tabs == 1 or Window.ActiveTab == nil then
 			tab:Show()
 		end
 		return tab
