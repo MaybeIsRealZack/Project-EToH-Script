@@ -410,12 +410,23 @@ function Library:CreateWindow(config)
 	self.ScreenGui = screenGui
 	selfLib.NotifySide = config.NotifySide or selfLib.NotifySide
 
+	local overlay = create("Frame", {
+		Name = "Overlay",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ZIndex = 5000,
+		Parent = screenGui,
+	})
+	self.OverlayFrame = overlay
+	selfLib.OverlayFrame = overlay
+
 	local notifyHolder = create("Frame", {
 		Name = "Notifications",
 		AnchorPoint = selfLib.NotifySide == "Left" and Vector2.new(0, 1) or Vector2.new(1, 1),
 		Position = selfLib.NotifySide == "Left" and UDim2.new(0, 20, 1, -20) or UDim2.new(1, -20, 1, -20),
 		Size = UDim2.fromOffset(260, 400),
 		BackgroundTransparency = 1,
+		ZIndex = 6000,
 		Parent = screenGui,
 	}, {
 		create("UIListLayout", {
@@ -1686,7 +1697,7 @@ function Library:CreateWindow(config)
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
-				ZIndex = 1000,
+				ZIndex = 5001,
 				Parent = overlay or wrapper,
 			})
 			addCorner(listFrame, selfLib.Theme.CornerRadius)
@@ -1718,10 +1729,28 @@ function Library:CreateWindow(config)
 				end
 				local absPos = button.AbsolutePosition
 				local absSize = button.AbsoluteSize
+				local width = math.max(absSize.X, 120)
 				listFrame.Parent = overlay
-				listFrame.Position = UDim2.fromOffset(absPos.X, absPos.Y + absSize.Y + 4)
-				listFrame.Size = UDim2.fromOffset(math.max(absSize.X, 120), 0)
+				listFrame.Size = UDim2.fromOffset(width, 0)
 				listFrame.Visible = true
+
+				task.defer(function()
+					if not listFrame.Visible then
+						return
+					end
+					local contentHeight = listLayout.AbsoluteContentSize.Y + 12
+					local maxHeight = 240
+					local listHeight = math.min(contentHeight, maxHeight)
+					local viewportY = (selfLib.ScreenGui and selfLib.ScreenGui.AbsoluteSize.Y) or 1000
+					local yBelow = absPos.Y + absSize.Y + 4
+					local yAbove = absPos.Y - listHeight - 4
+					local yPos = yBelow
+					if yBelow + listHeight > viewportY - 8 and yAbove >= 8 then
+						yPos = yAbove
+					end
+					listFrame.Position = UDim2.fromOffset(absPos.X, math.max(8, yPos))
+				end)
+
 				selfLib._OpenDropdown = closeList
 			end
 
@@ -1802,7 +1831,7 @@ function Library:CreateWindow(config)
 						TextXAlignment = Enum.TextXAlignment.Left,
 						TextColor3 = selfLib.Theme.Text,
 						Text = tostring(value),
-						ZIndex = 1001,
+						ZIndex = 5002,
 						Parent = listFrame,
 					})
 					addCorner(optionButton, 4)
