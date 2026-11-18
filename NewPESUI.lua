@@ -360,7 +360,7 @@ local function createOptionObject(kind, id, defaults)
 		end
 		return fn
 	end
-	function obj:Fire(value)
+	function obj:Fire(value, ...)
 		self.Value = value
 		Library.Flags[self.Idx] = value
 		if self.Type == "Toggle" then
@@ -369,10 +369,10 @@ local function createOptionObject(kind, id, defaults)
 			Library.Options[self.Idx] = self
 		end
 		for _, fn in ipairs(self.ChangedCallbacks) do
-			Library:SafeCallback(fn, value)
+			Library:SafeCallback(fn, value, ...)
 		end
 		if self.Callback then
-			Library:SafeCallback(self.Callback, value)
+			Library:SafeCallback(self.Callback, value, ...)
 		end
 	end
 	function obj:SetValue(value)
@@ -928,11 +928,13 @@ function Library:CreateWindow(config)
 				picker._setter = function(value)
 					local color = typeof(value) == "Color3" and value or default
 					swatch.BackgroundColor3 = color
-					picker:Fire(color)
+					picker:Fire(color, picker.Transparency)
 				end
 				function picker:SetValueRGB(r,g,b) picker:SetValue(Color3.fromRGB(r,g,b)) end
 				function picker:SetValueHSV(h,s,v) picker:SetValue(Color3.fromHSV(h,s,v)) end
 				function picker:SetText(_) end
+				function picker:AddColorPicker(cid2, cinfo2) return obj:AddColorPicker(cid2, cinfo2) end
+				function picker:AddKeyPicker(kid2, kinfo2) return obj:AddKeyPicker(kid2, kinfo2) end
 				picker:SetValue(default)
 				selfLib.Options[idArg] = picker
 				selfLib.Flags[idArg] = picker.Value
@@ -1064,6 +1066,8 @@ function Library:CreateWindow(config)
 				function picker:OnChanged(cb) if type(cb) == "function" then table.insert(picker.ChangedCallbacks2, cb) end return cb end
 				function picker:SetText(_) end
 				function picker:Update() end
+				function picker:AddColorPicker(cid2, cinfo2) return obj:AddColorPicker(cid2, cinfo2) end
+				function picker:AddKeyPicker(kid2, kinfo2) return obj:AddKeyPicker(kid2, kinfo2) end
 				picker._setter(infoArg.Default or "None")
 				selfLib.Options[idArg] = picker
 				selfLib.Flags[idArg] = picker.Value
@@ -1267,12 +1271,20 @@ function Library:CreateWindow(config)
 				end
 				infoArg = infoArg or {}
 				local picker = groupbox:AddKeyPicker(idArg, infoArg)
-				if picker and infoArg.SyncToggleState and (picker.Mode == "Toggle" or picker.Mode == nil) then
+				if picker and infoArg.SyncToggleState and (picker.Mode == "Toggle" or picker.Mode == nil) and picker.OnClick then
 					picker:OnClick(function(state)
 						if type(state) == "boolean" then
 							toggle:SetValue(state)
 						end
 					end)
+				end
+				if picker then
+					function picker:AddColorPicker(cid2, cinfo2)
+						return toggle:AddColorPicker(cid2, cinfo2)
+					end
+					function picker:AddKeyPicker(kid2, kinfo2)
+						return toggle:AddKeyPicker(kid2, kinfo2)
+					end
 				end
 				return picker
 			end
@@ -1282,7 +1294,16 @@ function Library:CreateWindow(config)
 					infoArg = cid
 					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or (id .. "_ColorPicker")
 				end
-				return groupbox:AddColorPicker(idArg, infoArg or {})
+				local picker = groupbox:AddColorPicker(idArg, infoArg or {})
+				if picker then
+					function picker:AddColorPicker(cid2, cinfo2)
+						return toggle:AddColorPicker(cid2, cinfo2)
+					end
+					function picker:AddKeyPicker(kid2, kinfo2)
+						return toggle:AddKeyPicker(kid2, kinfo2)
+					end
+				end
+				return picker
 			end
 
 			render()
@@ -2052,7 +2073,7 @@ function Library:CreateWindow(config)
 			picker._setter = function(value)
 				local color = typeof(value) == "Color3" and value or default
 				swatch.BackgroundColor3 = color
-				picker:Fire(color)
+				picker:Fire(color, picker.Transparency)
 			end
 			function picker:SetValueRGB(r, g, b)
 				picker:SetValue(Color3.fromRGB(r, g, b))
