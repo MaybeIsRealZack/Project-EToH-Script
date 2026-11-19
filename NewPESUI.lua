@@ -120,6 +120,7 @@ function Library:Unload()
 		return
 	end
 	self.Unloaded = true
+	self._ListeningKey = nil
 	for _, cb in ipairs(self.UnloadCallbacks) do
 		self:SafeCallback(cb)
 	end
@@ -137,6 +138,9 @@ function Library:Unload()
 	table.clear(self.Flags)
 	table.clear(self.Labels)
 	table.clear(self.Registry)
+	if self.KeyPickers then
+		table.clear(self.KeyPickers)
+	end
 	if env.Library == self then
 		env.Library = nil
 		env.Toggles = nil
@@ -499,6 +503,526 @@ function Library:CreateWindow(config)
 			selfLib.OverlayFrame = overlayFrame
 		end
 		return overlayFrame or selfLib.ScreenGui or screenGui
+	end
+
+	-- ====================================================================
+	-- Unified KeyPicker (used by Label / Toggle / groupbox variants)
+	-- ====================================================================
+	local MODIFIER_KEYS = {
+		LeftShift = true, RightShift = true,
+		LeftControl = true, RightControl = true,
+		LeftAlt = true, RightAlt = true,
+	}
+	local MODIFIER_ORDER = { "LeftControl", "RightControl", "LeftShift", "RightShift", "LeftAlt", "RightAlt" }
+
+	local function createKeyPicker(id, info, opts)
+		info = info or {}
+		opts = opts or {}
+
+		local picker = createOptionObject("KeyPicker", id, { Value = info.Default or "None" })
+		if typeof(picker.Value) == "EnumItem" then
+			picker.Value = picker.Value.Name
+		end
+		picker.Mode = info.Mode or "Toggle"
+		picker.Modes = {}
+		for _, m in ipairs(info.Modes or { "Always", "Toggle", "Hold" }) do
+			table.insert(picker.Modes, m)
+		end
+		if not table.find(picker.Modes, picker.Mode) then
+			table.insert(picker.Modes, picker.Mode)
+		end
+		picker.Callback = info.Callback
+		picker.ChangedCallback = info.ChangedCallback
+		picker.Modifiers = {}
+		if type(info.Modifiers) == "table" then
+			for _, m in ipairs(info.Modifiers) do
+				table.insert(picker.Modifiers, m)
+			end
+		end
+		picker.ClickCallbacks = {}
+		picker.SyncToggleState = info.SyncToggleState == true
+		picker.NoUI = info.NoUI == true
+		picker.DisplayName = tostring(info.Text or info.Title or id)
+		picker.Toggled = picker.Mode == "Always"
+		picker.Destroyed = false
+
+		local props = {
+			Size = UDim2.fromOffset(64, 18),
+			BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Font = selfLib.Theme.Font,
+			TextSize = 12,
+			TextColor3 = selfLib.Theme.Text,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Text = "",
+			Parent = opts.Parent,
+		}
+		for k, v in pairs(opts.ButtonProps or {}) do
+			props[k] = v
+		end
+		local button = create("TextButton", props)
+		addCorner(button, 4)
+		addStroke(button, selfLib.Theme.Outline)
+		if picker.NoUI then
+			button.Visible = false
+		end
+
+		local listening = false
+		local hovering = false
+		local pending = {}
+		local keyConns = {}
+		local modeMenu, modeHover, skipReopen = nil, false, false
+
+		local function refreshList()
+			if selfLib._RefreshKeybindList then
+				selfLib:_RefreshKeybindList()
+			end
+		end
+
+		local function pendingList()
+			local list = {}
+			for _, name in ipairs(MODIFIER_ORDER) do
+				if pending[name] then
+					table.insert(list, name)
+				end
+			end
+			return list
+		end
+
+		local function displayText()
+			local key = tostring(picker.Value)
+			if key == "" or key == "None" then
+				return "None"
+			end
+			if #picker.Modifiers > 0 then
+				return table.concat(picker.Modifiers, " + ") .. " + " .. key
+			end
+			return key
+		end
+		function picker:GetDisplayText()
+			return displayText()
+		end
+
+		local function refreshButton()
+			if not listening then
+				button.Text = displayText()
+			end
+		end
+
+		local function modsKey()
+			return table.concat(picker.Modifiers, "+")
+		end
+
+		local function keyToString(input)
+			local t = input.UserInputType
+			if t == Enum.UserInputType.Keyboard then
+				return input.KeyCode.Name
+			elseif t == Enum.UserInputType.MouseButton1 then
+				return "MB1"
+			elseif t == Enum.UserInputType.MouseButton2 then
+				return "MB2"
+			elseif t == Enum.UserInputType.MouseButton3 then
+				return "MB3"
+			end
+			return nil
+		end
+
+		local function modifiersHeld()
+			for _, name in ipairs(picker.Modifiers) do
+				local ok, kc = pcall(function()
+					return Enum.KeyCode[name]
+				end)
+				if not ok or not UserInputService:IsKeyDown(kc) then
+					return false
+				end
+			end
+			return true
+		end
+
+		local function matchesKey(input)
+			local key = tostring(picker.Value)
+			if key == "None" or key == "" then
+				return false
+			end
+			return keyToString(input) == key
+		end
+
+		local function applyModeState()
+			if picker.Mode == "Always" then
+				picker.Toggled = true
+			elseif picker._Sync and picker.Mode == "Toggle" then
+				picker.Toggled = picker._Sync.Value == true
+			else
+				picker.Toggled = false
+			end
+		end
+
+		local function fireClick(state)
+			selfLib:SafeCallback(picker.Callback, state)
+			for _, cb in ipairs(picker.ClickCallbacks) do
+				selfLib:SafeCallback(cb, state)
+			end
+		end
+
+		local function fireChanged()
+			selfLib:SafeCallback(picker.ChangedCallback, picker.Value, picker.Modifiers)
+			for _, fn in ipairs(picker.ChangedCallbacks) do
+				selfLib:SafeCallback(fn, picker.Value, picker.Modifiers)
+			end
+		end
+
+		-- "Always" has a constant state (true); it never reacts to the key.
+		local function press()
+			if picker.Mode == "Toggle" then
+				picker.Toggled = not picker.Toggled
+				fireClick(picker.Toggled)
+			elseif picker.Mode == "Hold" then
+				picker.Toggled = true
+				fireClick(true)
+			elseif picker.Mode == "Press" then
+				fireClick(true)
+			end
+			refreshList()
+		end
+
+		-- ---------- mode menu (right click) ----------
+		local function closeModeMenu()
+			if modeMenu then
+				safeDestroy(modeMenu)
+				modeMenu = nil
+			end
+			modeHover = false
+			if selfLib._CloseKeyModeMenu == closeModeMenu then
+				selfLib._CloseKeyModeMenu = nil
+			end
+		end
+
+		local function openModeMenu()
+			if selfLib._CloseKeyModeMenu then
+				pcall(selfLib._CloseKeyModeMenu)
+			end
+			closeModeMenu()
+			local overlayParent = getOverlayParent()
+			local ap, as = button.AbsolutePosition, button.AbsoluteSize
+			local width = math.max(as.X, 80)
+			local rowH = 22
+			local height = #picker.Modes * rowH + 4
+			local x = ap.X + as.X - width
+			local y = ap.Y + as.Y + 2
+			local vp = overlayParent.AbsoluteSize
+			if vp.Y > 0 and y + height > vp.Y - 8 then
+				y = ap.Y - height - 2
+			end
+			if vp.X > 0 then
+				x = math.clamp(x, 8, math.max(8, vp.X - width - 8))
+			end
+			modeMenu = create("Frame", {
+				Name = "KeyModeMenu",
+				Size = UDim2.fromOffset(width, height),
+				Position = UDim2.fromOffset(math.floor(x), math.floor(y)),
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				Active = true,
+				ZIndex = 6010,
+				Parent = overlayParent,
+			})
+			addCorner(modeMenu, 4)
+			addStroke(modeMenu, selfLib.Theme.Outline)
+			modeMenu.MouseEnter:Connect(function()
+				modeHover = true
+			end)
+			modeMenu.MouseLeave:Connect(function()
+				modeHover = false
+			end)
+			for i, mode in ipairs(picker.Modes) do
+				local opt = create("TextButton", {
+					Position = UDim2.fromOffset(0, 2 + (i - 1) * rowH),
+					Size = UDim2.new(1, 0, 0, rowH),
+					BackgroundTransparency = 1,
+					AutoButtonColor = false,
+					Font = selfLib.Theme.Font,
+					TextSize = 13,
+					TextColor3 = mode == picker.Mode and selfLib.Theme.Accent or selfLib.Theme.Text,
+					Text = mode,
+					ZIndex = 6011,
+					Parent = modeMenu,
+				})
+				opt.MouseButton1Click:Connect(function()
+					picker:SetMode(mode)
+					closeModeMenu()
+				end)
+			end
+			selfLib._CloseKeyModeMenu = closeModeMenu
+		end
+
+		-- ---------- listening ----------
+		local function setListening(state)
+			state = state and true or false
+			pending = {}
+			if state then
+				local prev = selfLib._ListeningKey
+				if prev and prev ~= picker and prev._CancelListening then
+					prev._CancelListening()
+				end
+				closeModeMenu()
+				selfLib._ListeningKey = picker
+				listening = true
+				button.Text = "..."
+			else
+				listening = false
+				button.Text = displayText()
+				-- keep the flag up until every handler of the current input
+				-- event has run (see _ListeningKey checks)
+				task.defer(function()
+					if not listening and selfLib._ListeningKey == picker then
+						selfLib._ListeningKey = nil
+					end
+				end)
+			end
+		end
+		picker._CancelListening = function()
+			setListening(false)
+		end
+
+		button.MouseEnter:Connect(function()
+			hovering = true
+		end)
+		button.MouseLeave:Connect(function()
+			hovering = false
+		end)
+		button.MouseButton1Click:Connect(function()
+			setListening(not listening)
+		end)
+		button.MouseButton2Click:Connect(function()
+			if listening then
+				return
+			end
+			if skipReopen then
+				skipReopen = false
+				return
+			end
+			if modeMenu then
+				closeModeMenu()
+			else
+				openModeMenu()
+			end
+		end)
+
+		table.insert(keyConns, selfLib:Connect(UserInputService.InputBegan, function(input, gpe)
+			local t = input.UserInputType
+			-- click outside the open mode menu closes it
+			if modeMenu and not modeHover and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.Touch) then
+				closeModeMenu()
+				if hovering and t == Enum.UserInputType.MouseButton2 then
+					skipReopen = true
+				end
+			end
+
+			if listening then
+				-- presses on our own button are handled by its Click events
+				if hovering and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2) then
+					return
+				end
+				if t == Enum.UserInputType.Keyboard then
+					if input.KeyCode == Enum.KeyCode.Escape then
+						picker:SetValue({ "None", Modifiers = {} })
+						setListening(false)
+						return
+					end
+					if input.KeyCode == Enum.KeyCode.Unknown then
+						return
+					end
+					if MODIFIER_KEYS[input.KeyCode.Name] then
+						pending[input.KeyCode.Name] = true
+						button.Text = table.concat(pendingList(), " + ") .. " + ..."
+						return
+					end
+				end
+				local keyStr = keyToString(input)
+				if keyStr then
+					picker:SetValue({ keyStr, Modifiers = pendingList() })
+					setListening(false)
+				end
+				return
+			end
+
+			if selfLib._ListeningKey then
+				return
+			end
+			if gpe then
+				return
+			end
+			if not matchesKey(input) or not modifiersHeld() then
+				return
+			end
+			press()
+		end))
+
+		table.insert(keyConns, selfLib:Connect(UserInputService.InputEnded, function(input)
+			if listening then
+				-- a modifier released without a normal key => bind the modifier (combo)
+				if input.UserInputType == Enum.UserInputType.Keyboard and pending[input.KeyCode.Name] then
+					local name = input.KeyCode.Name
+					pending[name] = nil
+					local mods = pendingList()
+					picker:SetValue({ name, Modifiers = mods })
+					setListening(false)
+				end
+				return
+			end
+			if picker.Mode == "Hold" and picker.Toggled and matchesKey(input) then
+				picker.Toggled = false
+				fireClick(false)
+				refreshList()
+			end
+		end))
+
+		-- ---------- API ----------
+		picker.Instance = opts.Instance or button
+		picker._setter = function(value)
+			if type(value) == "table" then
+				local key = value[1] or value.Key
+				if typeof(key) == "EnumItem" then
+					key = key.Name
+				end
+				if key ~= nil then
+					picker.Value = key
+				end
+				local mode = value[2] or value.Mode
+				if type(mode) == "string" then
+					picker.Mode = mode
+					if not table.find(picker.Modes, mode) then
+						table.insert(picker.Modes, mode)
+					end
+				end
+				local mods = {}
+				if type(value.Modifiers) == "table" then
+					for _, m in ipairs(value.Modifiers) do
+						table.insert(mods, m)
+					end
+				end
+				picker.Modifiers = mods
+			else
+				if typeof(value) == "EnumItem" then
+					value = value.Name
+				end
+				picker.Value = value or "None"
+				picker.Modifiers = {}
+			end
+			selfLib.Flags[id] = picker.Value
+		end
+
+		function picker:SetValue(value)
+			local oldKey, oldMode, oldMods = picker.Value, picker.Mode, modsKey()
+			picker._setter(value)
+			if oldMode ~= picker.Mode then
+				applyModeState()
+			end
+			if oldKey ~= picker.Value or oldMods ~= modsKey() then
+				applyModeState()
+				fireChanged()
+			end
+			refreshButton()
+			refreshList()
+		end
+
+		function picker:SetMode(mode)
+			if type(mode) ~= "string" then
+				return
+			end
+			if not table.find(picker.Modes, mode) then
+				table.insert(picker.Modes, mode)
+			end
+			picker.Mode = mode
+			applyModeState()
+			refreshList()
+		end
+
+		function picker:GetState()
+			return picker.Mode == "Always" or picker.Toggled == true
+		end
+
+		function picker:DoClick()
+			press()
+		end
+
+		function picker:OnClick(cb)
+			if type(cb) == "function" then
+				table.insert(picker.ClickCallbacks, cb)
+			end
+			return cb
+		end
+
+		-- does not fire immediately on registration (matches Obsidian/Linoria)
+		function picker:OnChanged(cb)
+			if type(cb) == "function" then
+				table.insert(picker.ChangedCallbacks, cb)
+			end
+			return cb
+		end
+
+		function picker:SetText(text)
+			picker.DisplayName = tostring(text or "")
+			if opts.Label then
+				opts.Label.Text = picker.DisplayName
+			end
+			refreshList()
+		end
+
+		-- two-way link with a Toggle (SyncToggleState)
+		function picker:SyncToggle(toggle)
+			picker._Sync = toggle
+			picker.SyncToggleState = true
+			toggle:OnChanged(function(v)
+				if picker.Mode == "Toggle" then
+					picker.Toggled = v == true
+					refreshList()
+				end
+			end)
+			picker:OnClick(function(state)
+				if type(state) == "boolean" and (picker.Mode == "Toggle" or picker.Mode == "Hold") then
+					toggle:SetValue(state)
+				end
+			end)
+		end
+
+		function picker:Update() end
+
+		function picker:Destroy()
+			picker.Destroyed = true
+			for _, c in ipairs(keyConns) do
+				pcall(function()
+					c:Disconnect()
+				end)
+			end
+			table.clear(keyConns)
+			closeModeMenu()
+			if selfLib._ListeningKey == picker then
+				selfLib._ListeningKey = nil
+			end
+			if selfLib.KeyPickers then
+				local idx = table.find(selfLib.KeyPickers, picker)
+				if idx then
+					table.remove(selfLib.KeyPickers, idx)
+				end
+			end
+			if selfLib.Options[id] == picker then
+				selfLib.Options[id] = nil
+			end
+			if picker.Instance then
+				safeDestroy(picker.Instance)
+			end
+			refreshList()
+		end
+
+		refreshButton()
+		selfLib.Options[id] = picker
+		selfLib.Flags[id] = picker.Value
+		selfLib.KeyPickers = selfLib.KeyPickers or {}
+		table.insert(selfLib.KeyPickers, picker)
+		refreshList()
+		return picker
 	end
 
 	local function closeOpenColorPicker(exceptPicker)
@@ -1815,128 +2339,17 @@ function Library:CreateWindow(config)
 					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or ("LabelKey_" .. HttpService:GenerateGUID(false))
 				end
 				infoArg = infoArg or {}
-				local picker = createOptionObject("KeyPicker", idArg, { Value = infoArg.Default or "None" })
-				picker.Mode = infoArg.Mode or "Toggle"
-				picker.Callback = infoArg.Callback
-				picker.ChangedCallback = infoArg.ChangedCallback
-				picker.Toggled = false
-				picker.ClickCallbacks = {}
-				picker.ChangedCallbacks2 = {}
-				picker.Modifiers = {}
-				local keyBtn = create("TextButton", {
-					Size = UDim2.fromOffset(64, 18),
-					BackgroundColor3 = selfLib.Theme.SurfaceAlt,
-					BorderSizePixel = 0,
-					AutoButtonColor = false,
-					Font = selfLib.Theme.Font,
-					TextSize = 12,
-					TextColor3 = selfLib.Theme.Text,
-					Text = tostring(picker.Value),
+				idArg = idArg or ("LabelKey_" .. HttpService:GenerateGUID(false))
+				local picker = createKeyPicker(idArg, infoArg, {
 					Parent = addons,
+					ButtonProps = { Size = UDim2.fromOffset(64, 18) },
 				})
-				addCorner(keyBtn, 4)
-				addStroke(keyBtn, selfLib.Theme.Outline)
-
-				local function keyToString(input)
-					if input.UserInputType == Enum.UserInputType.Keyboard then return input.KeyCode.Name end
-					if input.UserInputType == Enum.UserInputType.MouseButton1 then return "MB1" end
-					if input.UserInputType == Enum.UserInputType.MouseButton2 then return "MB2" end
-					if input.UserInputType == Enum.UserInputType.MouseButton3 then return "MB3" end
-					return nil
+				function picker:AddColorPicker(cid2, cinfo2)
+					return obj:AddColorPicker(cid2, cinfo2)
 				end
-				local function matchesInput(input)
-					local key = tostring(picker.Value)
-					if key == "None" or key == "" then return false end
-					if input.UserInputType == Enum.UserInputType.Keyboard then return input.KeyCode.Name == key end
-					if input.UserInputType == Enum.UserInputType.MouseButton1 then return key == "MB1" end
-					if input.UserInputType == Enum.UserInputType.MouseButton2 then return key == "MB2" end
-					if input.UserInputType == Enum.UserInputType.MouseButton3 then return key == "MB3" end
-					return false
+				function picker:AddKeyPicker(kid2, kinfo2)
+					return obj:AddKeyPicker(kid2, kinfo2)
 				end
-				local function fireClick(state)
-					selfLib:SafeCallback(picker.Callback, state)
-					for _, cb in ipairs(picker.ClickCallbacks) do selfLib:SafeCallback(cb, state) end
-				end
-				local function fireChanged(key, mods)
-					selfLib:SafeCallback(picker.ChangedCallback, key, mods)
-					for _, cb in ipairs(picker.ChangedCallbacks2) do selfLib:SafeCallback(cb, key, mods) end
-				end
-
-				local listening = false
-				keyBtn.MouseButton1Click:Connect(function()
-					listening = true
-					keyBtn.Text = "..."
-				end)
-				selfLib:Connect(UserInputService.InputBegan, function(input, gpe)
-					if listening then
-						local keyStr = keyToString(input)
-						if keyStr then
-							picker:SetValue(keyStr)
-							listening = false
-							fireChanged(picker.Value, picker.Modifiers)
-							return
-						end
-						if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Escape then
-							picker:SetValue("None")
-							listening = false
-							fireChanged(picker.Value, picker.Modifiers)
-						end
-						return
-					end
-					if not matchesInput(input) then return end
-					if gpe and input.UserInputType == Enum.UserInputType.Keyboard then return end
-					if picker.Mode == "Toggle" then
-						picker.Toggled = not picker.Toggled
-						fireClick(picker.Toggled)
-					elseif picker.Mode == "Always" or picker.Mode == "Press" then
-						fireClick(true)
-					elseif picker.Mode == "Hold" then
-						picker.Toggled = true
-						fireClick(true)
-					end
-				end)
-				selfLib:Connect(UserInputService.InputEnded, function(input)
-					if not matchesInput(input) then return end
-					if picker.Mode == "Hold" then
-						picker.Toggled = false
-						fireClick(false)
-					end
-				end)
-
-				picker._setter = function(value)
-					if type(value) == "table" then
-						if value[1] ~= nil then
-							picker.Value = value[1]
-						end
-						if value[2] and type(value[2]) == "string" then
-							picker.Mode = value[2]
-						end
-						if type(value.Modifiers) == "table" then
-							picker.Modifiers = value.Modifiers
-						end
-					else
-						picker.Value = value or "None"
-					end
-					keyBtn.Text = tostring(picker.Value)
-					selfLib.Flags[idArg] = picker.Value
-				end
-				function picker:SetValue(v)
-					local old = picker.Value
-					picker._setter(v)
-					if old ~= picker.Value then
-						fireChanged(picker.Value, picker.Modifiers)
-					end
-				end
-				function picker:GetState() return picker.Toggled == true end
-				function picker:OnClick(cb) if type(cb) == "function" then table.insert(picker.ClickCallbacks, cb) end return cb end
-				function picker:OnChanged(cb) if type(cb) == "function" then table.insert(picker.ChangedCallbacks2, cb) end return cb end
-				function picker:SetText(_) end
-				function picker:Update() end
-				function picker:AddColorPicker(cid2, cinfo2) return obj:AddColorPicker(cid2, cinfo2) end
-				function picker:AddKeyPicker(kid2, kinfo2) return obj:AddKeyPicker(kid2, kinfo2) end
-				picker._setter(infoArg.Default or "None")
-				selfLib.Options[idArg] = picker
-				selfLib.Flags[idArg] = picker.Value
 				task.defer(updateLabelPadding)
 				return picker
 			end
@@ -2096,6 +2509,31 @@ function Library:CreateWindow(config)
 				Parent = button,
 			})
 
+			-- right-aligned container for key/color pickers (like Obsidian/Linoria)
+			local addons = create("Frame", {
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.fromScale(1, 0),
+				AutomaticSize = Enum.AutomaticSize.X,
+				Size = UDim2.new(0, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Parent = wrapper,
+			})
+			local addonsLayout = create("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				Padding = UDim.new(0, 4),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Parent = addons,
+			})
+			addonsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+				local pad = addonsLayout.AbsoluteContentSize.X
+				if pad > 0 then
+					pad += 6
+				end
+				label.Size = UDim2.new(1, -(26 + pad), 1, 0)
+			end)
+
 			local function render()
 				fill.Visible = toggle.Value and true or false
 				box.BackgroundColor3 = toggle.Value and selfLib.Theme.AccentDark or selfLib.Theme.SurfaceAlt
@@ -2136,21 +2574,19 @@ function Library:CreateWindow(config)
 					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or (id .. "_KeyPicker")
 				end
 				infoArg = infoArg or {}
-				local picker = groupbox:AddKeyPicker(idArg, infoArg)
-				if picker and infoArg.SyncToggleState and (picker.Mode == "Toggle" or picker.Mode == nil) and picker.OnClick then
-					picker:OnClick(function(state)
-						if type(state) == "boolean" then
-							toggle:SetValue(state)
-						end
-					end)
+				idArg = idArg or (id .. "_KeyPicker")
+				local picker = createKeyPicker(idArg, infoArg, {
+					Parent = addons,
+					ButtonProps = { Size = UDim2.fromOffset(64, 18) },
+				})
+				if infoArg.SyncToggleState then
+					picker:SyncToggle(toggle)
 				end
-				if picker then
-					function picker:AddColorPicker(cid2, cinfo2)
-						return toggle:AddColorPicker(cid2, cinfo2)
-					end
-					function picker:AddKeyPicker(kid2, kinfo2)
-						return toggle:AddKeyPicker(kid2, kinfo2)
-					end
+				function picker:AddColorPicker(cid2, cinfo2)
+					return toggle:AddColorPicker(cid2, cinfo2)
+				end
+				function picker:AddKeyPicker(kid2, kinfo2)
+					return toggle:AddKeyPicker(kid2, kinfo2)
 				end
 				return picker
 			end
@@ -2160,7 +2596,13 @@ function Library:CreateWindow(config)
 					infoArg = cid
 					idArg = infoArg.Flag or infoArg.Idx or infoArg.Index or (id .. "_ColorPicker")
 				end
-				local picker = groupbox:AddColorPicker(idArg, infoArg or {})
+				idArg = idArg or (id .. "_ColorPicker")
+				local picker = createColorPickerControl(idArg, infoArg or {}, {
+					Variant = "Addon",
+					AddonsParent = addons,
+					LabelRef = label,
+					SwatchSize = UDim2.fromOffset(28, 18),
+				})
 				if picker then
 					function picker:AddColorPicker(cid2, cinfo2)
 						return toggle:AddColorPicker(cid2, cinfo2)
@@ -3327,17 +3769,9 @@ function Library:CreateWindow(config)
 
 		function groupbox:AddKeyPicker(id, info)
 			info = info or {}
-			local defaultKey = info.Default or "None"
-			local picker = createOptionObject("KeyPicker", id, { Value = defaultKey })
-			picker.Mode = info.Mode or "Toggle"
-			picker.Callback = info.Callback
-			picker.Toggled = false
-			picker.ClickCallbacks = {}
-			picker.SyncToggleState = info.SyncToggleState == true
-			picker.NoUI = info.NoUI == true
-
-			local wrapper = createBaseElement(self.Holder, picker.NoUI and 0 or 30)
-			if picker.NoUI then
+			local noUI = info.NoUI == true
+			local wrapper = createBaseElement(self.Holder, noUI and 0 or 30)
+			if noUI then
 				wrapper.Visible = false
 			end
 
@@ -3352,137 +3786,16 @@ function Library:CreateWindow(config)
 				Parent = wrapper,
 			})
 
-			local button = create("TextButton", {
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, 0, 0.5, 0),
-				Size = UDim2.fromOffset(84, 24),
-				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
-				BorderSizePixel = 0,
-				AutoButtonColor = false,
-				Font = selfLib.Theme.Font,
-				TextSize = 12,
-				TextColor3 = selfLib.Theme.Text,
-				Text = tostring(picker.Value),
+			return createKeyPicker(id, info, {
 				Parent = wrapper,
+				Instance = wrapper,
+				Label = label,
+				ButtonProps = {
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.new(1, 0, 0.5, 0),
+					Size = UDim2.fromOffset(84, 24),
+				},
 			})
-			addCorner(button, 4)
-			addStroke(button, selfLib.Theme.Outline)
-
-			local function keyToString(input)
-				if input.UserInputType == Enum.UserInputType.Keyboard then
-					return input.KeyCode.Name
-				elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-					return "MB1"
-				elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-					return "MB2"
-				elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
-					return "MB3"
-				end
-				return nil
-			end
-
-			local function matchesInput(input)
-				local key = tostring(picker.Value)
-				if key == "None" or key == "" then
-					return false
-				end
-				if input.UserInputType == Enum.UserInputType.Keyboard then
-					return input.KeyCode.Name == key
-				elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-					return key == "MB1"
-				elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-					return key == "MB2"
-				elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
-					return key == "MB3"
-				end
-				return false
-			end
-
-			local function fireClick(state)
-				selfLib:SafeCallback(picker.Callback, state)
-				for _, cb in ipairs(picker.ClickCallbacks) do
-					selfLib:SafeCallback(cb, state)
-				end
-			end
-
-			local listening = false
-			button.MouseButton1Click:Connect(function()
-				listening = true
-				button.Text = "..."
-			end)
-
-			selfLib:Connect(UserInputService.InputBegan, function(input, gpe)
-				if listening then
-					local keyStr = keyToString(input)
-					if keyStr then
-						picker:SetValue(keyStr)
-						listening = false
-						button.Text = tostring(picker.Value)
-						return
-					end
-					if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Escape then
-						picker:SetValue("None")
-						listening = false
-					end
-					return
-				end
-
-				if not matchesInput(input) then
-					return
-				end
-				if gpe and input.UserInputType == Enum.UserInputType.Keyboard then
-					return
-				end
-
-				if picker.Mode == "Toggle" then
-					picker.Toggled = not picker.Toggled
-					fireClick(picker.Toggled)
-				elseif picker.Mode == "Always" then
-					fireClick(true)
-				elseif picker.Mode == "Press" then
-					fireClick(true)
-				elseif picker.Mode == "Hold" then
-					picker.Toggled = true
-					fireClick(true)
-				end
-			end)
-
-			selfLib:Connect(UserInputService.InputEnded, function(input)
-				if not matchesInput(input) then
-					return
-				end
-				if picker.Mode == "Hold" then
-					picker.Toggled = false
-					fireClick(false)
-				end
-			end)
-
-			picker.Instance = wrapper
-			picker._setter = function(value)
-				picker.Value = value or "None"
-				button.Text = tostring(picker.Value)
-				selfLib.Flags[id] = picker.Value
-			end
-			function picker:SetText(text)
-				label.Text = tostring(text or "")
-			end
-			function picker:SetValue(value)
-				picker._setter(value)
-			end
-			function picker:GetState()
-				return picker.Toggled == true
-			end
-			function picker:OnClick(cb)
-				if type(cb) == "function" then
-					table.insert(picker.ClickCallbacks, cb)
-				end
-				return cb
-			end
-			function picker:Update() end
-
-			selfLib.Options[id] = picker
-			selfLib.Flags[id] = picker.Value
-			return picker
 		end
 
 		function groupbox:AddColorPicker(id, info)
@@ -3958,26 +4271,82 @@ function Library:CreateWindow(config)
 		Window:Toggle()
 	end)
 
-	selfLib.KeybindFrame = selfLib.KeybindFrame or create("Frame", {
-		Name = "KeybindFrame",
-		Size = UDim2.fromOffset(220, 120),
-		Position = UDim2.fromOffset(20, 20),
-		BackgroundColor3 = selfLib.Theme.Surface,
-		BorderSizePixel = 0,
-		Visible = false,
-		Parent = screenGui,
-	}, {
+	if not selfLib.KeybindFrame then
+		selfLib.KeybindFrame = create("Frame", {
+			Name = "KeybindFrame",
+			Size = UDim2.fromOffset(220, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Position = UDim2.fromOffset(20, 20),
+			BackgroundColor3 = selfLib.Theme.Surface,
+			BorderSizePixel = 0,
+			Visible = false,
+			Parent = screenGui,
+		})
+		create("UIPadding", {
+			PaddingTop = UDim.new(0, 6),
+			PaddingBottom = UDim.new(0, 6),
+			PaddingLeft = UDim.new(0, 8),
+			PaddingRight = UDim.new(0, 8),
+			Parent = selfLib.KeybindFrame,
+		})
+		create("UIListLayout", {
+			Padding = UDim.new(0, 2),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = selfLib.KeybindFrame,
+		})
 		create("TextLabel", {
+			Name = "KeybindTitle",
+			LayoutOrder = 0,
 			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(1, 1),
+			Size = UDim2.new(1, 0, 0, 18),
 			Font = selfLib.Theme.Font,
 			TextSize = 14,
 			TextColor3 = selfLib.Theme.SubText,
 			Text = "Keybinds",
-		}),
-	})
+			Parent = selfLib.KeybindFrame,
+		})
+	end
 	addCorner(selfLib.KeybindFrame, selfLib.Theme.CornerRadius)
 	addStroke(selfLib.KeybindFrame, selfLib.Theme.Outline)
+
+	-- rebuilds the rows of the keybind list from every registered KeyPicker
+	function selfLib:_RefreshKeybindList()
+		local frame = self.KeybindFrame
+		if not frame or not frame.Parent then
+			return
+		end
+		for _, child in ipairs(frame:GetChildren()) do
+			if child.Name == "KeybindRow" then
+				child:Destroy()
+			end
+		end
+		local n = 0
+		for _, kp in ipairs(self.KeyPickers or {}) do
+			if not kp.NoUI and not kp.Destroyed and tostring(kp.Value) ~= "None" and tostring(kp.Value) ~= "" then
+				n += 1
+				create("TextLabel", {
+					Name = "KeybindRow",
+					LayoutOrder = n,
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, 0, 0, 16),
+					Font = self.Theme.Font,
+					TextSize = 13,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					TextColor3 = kp:GetState() and self.Theme.Accent or self.Theme.SubText,
+					Text = string.format("[%s] %s (%s)", kp:GetDisplayText(), kp.DisplayName or tostring(kp.Idx), tostring(kp.Mode)),
+					Parent = frame,
+				})
+			end
+		end
+	end
+
+	function selfLib:SetKeybindListVisible(state)
+		if self.KeybindFrame then
+			self.KeybindFrame.Visible = state and true or false
+		end
+	end
+	selfLib:_RefreshKeybindList()
 	if selfLib.ToggleKeybind == nil then
 		selfLib.ToggleKeybind = toggleKey
 	end
@@ -4014,6 +4383,10 @@ function Library:CreateWindow(config)
 
 	self:Connect(UserInputService.InputBegan, function(input, gpe)
 		if gpe then
+			return
+		end
+		-- a keybind is being (re)bound right now: don't treat that key as the menu key
+		if selfLib._ListeningKey then
 			return
 		end
 		local tk = getToggleKey()
