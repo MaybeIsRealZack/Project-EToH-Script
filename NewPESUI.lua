@@ -5485,7 +5485,10 @@ function Library:CreateWindow(config)
 		function tab:Resize() end
 		function tab:SetMaxHeight(h) end
 		function tab:AddSubTab(name, icon)
-			return self:AddTab and self:AddTab(name, icon) or nil
+			if self.AddTab then
+				return self:AddTab(name, icon)
+			end
+			return nil
 		end
 		function tab:Destroy()
 			if self.Page then safeDestroy(self.Page) end
