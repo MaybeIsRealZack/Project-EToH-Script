@@ -449,6 +449,396 @@ local function createOptionObject(kind, id, defaults)
 	return obj
 end
 
+-- ====================================================================
+-- Obsidian compatibility layer (stubs + utilities)
+-- ====================================================================
+
+function Library:SetFont(font)
+	if typeof(font) == "EnumItem" then
+		self.Theme.Font = font
+	elseif type(font) == "string" and Enum.Font[font] then
+		self.Theme.Font = Enum.Font[font]
+	elseif typeof(font) == "Font" then
+		self.Theme.Font = font
+	end
+	if self.ActiveWindow and self.ActiveWindow.TitleLabel then
+		self.ActiveWindow.TitleLabel.Font = self.Theme.Font
+	end
+end
+
+function Library:SetBackgroundImage(image)
+	if self.ActiveWindow then
+		self.ActiveWindow:SetBackgroundImage(image)
+	end
+end
+
+function Library:SetNotifySide(side)
+	self.NotifySide = side
+end
+
+function Library:UpdateNotificationPositions(snap) end
+
+function Library:DropdownDivider(title)
+	return { DropdownDivider = true, Title = title }
+end
+
+function Library:Validate(tbl, template)
+	if typeof(tbl) ~= "table" then
+		return template
+	end
+	for k, v in pairs(template or {}) do
+		if typeof(k) == "number" then
+			continue
+		end
+		if typeof(v) == "table" then
+			tbl[k] = self:Validate(tbl[k], v)
+		elseif tbl[k] == nil then
+			tbl[k] = v
+		end
+	end
+	return tbl
+end
+
+function Library:GiveSignal(conn)
+	if conn then
+		table.insert(self.Connections, conn)
+	end
+	return conn
+end
+
+function Library:SetDPIScale(scale)
+	self.DPIScale = (tonumber(scale) or 100) / 100
+end
+
+function Library:UpdateColorsUsingRegistry()
+	for inst, props in pairs(self.Registry or {}) do
+		for prop, idx in pairs(props) do
+			local val
+			if type(idx) == "function" then
+				val = idx()
+			elseif self.Theme and self.Theme[idx] ~= nil then
+				val = self.Theme[idx]
+			end
+			if val ~= nil then
+				pcall(function()
+					inst[prop] = val
+				end)
+			end
+		end
+	end
+end
+
+function Library:UpdateDependencyBoxes()
+	if type(self._UpdateDependencyBoxes) == "function" then
+		pcall(self._UpdateDependencyBoxes, self)
+	end
+end
+
+function Library:UpdateAddons(parent) end
+
+function Library:UpdateSearch(text)
+	self.SearchText = text
+	self.Searching = type(text) == "string" and text ~= ""
+end
+
+function Library:GetBetterColor(color, add)
+	add = tonumber(add) or 0
+	if typeof(color) ~= "Color3" then
+		return Color3.new(1, 1, 1)
+	end
+	local h, s, v = color:ToHSV()
+	v = math.clamp(v + add, 0, 1)
+	s = math.clamp(s + add * 0.5, 0, 1)
+	return Color3.fromHSV(h, s, v)
+end
+
+function Library:GetLighterColor(color)
+	return self:GetBetterColor(color, 0.12)
+end
+
+function Library:GetDarkerColor(color)
+	return self:GetBetterColor(color, -0.12)
+end
+
+function Library:GetKeyString(keyCode)
+	if typeof(keyCode) == "EnumItem" then
+		return keyCode.Name
+	end
+	return tostring(keyCode or "")
+end
+
+function Library:GetTextBounds(text, font, size, width)
+	return getTextSize(text, size, font, width)
+end
+
+function Library:MouseIsOverFrame(frame, mouse)
+	if not frame or not frame.Parent then
+		return false
+	end
+	local pos
+	if typeof(mouse) == "Vector2" then
+		pos = mouse
+	else
+		pos = getMouseLocation()
+	end
+	local ap = frame.AbsolutePosition
+	local as = frame.AbsoluteSize
+	return pos.X >= ap.X and pos.X <= ap.X + as.X and pos.Y >= ap.Y and pos.Y <= ap.Y + as.Y
+end
+
+function Library:IsInsideFrame(parentFrame, frame)
+	if not parentFrame or not frame then
+		return false
+	end
+	local p = frame.AbsolutePosition
+	local s = parentFrame.AbsolutePosition
+	local sz = parentFrame.AbsoluteSize
+	return p.X >= s.X and p.Y >= s.Y and p.X + frame.AbsoluteSize.X <= s.X + sz.X and p.Y + frame.AbsoluteSize.Y <= s.Y + sz.Y
+end
+
+function Library:SetIconModule(module)
+	self._IconModule = module
+end
+
+function Library:GetIcon(name)
+	if self._IconModule and type(self._IconModule.GetAsset) == "function" then
+		local ok, res = pcall(self._IconModule.GetAsset, name)
+		if ok then
+			return res
+		end
+	end
+	return nil
+end
+
+function Library:GetCustomIcon(name)
+	if type(name) == "number" then
+		name = "rbxassetid://" .. tostring(name)
+	end
+	if type(name) == "string" then
+		if name:match("^rbxasset") or name:match("^http") then
+			return { Url = name, ImageRectOffset = Vector2.zero, ImageRectSize = Vector2.zero }
+		end
+		if name:match("^%d+$") then
+			return { Url = "rbxassetid://" .. name, ImageRectOffset = Vector2.zero, ImageRectSize = Vector2.zero }
+		end
+	end
+	return self:GetIcon(name)
+end
+
+function Library:CreateIcon(icon, props, isButton)
+	props = props or {}
+	local inst
+	if isButton then
+		inst = create("ImageButton", props)
+	else
+		inst = create("ImageLabel", props)
+	end
+	if type(icon) == "table" and icon.Url then
+		inst.Image = icon.Url
+		if icon.ImageRectOffset then
+			inst.ImageRectOffset = icon.ImageRectOffset
+		end
+		if icon.ImageRectSize then
+			inst.ImageRectSize = icon.ImageRectSize
+		end
+	end
+	return inst
+end
+
+function Library:ApplyIcon(target, icon)
+	return target
+end
+
+function Library:ApplyLucideIcon(imageGui, icon, rotation) end
+
+function Library:MakeDraggable(handle, target, adjust)
+	makeDraggable(handle, target, adjust)
+end
+
+function Library:MakeResizable(ui, dragFrame, callback) end
+
+function Library:MakeCover(holder, place) end
+
+function Library:MakeLine(frame, info) end
+
+function Library:AddOutline(frame)
+	return addStroke(frame)
+end
+
+function Library:AddBlank(frame, size)
+	local f = create("Frame", {
+		Size = size or UDim2.new(1, 0, 0, 4),
+		BackgroundTransparency = 1,
+		Parent = frame,
+	})
+	return f
+end
+
+function Library:MakeBoxPopOut(box, opts)
+	return box
+end
+
+function Library:AddTooltip(infoStr, disabledInfoStr, hoverInstance)
+	local t = { Text = infoStr, DisabledText = disabledInfoStr, Instance = hoverInstance, Destroyed = false }
+	function t:Destroy()
+		t.Destroyed = true
+	end
+	return t
+end
+
+function Library:AddContextMenu(...)
+	local menu = { Open = function() end, Close = function() end, Toggle = function() end, Destroy = function() end }
+	return menu
+end
+
+function Library:AddDraggableLabel(...)
+	local obj = { Text = "", Icon = nil, Visible = true }
+	function obj:SetText(text)
+		obj.Text = tostring(text or "")
+	end
+	function obj:SetIcon(icon) obj.Icon = icon end
+	function obj:SetIconPosition(pos) end
+	function obj:SetVisible(state) obj.Visible = state ~= false end
+	function obj:Destroy() end
+	return obj
+end
+
+function Library:AddDraggableButton(...)
+	local obj = { Text = "" }
+	function obj:SetText(text) obj.Text = tostring(text or "") end
+	function obj:Destroy() end
+	return obj
+end
+
+function Library:AddDraggableMenu(name)
+	local obj = { Name = name, Destroyed = false }
+	function obj:Destroy() obj.Destroyed = true end
+	return obj
+end
+
+function Library:AddDraggableImageButton(...)
+	local obj = { Icon = nil, IconSize = 24 }
+	function obj:SetIcon(icon) obj.Icon = icon end
+	function obj:SetIconSize(size) obj.IconSize = size end
+	function obj:Destroy() end
+	return obj
+end
+
+Library.Cursor = {
+	ResetCross = function() end,
+	ResetIcon = function() end,
+	ResetCursor = function() end,
+	ChangeCrossColor = function() end,
+	ChangeIcon = function() end,
+	ChangeIconColor = function() end,
+	ChangeIconSize = function() end,
+}
+
+-- Watermark
+local watermarkLabel = nil
+local watermarkVisible = true
+function Library:SetWatermark(text)
+	if not self.ScreenGui then
+		return
+	end
+	if not watermarkLabel or not watermarkLabel.Parent then
+		watermarkLabel = create("TextLabel", {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -12, 0, 12),
+			AutomaticSize = Enum.AutomaticSize.XY,
+			BackgroundTransparency = 1,
+			Font = self.Theme.Font,
+			TextSize = 13,
+			TextColor3 = self.Theme.Text,
+			TextStrokeTransparency = 0.5,
+			ZIndex = 9000,
+			Parent = self.ScreenGui,
+		})
+	end
+	watermarkLabel.Text = tostring(text or "")
+	watermarkLabel.Visible = watermarkVisible
+end
+
+function Library:SetWatermarkVisibility(visible)
+	watermarkVisible = visible ~= false
+	if watermarkLabel then
+		watermarkLabel.Visible = watermarkVisible
+	end
+end
+
+-- CreateLoading
+function Library:CreateLoading(info)
+	info = info or {}
+	local screenGui = self.ScreenGui
+	local frame = create("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(tonumber(info.WindowWidth) or 450, tonumber(info.WindowHeight) or 275),
+		BackgroundColor3 = self.Theme.Surface,
+		BorderSizePixel = 0,
+		ZIndex = 10000,
+		Parent = screenGui,
+	})
+	addCorner(frame, self.Theme.CornerRadius)
+	addStroke(frame, self.Theme.Outline)
+	local title = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(12, 10),
+		Size = UDim2.new(1, -24, 0, 24),
+		Font = self.Theme.Font,
+		TextSize = 16,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = self.Theme.Text,
+		Text = tostring(info.Title or "Loading"),
+		Parent = frame,
+	})
+	local msg = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(12, 44),
+		Size = UDim2.new(1, -24, 0, 20),
+		Font = self.Theme.Font,
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = self.Theme.SubText,
+		Text = "",
+		Parent = frame,
+	})
+	local desc = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(12, 68),
+		Size = UDim2.new(1, -24, 0, 40),
+		Font = self.Theme.Font,
+		TextSize = 13,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = self.Theme.SubText,
+		Text = "",
+		Parent = frame,
+	})
+	local obj = { Instance = frame, Title = title, Message = msg, Description = desc, CurrentStep = info.CurrentStep or 0, TotalSteps = info.TotalSteps or 10 }
+	function obj:SetMessage(text) msg.Text = tostring(text or "") end
+	function obj:SetDescription(text) desc.Text = tostring(text or "") end
+	function obj:SetCurrentStep(step) obj.CurrentStep = tonumber(step) or obj.CurrentStep end
+	function obj:SetTotalSteps(steps) obj.TotalSteps = tonumber(steps) or obj.TotalSteps end
+	function obj:SetLoadingIcon(icon) end
+	function obj:SetLoadingIconTweenTime(t) end
+	function obj:SetLoadingIconColor(c) end
+	function obj:SetWindowHeight(h) frame.Size = UDim2.fromOffset(frame.AbsoluteSize.X, tonumber(h) or frame.AbsoluteSize.Y) end
+	function obj:SetWindowWidth(w) frame.Size = UDim2.fromOffset(tonumber(w) or frame.AbsoluteSize.X, frame.AbsoluteSize.Y) end
+	function obj:SetContentWidth(w) end
+	function obj:SetSidebarWidth(w) end
+	function obj:ShowSidebarPage(b) end
+	function obj:ShowErrorPage(b) end
+	function obj:SetErrorMessage(text) end
+	function obj:SetErrorButtons(btns) end
+	function obj:RecalculateLoadingHeight() end
+	function obj:UpdateLayout() end
+	function obj:Destroy()
+		safeDestroy(frame)
+	end
+	return obj
+end
+
 function Library:CreateWindow(config)
 	config = config or {}
 	local selfLib = self
@@ -1059,6 +1449,19 @@ function Library:CreateWindow(config)
 		end
 
 		function picker:Update() end
+		function picker:Display(text)
+			if text ~= nil then
+				picker:SetText(text)
+			end
+		end
+		function picker:SetMenuVisibility(visible)
+			-- no-op: menu visibility managed internally
+		end
+		function picker:RunChanged()
+			if picker.ChangedCallback then
+				Library:SafeCallback(picker.ChangedCallback, picker.Value, picker.Modifiers)
+			end
+		end
 
 		function picker:Destroy()
 			picker.Destroyed = true
@@ -1729,6 +2132,12 @@ function Library:CreateWindow(config)
 				task.defer(updateMenuPosition)
 			end
 		end
+		function picker:RunChanged()
+			if type(picker.Changed) == "function" then
+				Library:SafeCallback(picker.Changed, picker.Value, picker.Transparency)
+			end
+		end
+		function picker:UpdateColors() end
 
 		table.insert(picker.Connections, swatch.MouseButton1Click:Connect(function()
 			picker:Toggle()
@@ -2416,6 +2825,207 @@ function Library:CreateWindow(config)
 		Minimized = false,
 	}
 
+	function Window:RefreshTitleSize()
+		if self.TitleLabel then
+			local size = getTextSize(self.TitleLabel.Text, self.TitleLabel.TextSize, self.TitleLabel.Font, 1000)
+			self.TitleLabel.Size = UDim2.new(0, size.X + 4, 1, 0)
+		end
+	end
+
+	function Window:SetBackgroundImage(image)
+		local asset = resolveIcon(image)
+		local existing = self.Main:FindFirstChild("BackgroundImage")
+		if existing then
+			safeDestroy(existing)
+		end
+		if asset then
+			local bg = create("ImageLabel", {
+				Name = "BackgroundImage",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				Image = asset,
+				ImageTransparency = 0.5,
+				ScaleType = Enum.ScaleType.Crop,
+				ZIndex = 0,
+				Parent = self.Main,
+			})
+			addCorner(bg, Library.Theme.CornerRadius)
+		end
+	end
+
+	function Window:SetSnapping(enabled, distance, margin, avoidCoreGui)
+		self.Snapping = enabled and true or false
+	end
+
+	function Window:SetCornerRadius(radius)
+		radius = tonumber(radius) or Library.Theme.CornerRadius
+		Library.Theme.CornerRadius = radius
+		if self.Main then
+			local c = self.Main:FindFirstChildOfClass("UICorner")
+			if c then
+				c.CornerRadius = UDim.new(0, radius)
+			end
+		end
+	end
+
+	function Window:ShowTabInfo(name, description)
+		-- best-effort: update footer
+		if self.FooterLabel then
+			self.FooterLabel.Text = tostring(name or "") .. (description and (" - " .. tostring(description)) or "")
+		end
+	end
+
+	function Window:HideTabInfo()
+		if self.FooterLabel then
+			self.FooterLabel.Text = ""
+		end
+	end
+
+	function Window:AddDialog(idx, info)
+		info = info or {}
+		local screenGui = Library.ScreenGui
+		local overlay = create("Frame", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundColor3 = Color3.new(0, 0, 0),
+			BackgroundTransparency = 0.4,
+			ZIndex = 9000,
+			Parent = screenGui,
+		})
+		local dlg = create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromOffset(360, 180),
+			BackgroundColor3 = Library.Theme.Surface,
+			BorderSizePixel = 0,
+			ZIndex = 9001,
+			Parent = overlay,
+		})
+		addCorner(dlg, Library.Theme.CornerRadius)
+		addStroke(dlg, Library.Theme.Outline)
+		local titleLbl = create("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(12, 10),
+			Size = UDim2.new(1, -24, 0, 22),
+			Font = Library.Theme.Font,
+			TextSize = 16,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = Library.Theme.Text,
+			Text = tostring(info.Title or "Dialog"),
+			Parent = dlg,
+		})
+		local descLbl = create("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(12, 38),
+			Size = UDim2.new(1, -24, 1, -90),
+			Font = Library.Theme.Font,
+			TextSize = 13,
+			TextWrapped = true,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextColor3 = Library.Theme.SubText,
+			Text = tostring(info.Description or ""),
+			Parent = dlg,
+		})
+		local footer = create("Frame", {
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.new(0, 0, 1, -8),
+			Size = UDim2.new(1, 0, 0, 36),
+			BackgroundTransparency = 1,
+			Parent = dlg,
+		})
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			Padding = UDim.new(0, 6),
+			Parent = footer,
+		})
+		addPadding(footer, 8)
+
+		local dialog = {
+			Instance = dlg,
+			Overlay = overlay,
+			TitleLabel = titleLbl,
+			DescriptionLabel = descLbl,
+			Footer = footer,
+			Buttons = {},
+		}
+		function dialog:SetTitle(t) titleLbl.Text = tostring(t or "") end
+		function dialog:SetDescription(t) descLbl.Text = tostring(t or "") end
+		function dialog:Dismiss()
+			safeDestroy(overlay)
+		end
+		function dialog:RemoveFooterButton(btnIdx)
+			if self.Buttons[btnIdx] then
+				safeDestroy(self.Buttons[btnIdx])
+				self.Buttons[btnIdx] = nil
+			end
+		end
+		function dialog:SetButtonDisabled(btnIdx, state)
+			local b = self.Buttons[btnIdx]
+			if b then
+				b.Active = not state
+			end
+		end
+		function dialog:SetButtonOrder(btnIdx, order)
+			local b = self.Buttons[btnIdx]
+			if b then
+				b.LayoutOrder = tonumber(order) or 0
+			end
+		end
+		function dialog:AddFooterButton(btnIdx, btnInfo)
+			btnInfo = btnInfo or {}
+			local b = create("TextButton", {
+				LayoutOrder = tonumber(btnIdx) or (#self.Buttons + 1),
+				Size = UDim2.fromOffset(80, 26),
+				BackgroundColor3 = Library.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Font = Library.Theme.Font,
+				TextSize = 13,
+				TextColor3 = Library.Theme.Text,
+				Text = tostring(btnInfo.Title or btnInfo.Text or "Button"),
+				Parent = footer,
+			})
+			addCorner(b, Library.Theme.CornerRadius)
+			addStroke(b, Library.Theme.Outline)
+			b.MouseButton1Click:Connect(function()
+				if type(btnInfo.Callback) == "function" then
+					Library:SafeCallback(btnInfo.Callback)
+				end
+				if btnInfo.CloseOnClick ~= false then
+					dialog:Dismiss()
+				end
+			end)
+			self.Buttons[btnIdx or (#self.Buttons + 1)] = b
+			return b
+		end
+		-- auto-dismiss on outside click if requested
+		if info.OutsideClickDismiss ~= false then
+			overlay.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					local pos = getInputPosition(input)
+					local ap = dlg.AbsolutePosition
+					local as = dlg.AbsoluteSize
+					if not (pos.X >= ap.X and pos.X <= ap.X + as.X and pos.Y >= ap.Y and pos.Y <= ap.Y + as.Y) then
+						dialog:Dismiss()
+					end
+				end
+			end)
+		end
+		-- footer buttons from info
+		if type(info.FooterButtons) == "table" then
+			for i, fb in ipairs(info.FooterButtons) do
+				dialog:AddFooterButton(i, fb)
+			end
+		end
+		return dialog
+	end
+
+	function Window:AddCustomTab(...)
+		local name = ...
+		return self:AddTab(name)
+	end
+
 	function Window:ChangeTitle(text)
 		self.TitleLabel.Text = tostring(text or "")
 	end
@@ -2634,12 +3244,24 @@ function Library:CreateWindow(config)
 				self.DescriptionLabel.Visible = text ~= nil and text ~= ""
 			end
 		end
-		function groupbox:SetMaxHeight(_) end
-		function groupbox:SetPoppedOut(_) end
+		function groupbox:SetMaxHeight(h) end
+		function groupbox:SetPoppedOut(v) end
 		function groupbox:TogglePoppedOut() end
-		function groupbox:SetMaxPopOutHeight(_) end
-		function groupbox:SetPopOutWidth(_) end
+		function groupbox:SetMaxPopOutHeight(h) end
+		function groupbox:SetPopOutWidth(w) end
+		function groupbox:SetCollapsed(state)
+			if self.Container then
+				self.Container.Visible = not (state == true)
+			end
+		end
+		function groupbox:ToggleCollapsed()
+			self:SetCollapsed(not (self._collapsed == true))
+			self._collapsed = not (self._collapsed == true)
+		end
 		function groupbox:Resize() end
+		function groupbox:Destroy()
+			if self.Container then safeDestroy(self.Container) end
+		end
 	end
 
 	local function createGroupbox(parent, info)
@@ -2799,6 +3421,11 @@ function Library:CreateWindow(config)
 			function obj:SetText(newText)
 				label.Text = tostring(newText or "")
 			end
+			function obj:Display() end
+			function obj:UpdateColors() end
+			function obj:Destroy()
+				safeDestroy(wrapper)
+			end
 
 			function obj:AddColorPicker(cid, cinfo)
 				local idArg, infoArg = cid, cinfo
@@ -2912,6 +3539,12 @@ function Library:CreateWindow(config)
 				obj.Text = tostring(newText or "")
 				button.Text = obj.Text
 			end
+			function obj:Display() end
+			function obj:UpdateColors() end
+			function obj:RunChanged() end
+			function obj:Destroy()
+				safeDestroy(wrapper)
+			end
 			function obj:SetIcon(_) end
 			function obj:AddButton(subInfo)
 				subInfo = subInfo or {}
@@ -2959,7 +3592,7 @@ function Library:CreateWindow(config)
 			info = info or {}
 			local text = info.Text or info.Title or info.Name or id
 			local toggle = createOptionObject("Toggle", id, { Value = info.Default == true })
-			toggle.Callback = info.Callback
+			toggle.Callback = info.Callback or info.Changed
 			local wrapper = createBaseElement(self.Holder, 30)
 
 			local button = create("TextButton", {
@@ -3062,6 +3695,20 @@ function Library:CreateWindow(config)
 			function toggle:SetVisible(state)
 				wrapper.Visible = state and true or false
 			end
+			function toggle:Display()
+				render()
+			end
+			function toggle:UpdateColors()
+				render()
+			end
+			function toggle:RunChanged()
+				if toggle.Callback then
+					Library:SafeCallback(toggle.Callback, toggle.Value)
+				end
+			end
+			function toggle:Destroy()
+				safeDestroy(wrapper)
+			end
 			function toggle:AddKeyPicker(kid, kinfo)
 				local idArg, infoArg = kid, kinfo
 				if type(kid) == "table" then
@@ -3123,7 +3770,7 @@ function Library:CreateWindow(config)
 			local default = tonumber(info.Default) or minValue
 			default = math.clamp(default, minValue, maxValue)
 			local slider = createOptionObject("Slider", id, { Value = default })
-			slider.Callback = info.Callback
+			slider.Callback = info.Callback or info.Changed
 			slider.Min = minValue
 			slider.Max = maxValue
 			slider.Rounding = rounding
@@ -3269,6 +3916,16 @@ function Library:CreateWindow(config)
 			function slider:SetVisible(state)
 				wrapper.Visible = state and true or false
 			end
+			function slider:Display() end
+			function slider:UpdateColors() end
+			function slider:RunChanged()
+				if slider.Callback then
+					Library:SafeCallback(slider.Callback, slider.Value)
+				end
+			end
+			function slider:Destroy()
+				safeDestroy(wrapper)
+			end
 			function slider:SetPrefix(v)
 				info.Prefix = v
 				slider:SetValue(slider.Value)
@@ -3291,7 +3948,7 @@ function Library:CreateWindow(config)
 				default = ""
 			end
 			local inputObj = createOptionObject("Input", id, { Value = info.Numeric and tonumber(default) or tostring(default) })
-			inputObj.Callback = info.Callback
+			inputObj.Callback = info.Callback or info.Changed
 			local wrapper = createBaseElement(self.Holder, 52)
 
 			local label = create("TextLabel", {
@@ -3370,6 +4027,20 @@ function Library:CreateWindow(config)
 			function inputObj:SetVisible(state)
 				wrapper.Visible = state and true or false
 			end
+			function inputObj:Display() end
+			function inputObj:UpdateColors() end
+			function inputObj:RunChanged()
+				if inputObj.Callback then
+					Library:SafeCallback(inputObj.Callback, inputObj.Value)
+				end
+			end
+			function inputObj:Destroy()
+				safeDestroy(wrapper)
+			end
+			inputObj.VerifyValue = inputObj.VerifyValue or nil
+			inputObj.AllowEmpty = true
+			inputObj.EmptyReset = "---"
+			inputObj.ClearTextOnBlur = false
 
 			selfLib.Options[id] = inputObj
 			selfLib.Flags[id] = inputObj.Value
@@ -3594,7 +4265,7 @@ function Library:CreateWindow(config)
 			end
 
 			local dropdown = createOptionObject("Dropdown", id, { Value = multi and resolveMultiDefault(info.Default) or resolveSingleDefault(info.Default) })
-			dropdown.Callback = info.Callback
+			dropdown.Callback = info.Callback or info.Changed
 			dropdown.Values = values
 			dropdown.Multi = multi
 			dropdown.DisabledValues = disabledValues
@@ -4150,6 +4821,25 @@ function Library:CreateWindow(config)
 					closeList()
 				end
 			end
+			function dropdown:Display()
+				dropdown:Refresh()
+			end
+			function dropdown:UpdateColors()
+				dropdown:Refresh()
+			end
+			function dropdown:RunChanged()
+				if dropdown.Callback then
+					Library:SafeCallback(dropdown.Callback, dropdown.Value)
+				end
+			end
+			function dropdown:RecalculateListSize(count) end
+			function dropdown:RefreshPool() end
+			function dropdown:SetValue(value)
+				dropdown._setter(value)
+				dropdown:Refresh()
+			end
+			dropdown.KeepDisabledValuePosition = false
+			dropdown.AutoWidth = false
 			function dropdown:GetActiveValues(asCount)
 				if multi then
 					if asCount then
@@ -4307,6 +4997,287 @@ function Library:CreateWindow(config)
 			return picker
 		end
 
+		function groupbox:AddCheckbox(id, info)
+			info = info or {}
+			info.Text = info.Text or info.Title or info.Name or id
+			return self:AddToggle(id, info)
+		end
+
+		-- Viewport shell
+		function groupbox:AddViewport(id, info)
+			info = info or {}
+			local h = tonumber(info.Height) or 200
+			local wrapper = createBaseElement(self.Holder, h + 20)
+			local viewportFrame = create("ViewportFrame", {
+				Size = UDim2.new(1, 0, 0, h),
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				Parent = wrapper,
+			})
+			addCorner(viewportFrame, selfLib.Theme.CornerRadius)
+			addStroke(viewportFrame, selfLib.Theme.Outline)
+			local cam = Instance.new("Camera")
+			viewportFrame.CurrentCamera = cam
+			cam.Parent = viewportFrame
+			local obj = { Instance = wrapper, ViewportFrame = viewportFrame, Camera = cam, Object = info.Object, Height = h, Visible = info.Visible ~= false }
+			wrapper.Visible = obj.Visible
+			function obj:SetObject(object, clone)
+				obj.Object = object
+				if object and viewportFrame then
+					for _, c in ipairs(viewportFrame:GetChildren()) do
+						if c:IsA("Model") or c:IsA("BasePart") then
+							c:Destroy()
+						end
+					end
+					local target = object
+					if clone == true or clone == nil then
+						pcall(function() target = object:Clone() end)
+					end
+					if target then
+						target.Parent = viewportFrame
+					end
+				end
+			end
+			function obj:SetHeight(height)
+				obj.Height = tonumber(height) or obj.Height
+				viewportFrame.Size = UDim2.new(1, 0, 0, obj.Height)
+				wrapper.Size = UDim2.new(1, 0, 0, obj.Height + 20)
+			end
+			function obj:Focus() end
+			function obj:SetCamera(camera)
+				if camera then
+					obj.Camera = camera
+					viewportFrame.CurrentCamera = camera
+				end
+			end
+			function obj:SetCameraCFrame(cf)
+				if obj.Camera then
+					pcall(function() obj.Camera.CFrame = cf end)
+				end
+			end
+			function obj:GetCameraCFrame()
+				if obj.Camera then
+					local ok, cf = pcall(function() return obj.Camera.CFrame end)
+					if ok then return cf end
+				end
+				return CFrame.new()
+			end
+			function obj:Rotate(yaw, pitch) end
+			function obj:Zoom(amount) end
+			function obj:LookAt(target) end
+			function obj:SetDistance(d) end
+			function obj:GetDistance() return 0 end
+			function obj:SetFieldOfView(fov)
+				if obj.Camera then
+					pcall(function() obj.Camera.FieldOfView = fov end)
+				end
+			end
+			function obj:SetInteractive(state) end
+			function obj:SetVisible(state)
+				obj.Visible = state ~= false
+				wrapper.Visible = obj.Visible
+			end
+			function obj:Destroy()
+				safeDestroy(viewportFrame)
+				safeDestroy(wrapper)
+			end
+			if info.Object then
+				pcall(function() obj:SetObject(info.Object, info.Clone) end)
+			end
+			if info.Camera then
+				pcall(function() obj:SetCamera(info.Camera) end)
+			end
+			selfLib.Options[id] = obj
+			return obj
+		end
+
+		-- Image shell
+		function groupbox:AddImage(id, info)
+			info = info or {}
+			local h = tonumber(info.Height) or 200
+			local wrapper = createBaseElement(self.Holder, h)
+			local img = create("ImageLabel", {
+				Size = UDim2.new(1, 0, 0, h),
+				BackgroundTransparency = info.BackgroundTransparency or 0,
+				Image = resolveIcon(info.Image) or (type(info.Image) == "string" and info.Image or ""),
+				ImageColor3 = info.Color or Color3.new(1, 1, 1),
+				ImageTransparency = info.Transparency or 0,
+				ScaleType = info.ScaleType or Enum.ScaleType.Fit,
+				Parent = wrapper,
+			})
+			addCorner(img, selfLib.Theme.CornerRadius)
+			local obj = { Instance = wrapper, ImageLabel = img, Height = h, Visible = info.Visible ~= false }
+			wrapper.Visible = obj.Visible
+			function obj:SetHeight(height)
+				obj.Height = tonumber(height) or obj.Height
+				img.Size = UDim2.new(1, 0, 0, obj.Height)
+				wrapper.Size = UDim2.new(1, 0, 0, obj.Height)
+			end
+			function obj:SetImage(newImage)
+				img.Image = resolveIcon(newImage) or (type(newImage) == "string" and newImage or "")
+			end
+			function obj:SetColor(color)
+				if typeof(color) == "Color3" then img.ImageColor3 = color end
+			end
+			function obj:SetRectOffset(ro)
+				if typeof(ro) == "Vector2" then img.ImageRectOffset = ro end
+			end
+			function obj:SetRectSize(rs)
+				if typeof(rs) == "Vector2" then img.ImageRectSize = rs end
+			end
+			function obj:SetScaleType(st) img.ScaleType = st end
+			function obj:SetTransparency(t) img.ImageTransparency = tonumber(t) or 0 end
+			function obj:SetVisible(state)
+				obj.Visible = state ~= false
+				wrapper.Visible = obj.Visible
+			end
+			function obj:Destroy()
+				safeDestroy(img)
+				safeDestroy(wrapper)
+			end
+			selfLib.Options[id] = obj
+			return obj
+		end
+
+		-- Video shell
+		function groupbox:AddVideo(id, info)
+			info = info or {}
+			local h = tonumber(info.Height) or 200
+			local wrapper = createBaseElement(self.Holder, h)
+			local video = create("VideoFrame", {
+				Size = UDim2.new(1, 0, 0, h),
+				BackgroundTransparency = 1,
+				Video = info.Video or "",
+				Looped = info.Looped == true,
+				Playing = info.Playing == true,
+				Volume = tonumber(info.Volume) or 1,
+				Parent = wrapper,
+			})
+			local obj = { Instance = wrapper, VideoFrame = video, Height = h, Visible = info.Visible ~= false }
+			wrapper.Visible = obj.Visible
+			function obj:SetHeight(height)
+				obj.Height = tonumber(height) or obj.Height
+				video.Size = UDim2.new(1, 0, 0, obj.Height)
+				wrapper.Size = UDim2.new(1, 0, 0, obj.Height)
+			end
+			function obj:SetVideo(v) video.Video = v or "" end
+			function obj:SetLooped(b) video.Looped = b == true end
+			function obj:SetVolume(v) video.Volume = tonumber(v) or 0 end
+			function obj:SetPlaying(b) video.Playing = b == true end
+			function obj:Play() video.Playing = true end
+			function obj:Pause() video.Playing = false end
+			function obj:SetVisible(state)
+				obj.Visible = state ~= false
+				wrapper.Visible = obj.Visible
+			end
+			function obj:Destroy()
+				safeDestroy(video)
+				safeDestroy(wrapper)
+			end
+			selfLib.Options[id] = obj
+			return obj
+		end
+
+		-- UIPassthrough shell
+		function groupbox:AddUIPassthrough(id, info)
+			info = info or {}
+			local h = tonumber(info.Height) or 24
+			local wrapper = createBaseElement(self.Holder, h)
+			local holder = create("Frame", {
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Parent = wrapper,
+			})
+			local obj = { Instance = wrapper, Holder = holder, Height = h, Visible = info.Visible ~= false }
+			wrapper.Visible = obj.Visible
+			if info.Instance then
+				info.Instance.Parent = holder
+			end
+			function obj:SetHeight(height)
+				obj.Height = tonumber(height) or obj.Height
+				wrapper.Size = UDim2.new(1, 0, 0, obj.Height)
+				holder.Size = UDim2.new(1, 0, 0, obj.Height)
+			end
+			function obj:SetInstance(inst)
+				if inst then
+					inst.Parent = holder
+				end
+			end
+			function obj:SetVisible(state)
+				obj.Visible = state ~= false
+				wrapper.Visible = obj.Visible
+			end
+			function obj:Destroy()
+				safeDestroy(holder)
+				safeDestroy(wrapper)
+			end
+			selfLib.Options[id] = obj
+			return obj
+		end
+
+		-- Settings shell
+		function groupbox:AddSettings(id, info)
+			info = info or {}
+			local width = tonumber(info.Width) or 200
+			local wrapper = createBaseElement(self.Holder, 30)
+			local btn = create("TextButton", {
+				Size = UDim2.fromScale(1, 1),
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Font = selfLib.Theme.Font,
+				TextSize = 14,
+				TextColor3 = selfLib.Theme.Text,
+				Text = tostring(info.Title or info.Name or "Settings"),
+				Parent = wrapper,
+			})
+			addCorner(btn, selfLib.Theme.CornerRadius)
+			addStroke(btn, selfLib.Theme.Outline)
+			local menu = create("Frame", {
+				Visible = false,
+				Size = UDim2.fromOffset(width, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				ZIndex = 5005,
+				Parent = selfLib.OverlayFrame or selfLib.ScreenGui,
+			})
+			addCorner(menu, selfLib.Theme.CornerRadius)
+			addStroke(menu, selfLib.Theme.Outline)
+			addPadding(menu, 8)
+			local obj = { Instance = wrapper, Button = btn, Menu = menu, Width = width, Visible = info.Visible ~= false }
+			wrapper.Visible = obj.Visible
+			function obj:Resize() end
+			function obj:SetWidth(w)
+				obj.Width = tonumber(w) or obj.Width
+				menu.Size = UDim2.fromOffset(obj.Width, 0)
+			end
+			function obj:Open()
+				menu.Visible = true
+			end
+			function obj:Close()
+				menu.Visible = false
+			end
+			function obj:Toggle()
+				menu.Visible = not menu.Visible
+			end
+			function obj:Update() end
+			function obj:SetVisible(state)
+				obj.Visible = state ~= false
+				wrapper.Visible = obj.Visible
+			end
+			function obj:Destroy()
+				safeDestroy(menu)
+				safeDestroy(btn)
+				safeDestroy(wrapper)
+			end
+			btn.MouseButton1Click:Connect(function()
+				obj:Toggle()
+			end)
+			selfLib.Options[id] = obj
+			return obj
+		end
+
 		local function createDependencyContainer(parentHolder)
 			local depContainer = create("Frame", {
 				Size = UDim2.new(1, 0, 0, 0),
@@ -4387,6 +5358,13 @@ function Library:CreateWindow(config)
 				return visible
 			end
 
+			function depbox:Resize() end
+			function depbox:Update(cancelSearch)
+				self:EvaluateDependencies()
+			end
+			function depbox:Destroy()
+				if self.Container then safeDestroy(self.Container) end
+			end
 			function depbox:SetupDependencies(deps)
 				self.Dependencies = deps or {}
 				for _, conn in ipairs(self._DependencyConnections) do
@@ -4501,6 +5479,18 @@ function Library:CreateWindow(config)
 		end
 		function tab:SetIcon(_) end
 		function tab:SetTooltip(_) end
+		function tab:Hover(state) end
+		function tab:UpdateTabInfo() end
+		function tab:RefreshSides() end
+		function tab:Resize() end
+		function tab:SetMaxHeight(h) end
+		function tab:AddSubTab(name, icon)
+			return self:AddTab and self:AddTab(name, icon) or nil
+		end
+		function tab:Destroy()
+			if self.Page then safeDestroy(self.Page) end
+			if self.Button then safeDestroy(self.Button) end
+		end
 
 		function tab:Show()
 			local closeDropdown = selfLib._OpenDropdownCloser or selfLib._OpenDropdown
@@ -4638,7 +5628,17 @@ function Library:CreateWindow(config)
 				Host = host,
 				Tabs = {},
 				Active = nil,
+				DependencyBoxes = {},
+				Elements = {},
 			}
+			function tabbox:UpdateCorners() end
+			function tabbox:Resize() end
+			function tabbox:SetMaxHeight(h) end
+			function tabbox:Destroy()
+				if host and host.Destroy then
+					pcall(function() host:Destroy() end)
+				end
+			end
 
 			function tabbox:AddTab(name)
 				local page = create("Frame", {
@@ -4701,6 +5701,24 @@ function Library:CreateWindow(config)
 				end
 				function nested:AddColorPicker(...)
 					return host.AddColorPicker({ Holder = page }, ...)
+				end
+				function nested:AddCheckbox(...)
+					return host.AddCheckbox({ Holder = page }, ...)
+				end
+				function nested:AddViewport(...)
+					return host.AddViewport({ Holder = page }, ...)
+				end
+				function nested:AddImage(...)
+					return host.AddImage({ Holder = page }, ...)
+				end
+				function nested:AddVideo(...)
+					return host.AddVideo({ Holder = page }, ...)
+				end
+				function nested:AddUIPassthrough(...)
+					return host.AddUIPassthrough({ Holder = page }, ...)
+				end
+				function nested:AddSettings(...)
+					return host.AddSettings({ Holder = page }, ...)
 				end
 				function nested:AddDependencyBox()
 					return nested
