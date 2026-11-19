@@ -4331,7 +4331,7 @@ function Library:CreateWindow(config)
 			local menu = create("Frame", {
 				Visible = false,
 				ClipsDescendants = true,
-				Size = UDim2.fromOffset(0, 0),
+				Size = UDim2.fromOffset(160, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
@@ -4558,6 +4558,9 @@ function Library:CreateWindow(config)
 				if dropdown.Disabled or dropdown.Visible == false then
 					return
 				end
+				-- ensure menu has a usable size immediately
+				local width = math.max((button and button.AbsoluteSize.X) or 0, 140)
+				menu.Size = UDim2.fromOffset(width, 0)
 				if selfLib._OpenDropdownCloser and selfLib._OpenDropdownCloser ~= closeList then
 					pcall(selfLib._OpenDropdownCloser)
 				end
@@ -4906,6 +4909,8 @@ function Library:CreateWindow(config)
 					openList()
 				end
 			end)
+			button.Active = true
+			button.AutoButtonColor = false
 
 			if info.SpecialType == "Player" then
 				selfLib:Connect(Players.PlayerAdded, function()
@@ -5934,9 +5939,6 @@ function Library:CreateWindow(config)
 	end
 
 	self:Connect(UserInputService.InputBegan, function(input, gpe)
-		if gpe then
-			return
-		end
 		-- a keybind is being (re)bound right now: don't treat that key as the menu key
 		if selfLib._ListeningKey then
 			return
@@ -5944,6 +5946,10 @@ function Library:CreateWindow(config)
 		local tk = getToggleKey()
 		if tk and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == tk then
 			Window:Toggle()
+			return
+		end
+		if gpe then
+			return
 		end
 	end)
 
