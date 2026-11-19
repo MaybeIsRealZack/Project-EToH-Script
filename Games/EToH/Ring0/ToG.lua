@@ -1,620 +1,1986 @@
 return function()
-    return {
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[56],
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[59],
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[44],
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[43],
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[38],
-        workspace.Towers.ToG.Frame["front of floor 1"].Model:GetChildren()[30],
-        workspace.Towers.ToG.Obby:GetChildren()[169],
-        workspace.Towers.ToG.Obby:GetChildren()[615],
-        workspace.Towers.ToG.Obby:GetChildren()[3]:GetChildren()[1],
-        workspace.Towers.ToG.Obby:GetChildren()[172],
-        workspace.Towers.ToG.Obby:GetChildren()[138],
-        workspace.Towers.ToG.Obby:GetChildren()[982],
-        workspace.Towers.ToG.Obby:GetChildren()[983],
-        workspace.Towers.ToG.Obby:GetChildren()[984],
-        workspace.Towers.ToG.Obby:GetChildren()[986],
-        workspace.Towers.ToG.Obby:GetChildren()[985],
-        workspace.Towers.ToG.Obby:GetChildren()[987],
-        workspace.Towers.ToG.Obby:GetChildren()[993],
-        workspace.Towers.ToG.Obby:GetChildren()[2]:GetChildren()[1],
-        workspace.Towers.ToG.Obby:GetChildren()[114],
-        workspace.Towers.ToG.Obby:GetChildren()[939],
-        workspace.Towers.ToG.Obby:GetChildren()[949],
-        workspace.Towers.ToG.Obby:GetChildren()[948],
-        workspace.Towers.ToG.Obby:GetChildren()[950],
-        workspace.Towers.ToG.Obby:GetChildren()[934],
-        workspace.Towers.ToG.Obby:GetChildren()[951],
-        workspace.Towers.ToG.Obby:GetChildren()[954],
-        workspace.Towers.ToG.Obby:GetChildren()[177],
-        workspace.Towers.ToG.Obby:GetChildren()[176],
-        workspace.Towers.ToG.Obby:GetChildren()[179],
-        workspace.Towers.ToG.Obby:GetChildren()[181],
-        workspace.Towers.ToG.Obby:GetChildren()[190],
-        workspace.Towers.ToG.Obby:GetChildren()[194],
-        workspace.Towers.ToG.Obby:GetChildren()[198],
-        workspace.Towers.ToG.Obby:GetChildren()[46],
-        workspace.Towers.ToG.Obby:GetChildren()[202],
-        workspace.Towers.ToG.Obby:GetChildren()[199],
-        workspace.Towers.ToG.Obby:GetChildren()[87],
-        workspace.Towers.ToG.Obby:GetChildren()[656],
-        workspace.Towers.ToG.Obby:GetChildren()[657],
-        workspace.Towers.ToG.Obby:GetChildren()[203],
-        workspace.Towers.ToG.Obby:GetChildren()[205],
-        workspace.Towers.ToG.Obby:GetChildren()[206],
-        workspace.Towers.ToG.Obby:GetChildren()[207],
-        workspace.Towers.ToG.Obby:GetChildren()[209],
-        workspace.Towers.ToG.Obby:GetChildren()[210],
-        workspace.Towers.ToG.Obby:GetChildren()[215],
-        workspace.Towers.ToG.Obby.Curve:GetChildren()[1],
-        workspace.Towers.ToG.Obby.Curve:GetChildren()[2],
-        workspace.Towers.ToG.Obby.Curve:GetChildren()[3],
-        workspace.Towers.ToG.Obby.Curve:GetChildren()[4],
-        workspace.Towers.ToG.Obby.Curve:GetChildren()[5],
-        workspace.Towers.ToG.Obby:GetChildren()[219],
-        workspace.Towers.ToG.Obby:GetChildren()[221],
-        workspace.Towers.ToG.Obby:GetChildren()[292],
-        workspace.Towers.ToG.Obby:GetChildren()[236],
-        workspace.Towers.ToG.Obby:GetChildren()[233],
-        workspace.Towers.ToG.Obby:GetChildren()[240],
-        workspace.Towers.ToG.Obby:GetChildren()[244],
-        workspace.Towers.ToG.Obby:GetChildren()[246],
-        workspace.Towers.ToG.Obby:GetChildren()[245],
-        workspace.Towers.ToG.Obby:GetChildren()[243],
-        workspace.Towers.ToG.Obby:GetChildren()[253],
-        workspace.Towers.ToG.Obby:GetChildren()[254],
-        workspace.Towers.ToG.Obby:GetChildren()[257],
-        workspace.Towers.ToG.Obby:GetChildren()[259],
-        workspace.Towers.ToG.Obby:GetChildren()[258],
-        workspace.Towers.ToG.Obby:GetChildren()[260],
-        workspace.Towers.ToG.Obby:GetChildren()[286],
-        workspace.Towers.ToG.Obby:GetChildren()[289],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[30]:GetChildren()[2],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[29]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[307],
-        workspace.Towers.ToG.Obby:GetChildren()[314],
-        workspace.Towers.ToG.Obby:GetChildren()[318],
-        workspace.Towers.ToG.Obby:GetChildren()[317],
-        workspace.Towers.ToG.Obby:GetChildren()[321],
-        workspace.Towers.ToG.Obby:GetChildren()[323],
-        workspace.Towers.ToG.Obby:GetChildren()[322],
-        workspace.Towers.ToG.Obby:GetChildren()[366],
-        workspace.Towers.ToG.Obby:GetChildren()[369],
-        workspace.Towers.ToG.Obby:GetChildren()[365],
-        workspace.Towers.ToG.Obby:GetChildren()[367],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[9]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[62],
-        workspace.Towers.ToG.Obby:GetChildren()[64],
-        workspace.Towers.ToG.Obby:GetChildren()[63],
-        workspace.Towers.ToG.Obby:GetChildren()[66],
-        workspace.Towers.ToG.Obby:GetChildren()[65],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[15]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[390],
-        workspace.Towers.ToG.Obby:GetChildren()[392],
-        workspace.Towers.ToG.Obby:GetChildren()[396],
-        workspace.Towers.ToG.Obby:GetChildren()[398],
-        workspace.Towers.ToG.Obby:GetChildren()[400],
-        workspace.Towers.ToG.Obby:GetChildren()[404],
-        workspace.Towers.ToG.Obby:GetChildren()[405],
-        workspace.Towers.ToG.Obby:GetChildren()[407],
-        workspace.Towers.ToG.Obby:GetChildren()[413],
-        workspace.Towers.ToG.Obby:GetChildren()[415],
-        workspace.Towers.ToG.Obby:GetChildren()[418],
-        workspace.Towers.ToG.Obby:GetChildren()[1001],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[4]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[470],
-        workspace.Towers.ToG.Obby:GetChildren()[422],
-        workspace.Towers.ToG.Obby:GetChildren()[424],
-        workspace.Towers.ToG.Obby:GetChildren()[428],
-        workspace.Towers.ToG.Obby:GetChildren()[430],
-        workspace.Towers.ToG.Obby:GetChildren()[432],
-        workspace.Towers.ToG.Obby:GetChildren()[435],
-        workspace.Towers.ToG.Obby:GetChildren()[437],
-        workspace.Towers.ToG.Obby:GetChildren()[438],
-        workspace.Towers.ToG.Obby:GetChildren()[441],
-        workspace.Towers.ToG.Obby:GetChildren()[456],
-        workspace.Towers.ToG.Obby:GetChildren()[466],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[16]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[480],
-        workspace.Towers.ToG.Obby:GetChildren()[475],
-        workspace.ClientParts:GetChildren()[3]:GetChildren()[4],
-        workspace.Towers.ToG.Obby:GetChildren()[484],
-        workspace.Towers.ToG.Obby:GetChildren()[482],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[13]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[486],
-        workspace.Towers.ToG.Obby:GetChildren()[487],
-        workspace.Towers.ToG.Obby:GetChildren()[493],
-        workspace.Towers.ToG.Obby:GetChildren()[494],
-        workspace.Towers.ToG.Obby:GetChildren()[496],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[8]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[509],
-        workspace.Towers.ToG.Obby:GetChildren()[528],
-        workspace.Towers.ToG.Obby:GetChildren()[1096],
-        workspace.Towers.ToG.Obby:GetChildren()[529],
-        workspace.Towers.ToG.Obby:GetChildren()[535],
-        workspace.Towers.ToG.Obby:GetChildren()[533],
-        workspace.Towers.ToG.Obby:GetChildren()[531],
-        workspace.Towers.ToG.Obby:GetChildren()[536],
-        workspace.Towers.ToG.Obby:GetChildren()[537],
-        workspace.Towers.ToG.Obby:GetChildren()[542],
-        workspace.Towers.ToG.Obby:GetChildren()[544],
-        workspace.Towers.ToG.Obby:GetChildren()[547],
-        workspace.Towers.ToG.Obby:GetChildren()[549],
-        workspace.Towers.ToG.Obby:GetChildren()[548],
-        workspace.Towers.ToG.Obby:GetChildren()[555],
-        workspace.Towers.ToG.Obby:GetChildren()[557],
-        workspace.Towers.ToG.Obby:GetChildren()[558],
-        workspace.Towers.ToG.Obby:GetChildren()[562],
-        workspace.Towers.ToG.Obby:GetChildren()[560],
-        workspace.Towers.ToG.Obby:GetChildren()[564],
-        workspace.Towers.ToG.Obby:GetChildren()[565],
-        workspace.Towers.ToG.Obby:GetChildren()[572],
-        workspace.Towers.ToG.Obby:GetChildren()[573],
-        workspace.Towers.ToG.Obby:GetChildren()[600],
-        workspace.Towers.ToG.Obby:GetChildren()[605],
-        workspace.Towers.ToG.Obby:GetChildren()[607],
-        workspace.Towers.ToG.Obby:GetChildren()[1009],
-        workspace.Towers.ToG.Obby:GetChildren()[618],
-        workspace.Towers.ToG.Obby:GetChildren()[621],
-        workspace.ClientParts:GetChildren()[14]:GetChildren()[3],
-        workspace.ClientParts:GetChildren()[1]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[628],
-        workspace.Towers.ToG.Obby:GetChildren()[648],
-        workspace.Towers.ToG.Obby:GetChildren()[630],
-        workspace.Towers.ToG.Obby:GetChildren()[631],
-        workspace.Towers.ToG.Obby:GetChildren()[635],
-        workspace.Towers.ToG.Obby:GetChildren()[634],
-        workspace.Towers.ToG.Obby:GetChildren()[633],
-        workspace.Towers.ToG.Obby:GetChildren()[649],
-        workspace.Towers.ToG.Obby:GetChildren()[650],
-        workspace.Towers.ToG.Obby:GetChildren()[653],
-        workspace.Towers.ToG.Obby:GetChildren()[654],
-        workspace.Towers.ToG.Obby:GetChildren()[655],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[17]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[658],
-        workspace.Towers.ToG.Obby:GetChildren()[661],
-        workspace.ClientParts:GetChildren()[2]:GetChildren()[12],
-        workspace.Towers.ToG.Obby:GetChildren()[671],
-        workspace.ClientParts.KillBricks:GetChildren()[218],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[10],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[11],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[13],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[14],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[17],
-        workspace.Towers.ToG.Obby:GetChildren()[673],
-        workspace.Towers.ToG.Obby:GetChildren()[674],
-        workspace.Towers.ToG.Obby:GetChildren()[675],
-        workspace.Towers.ToG.Obby:GetChildren()[677],
-        workspace.Towers.ToG.Obby:GetChildren()[1103],
-        workspace.Towers.ToG.Obby:GetChildren()[880],
-        workspace.Towers.ToG.Obby:GetChildren()[694],
-        workspace.Towers.ToG.Obby:GetChildren()[699],
-        workspace.Towers.ToG.Obby:GetChildren()[704],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[62]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[737],
-        workspace.Towers.ToG.Obby:GetChildren()[744],
-        workspace.Towers.ToG.Obby:GetChildren()[711],
-        workspace.Towers.ToG.Obby:GetChildren()[710],
-        workspace.Towers.ToG.Obby:GetChildren()[745],
-        workspace.Towers.ToG.Obby:GetChildren()[747],
-        workspace.Towers.ToG.Obby:GetChildren()[750],
-        workspace.Towers.ToG.Obby:GetChildren()[752],
-        workspace.Towers.ToG.Obby:GetChildren()[753],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[18]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[757],
-        workspace.Towers.ToG.Obby:GetChildren()[759],
-        workspace.Towers.ToG.Obby:GetChildren()[1141],
-        workspace.Towers.ToG.Obby:GetChildren()[1131],
-        workspace.Towers.ToG.Obby:GetChildren()[797],
-        workspace.Towers.ToG.Obby:GetChildren()[794],
-        workspace.Towers.ToG.Obby:GetChildren()[771],
-        workspace.Towers.ToG.Obby:GetChildren()[772],
-        workspace.Towers.ToG.Obby:GetChildren()[774],
-        workspace.Towers.ToG.Obby:GetChildren()[775],
-        workspace.Towers.ToG.Obby:GetChildren()[776],
-        workspace.Towers.ToG.Obby:GetChildren()[779],
-        workspace.Towers.ToG.Obby:GetChildren()[777],
-        workspace.Towers.ToG.Obby:GetChildren()[778],
-        workspace.Towers.ToG.Obby:GetChildren()[781],
-        workspace.Towers.ToG.Obby:GetChildren()[782],
-        workspace.Towers.ToG.Obby:GetChildren()[783],
-        workspace.Towers.ToG.Obby:GetChildren()[785],
-        workspace.Towers.ToG.Obby:GetChildren()[784],
-        workspace.Towers.ToG.Obby:GetChildren()[786],
-        workspace.Towers.ToG.Obby:GetChildren()[800],
-        workspace.ClientParts:GetChildren()[10]:GetChildren()[3],
-        workspace.ClientParts:GetChildren()[23]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[802],
-        workspace.Towers.ToG.Obby:GetChildren()[799],
-        workspace.ClientParts:GetChildren()[8]:GetChildren()[12],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[2],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[3],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[4],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[42],
-        workspace.Towers.ToG.Obby:GetChildren()[806],
-        workspace.Towers.ToG.Obby:GetChildren()[807],
-        workspace.Towers.ToG.Obby:GetChildren()[808],
-        workspace.Towers.ToG.Obby:GetChildren()[812],
-        workspace.Towers.ToG.Obby:GetChildren()[845],
-        workspace.Towers.ToG.Obby:GetChildren()[813],
-        workspace.Towers.ToG.Obby:GetChildren()[814],
-        workspace.Towers.ToG.Obby:GetChildren()[815],
-        workspace.Towers.ToG.Obby:GetChildren()[816],
-        workspace.Towers.ToG.Obby:GetChildren()[818],
-        workspace.Towers.ToG.Obby:GetChildren()[825],
-        workspace.Towers.ToG.Obby:GetChildren()[841],
-        workspace.Towers.ToG.Obby:GetChildren()[857],
-        workspace.Towers.ToG.Obby:GetChildren()[859],
-        workspace.Towers.ToG.Obby:GetChildren()[860],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[14]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[863],
-        workspace.Towers.ToG.Obby:GetChildren()[866],
-        workspace.Towers.ToG.Obby:GetChildren()[865],
-        workspace.Towers.ToG.Frame:GetChildren()[186],
-        workspace.Towers.ToG.Obby:GetChildren()[883],
-        workspace.Towers.ToG.Obby:GetChildren()[885],
-        workspace.Towers.ToG.Obby:GetChildren()[886],
-        workspace.Towers.ToG.Obby:GetChildren()[887],
-        workspace.Towers.ToG.Obby:GetChildren()[888],
-        workspace.Towers.ToG.Obby:GetChildren()[889],
-        workspace.Towers.ToG.Obby:GetChildren()[890],
-        workspace.Towers.ToG.Obby:GetChildren()[500],
-        workspace.Towers.ToG.Obby:GetChildren()[897],
-        workspace.Towers.ToG.Obby:GetChildren()[901],
-        workspace.Towers.ToG.Obby:GetChildren()[898],
-        workspace.Towers.ToG.Obby:GetChildren()[903],
-        workspace.Towers.ToG.Obby:GetChildren()[502],
-        workspace.Towers.ToG.Obby:GetChildren()[507],
-        workspace.Towers.ToG.Obby:GetChildren()[501],
-        workspace.Towers.ToG.Obby:GetChildren()[505],
-        workspace.Towers.ToG.Obby:GetChildren()[164],
-        workspace.Towers.ToG.Obby:GetChildren()[159],
-        workspace.Towers.ToG.Obby:GetChildren()[167],
-        workspace.Towers.ToG.Obby:GetChildren()[160],
-        workspace.Towers.ToG.Obby:GetChildren()[158],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[55]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[109],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[54]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1725],
-        workspace.Towers.ToG.Obby:GetChildren()[108],
-        workspace.Towers.ToG.Obby:GetChildren()[1641],
-        workspace.Towers.ToG.Obby:GetChildren()[103],
-        workspace.Towers.ToG.Obby:GetChildren()[107],
-        workspace.Towers.ToG.Obby:GetChildren()[112],
-        workspace.Towers.ToG.Obby:GetChildren()[123],
-        workspace.Towers.ToG.Obby:GetChildren()[124],
-        workspace.Towers.ToG.Obby:GetChildren()[313],
-        workspace.Towers.ToG.Obby:GetChildren()[96],
-        workspace.Towers.ToG.Obby:GetChildren()[137],
-        workspace.Towers.ToG.Obby:GetChildren()[666],
-        workspace.Towers.ToG.Obby:GetChildren()[101],
-        workspace.Towers.ToG.Obby:GetChildren()[99],
-        workspace.Towers.ToG.Frame:GetChildren()[211],
-        workspace.Towers.ToG.Obby:GetChildren()[1172],
-        workspace.Towers.ToG.Obby:GetChildren()[1701],
-        workspace.Towers.ToG.Obby:GetChildren()[1703],
-        workspace.Towers.ToG.Obby:GetChildren()[1704],
-        workspace.Towers.ToG.Obby:GetChildren()[1706],
-        workspace.Towers.ToG.Obby:GetChildren()[1708],
-        workspace.Towers.ToG.Obby:GetChildren()[1711],
-        workspace.Towers.ToG.Obby:GetChildren()[1713],
-        workspace.Towers.ToG.Obby:GetChildren()[1716],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[20]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1714],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[11]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1722],
-        workspace.Towers.ToG.Obby:GetChildren()[1723],
-        workspace.Towers.ToG.Obby:GetChildren()[1724],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[10]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1738],
-        workspace.Towers.ToG.Obby:GetChildren()[1739],
-        workspace.Towers.ToG.Obby:GetChildren()[1740],
-        workspace.Towers.ToG.Obby:GetChildren()[1741],
-        workspace.Towers.ToG.Obby:GetChildren()[1742],
-        workspace.Towers.ToG.Obby:GetChildren()[1743],
-        workspace.Towers.ToG.Obby:GetChildren()[1745],
-        workspace.Towers.ToG.Obby:GetChildren()[1746],
-        workspace.Towers.ToG.Obby:GetChildren()[1747],
-        workspace.Towers.ToG.Obby:GetChildren()[1757],
-        workspace.Towers.ToG.Obby:GetChildren()[1766],
-        workspace.Towers.ToG.Obby:GetChildren()[1778],
-        workspace.Towers.ToG.Obby:GetChildren()[1773],
-        workspace.Towers.ToG.Obby:GetChildren()[1776],
-        workspace.Towers.ToG.Obby:GetChildren()[1781],
-        workspace.ClientParts:GetChildren()[31]:GetChildren()[7],
-        workspace.Towers.ToG.Obby:GetChildren()[1249],
-        workspace.Towers.ToG.Obby:GetChildren()[1250],
-        workspace.Towers.ToG.Obby:GetChildren()[1252],
-        workspace.Towers.ToG.Obby:GetChildren()[1291],
-        workspace.Towers.ToG.Obby:GetChildren()[1292],
-        workspace.Towers.ToG.Obby:GetChildren()[1293],
-        workspace.Towers.ToG.Obby:GetChildren()[1296],
-        workspace.Towers.ToG.Obby:GetChildren()[1305],
-        workspace.Towers.ToG.Obby:GetChildren()[1313],
-        workspace.Towers.ToG.Obby:GetChildren()[1312],
-        workspace.Towers.ToG.Obby:GetChildren()[1328],
-        workspace.Towers.ToG.Obby:GetChildren()[1329],
-        workspace.Towers.ToG.Obby:GetChildren()[1330],
-        workspace.Towers.ToG.Obby:GetChildren()[1326],
-        workspace.Towers.ToG.Obby:GetChildren()[1327],
-        workspace.Towers.ToG.Obby:GetChildren()[1317],
-        workspace.Towers.ToG.Obby:GetChildren()[1316],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[5]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1344],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[7]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1355],
-        workspace.Towers.ToG.Obby:GetChildren()[1348],
-        workspace.Towers.ToG.Obby:GetChildren()[1360],
-        workspace.Towers.ToG.Obby:GetChildren()[1370],
-        workspace.Towers.ToG.Obby:GetChildren()[1369],
-        workspace.Towers.ToG.Obby:GetChildren()[1367],
-        workspace.Towers.ToG.Obby:GetChildren()[1375],
-        workspace.Towers.ToG.Obby:GetChildren()[1380],
-        workspace.Towers.ToG.Obby:GetChildren()[1381],
-        workspace.Towers.ToG.Obby:GetChildren()[1388],
-        workspace.Towers.ToG.Obby:GetChildren()[1389],
-        workspace.Towers.ToG.Obby:GetChildren()[1392],
-        workspace.Towers.ToG.Obby:GetChildren()[1395],
-        workspace.Towers.ToG.Obby:GetChildren()[1402],
-        workspace.Towers.ToG.Obby:GetChildren()[1404],
-        workspace.Towers.ToG.Obby:GetChildren()[1407],
-        workspace.Towers.ToG.Obby:GetChildren()[1409],
-        workspace.Towers.ToG.Obby:GetChildren()[1410],
-        workspace.Towers.ToG.Obby:GetChildren()[1412],
-        workspace.Towers.ToG.Obby:GetChildren()[1413],
-        workspace.Towers.ToG.Obby:GetChildren()[1419],
-        workspace.Towers.ToG.Obby:GetChildren()[1416],
-        workspace.Towers.ToG.Obby:GetChildren()[1415],
-        workspace.Towers.ToG.Obby:GetChildren()[1414],
-        workspace.Towers.ToG.Obby:GetChildren()[1418],
-        workspace.Towers.ToG.Obby:GetChildren()[1420],
-        workspace.Towers.ToG.Obby:GetChildren()[1438],
-        workspace.Towers.ToG.Obby:GetChildren()[1439],
-        workspace.Towers.ToG.Obby:GetChildren()[1435],
-        workspace.Towers.ToG.Obby:GetChildren()[1434],
-        workspace.Towers.ToG.Obby:GetChildren()[1436],
-        workspace.Towers.ToG.Obby:GetChildren()[1437],
-        workspace.Towers.ToG.Obby:GetChildren()[1447],
-        workspace.Towers.ToG.Obby:GetChildren()[1448],
-        workspace.Towers.ToG.Obby:GetChildren()[1446],
-        workspace.ClientParts:GetChildren()[17]:GetChildren()[4],
-        workspace.Towers.ToG.Obby:GetChildren()[1453],
-        workspace.Towers.ToG.Obby:GetChildren()[1455],
-        workspace.Towers.ToG.Obby:GetChildren()[1464],
-        workspace.Towers.ToG.Obby:GetChildren()[1465],
-        workspace.Towers.ToG.Obby:GetChildren()[1467],
-        workspace.Towers.ToG.Obby:GetChildren()[1466],
-        workspace.Towers.ToG.Obby:GetChildren()[1473],
-        workspace.Towers.ToG.Obby:GetChildren()[1474],
-        workspace.Towers.ToG.Obby:GetChildren()[1479],
-        workspace.Towers.ToG.Obby:GetChildren()[1524],
-        workspace.Towers.ToG.Obby:GetChildren()[1494],
-        workspace.Towers.ToG.Obby:GetChildren()[1495],
-        workspace.Towers.ToG.Obby:GetChildren()[1496],
-        workspace.Towers.ToG.Obby:GetChildren()[1497],
-        workspace.Towers.ToG.Obby:GetChildren()[1498],
-        workspace.Towers.ToG.Obby:GetChildren()[1537],
-        workspace.Towers.ToG.Obby:GetChildren()[1538],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[99]:GetChildren()[1],
-        workspace.Towers.ToG.Obby:GetChildren()[1543],
-        workspace.Towers.ToG.Obby:GetChildren()[1553],
-        workspace.Towers.ToG.Obby:GetChildren()[1574],
-        workspace.Towers.ToG.Obby:GetChildren()[1555],
-        workspace.Towers.ToG.Obby:GetChildren()[1557],
-        workspace.Towers.ToG.Obby:GetChildren()[1563],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[6]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1591],
-        workspace.Towers.ToG.Obby:GetChildren()[1590],
-        workspace.ClientParts:GetChildren()[22]:GetChildren()[12],
-        workspace.Towers.ToG.Obby:GetChildren()[1618],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[69],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[71],
-        workspace.ClientParts.ButtonPlatforms:GetChildren()[74],
-        workspace.Towers.ToG.Obby:GetChildren()[1592],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[6]:GetChildren()[4],
-        workspace.Towers.ToG.Obby:GetChildren()[1577],
-        workspace.Towers.ToG.Obby:GetChildren()[1594],
-        workspace.Towers.ToG.Obby:GetChildren()[1596],
-        workspace.Towers.ToG.Obby:GetChildren()[1597],
-        workspace.Towers.ToG.Obby:GetChildren()[1599],
-        workspace.Towers.ToG.Obby:GetChildren()[1601],
-        workspace.Towers.ToG.Obby:GetChildren()[1603],
-        workspace.Towers.ToG.Obby:GetChildren()[1604],
-        workspace.Towers.ToG.Obby:GetChildren()[1606],
-        workspace.Towers.ToG.Obby:GetChildren()[1605],
-        workspace.Towers.ToG.Obby:GetChildren()[1607],
-        workspace.Towers.ToG.Obby:GetChildren()[1609],
-        workspace.Towers.ToG.Obby:GetChildren()[1608],
-        workspace.Towers.ToG.Obby:GetChildren()[1620],
-        workspace.Towers.ToG.Obby:GetChildren()[1619],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[3]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1624],
-        workspace.Towers.ToG.Obby:GetChildren()[1626],
-        workspace.Towers.ToG.Obby:GetChildren()[1625],
-        workspace.Towers.ToG.Obby:GetChildren()[1627],
-        workspace.Towers.ToG.Obby:GetChildren()[106],
-        workspace.Towers.ToG.Obby:GetChildren()[104],
-        workspace.Towers.ToG.Obby:GetChildren()[1645],
-        workspace.Towers.ToG.Obby:GetChildren()[1646],
-        workspace.Towers.ToG.Obby:GetChildren()[1649],
-        workspace.Towers.ToG.Obby:GetChildren()[1650],
-        workspace.Towers.ToG.Obby:GetChildren()[1654],
-        workspace.Towers.ToG.Obby:GetChildren()[1656],
-        workspace.Towers.ToG.Obby:GetChildren()[1657],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[19]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[1660],
-        workspace.Towers.ToG.Obby:GetChildren()[1661],
-        workspace.Towers.ToG.Obby:GetChildren()[1667],
-        workspace.Towers.ToG.Obby:GetChildren()[1668],
-        workspace.Towers.ToG.Obby:GetChildren()[1670],
-        workspace.Towers.ToG.Obby:GetChildren()[1673],
-        workspace.Towers.ToG.Obby:GetChildren()[1674],
-        workspace.Towers.ToG.Obby:GetChildren()[1675],
-        workspace.Towers.ToG.Obby:GetChildren()[1676],
-        workspace.Towers.ToG.Obby:GetChildren()[1678],
-        workspace.Towers.ToG.Obby:GetChildren()[1679],
-        workspace.Towers.ToG.Obby:GetChildren()[1685],
-        workspace.Towers.ToG.Obby:GetChildren()[1689],
-        workspace.Towers.ToG.Obby:GetChildren()[1692],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[2]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1179],
-        workspace.ClientParts:GetChildren()[5]:GetChildren()[12],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[2]:GetChildren()[4],
-        workspace.Towers.ToG.Obby:GetChildren()[1178],
-        workspace.Towers.ToG.Obby:GetChildren()[1180],
-        workspace.Towers.ToG.Obby:GetChildren()[1222],
-        workspace.Towers.ToG.Obby:GetChildren()[1216],
-        workspace.Towers.ToG.Obby:GetChildren()[1218],
-        workspace.Towers.ToG.Obby:GetChildren()[1221],
-        workspace.Towers.ToG.Frame:GetChildren()[251],
-        workspace.Towers.ToG.Frame:GetChildren()[250],
-        workspace.Towers.ToG.Frame:GetChildren()[246],
-        workspace.Towers.ToG.Frame:GetChildren()[248],
-        workspace.Towers.ToG.Frame:GetChildren()[215],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[3],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[126],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[125],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[124],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[123],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[122],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[121],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[120],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[119],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[118],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[117],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[116],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[115],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[114],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[113],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[112],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[111],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[110],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[109],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[108],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[127],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[128],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[129],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[130],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[131],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[132],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[133],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[134],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[135],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[136],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[137],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[138],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[139],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[140],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[141],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[142],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[143],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[144],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[145],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[146],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[147],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[148],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[149],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[150],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[151],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[152],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[153],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[154],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[99],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[103],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[105],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[93],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[91],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[94],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[97],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[96],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[90],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[98],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[102],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[92],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[100],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[104],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[95],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[107],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[101],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[106],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[82],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[83],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[84],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[88],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[85],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[86],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[87],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[89],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[80],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[84]:GetChildren()[81],
-        workspace.Towers.ToG.Obby:GetChildren()[1215],
-        workspace.ClientParts.Fade,
-        workspace.Towers.ToG.Obby:GetChildren()[1199],
-        workspace.Towers.ToG.Obby:GetChildren()[1787],
-        workspace.Towers.ToG.Obby:GetChildren()[1792],
-        workspace.Towers.ToG.Obby:GetChildren()[1788],
-        workspace.Towers.ToG.Obby:GetChildren()[1789],
-        workspace.Towers.ToG.Obby:GetChildren()[1790],
-        workspace.Towers.ToG.Obby:GetChildren()[1791],
-        workspace.Towers.ToG.Obby:GetChildren()[1796],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[44]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[1800],
-        workspace.Towers.ToG.Obby:GetChildren()[1801],
-        workspace.Towers.ToG.Obby:GetChildren()[1804],
-        workspace.Towers.ToG.Obby:GetChildren()[1805],
-        workspace.Towers.ToG.Obby:GetChildren()[1808],
-        workspace.Towers.ToG.Obby:GetChildren()[1809],
-        workspace.Towers.ToG.Obby:GetChildren()[1813],
-        workspace.Towers.ToG.Obby:GetChildren()[1814],
-        workspace.Towers.ToG.Obby:GetChildren()[1819],
-        workspace.Towers.ToG.Obby:GetChildren()[1818],
-        workspace.Towers.ToG.Obby:GetChildren()[1822],
-        workspace.Towers.ToG.Obby:GetChildren()[1823],
-        workspace.Towers.ToG.Obby:GetChildren()[1824],
-        workspace.Towers.ToG.Obby:GetChildren()[1826],
-        workspace.Towers.ToG.Obby:GetChildren()[1827],
-        workspace.Towers.ToG.Obby:GetChildren()[1825],
-        workspace.Towers.ToG.Obby:GetChildren()[1828],
-        workspace.Towers.ToG.Obby:GetChildren()[1829],
-        workspace.Towers.ToG.Obby:GetChildren()[1831],
-        workspace.Towers.ToG.Obby:GetChildren()[1830],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[11]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1833],
-        workspace.ClientParts["Sine Rope Swings"]:GetChildren()[12]:GetChildren()[2],
-        workspace.Towers.ToG.Obby:GetChildren()[1842],
-        workspace.Towers.ToG.Obby:GetChildren()[1843],
-        workspace.Towers.ToG.Obby:GetChildren()[1844],
-        workspace.Towers.ToG.Obby:GetChildren()[1845],
-        workspace.Towers.ToG.Obby:GetChildren()[1846],
-        workspace.Towers.ToG.Obby:GetChildren()[1847],
-        workspace.Towers.ToG.Obby:GetChildren()[1848],
-        workspace.Towers.ToG.Obby:GetChildren()[1849],
-        workspace.Towers.ToG.Obby:GetChildren()[1850],
-        workspace.Towers.ToG.Obby:GetChildren()[1855],
-        workspace.ClientParts.DistanceAnchoringObjects:GetChildren()[12]:GetChildren()[3],
-        workspace.Towers.ToG.Obby:GetChildren()[1851],
-        workspace.Towers.ToG.Obby:GetChildren()[1852],
-        workspace.Towers.ToG.Obby:GetChildren()[1859],
-        workspace.Towers.ToG.Obby:GetChildren()[1858],
-        workspace.Towers.ToG.Obby:GetChildren()[1857],
-        workspace.Towers.ToG.Obby:GetChildren()[1860],
-        workspace.Towers.ToG.Obby:GetChildren()[1861],
-        workspace.Towers.ToG.Obby:GetChildren()[1864],
-        workspace.Towers.ToG.Obby:GetChildren()[1867],
-        workspace.Towers.ToG.Obby:GetChildren()[1873],
-        workspace.Towers.ToG.Obby:GetChildren()[1868],
-        workspace.Towers.ToG.Obby:GetChildren()[1875],
-        workspace.Towers.ToG.Obby:GetChildren()[1895],
-        workspace.Towers.ToG.Obby:GetChildren()[1882],
-        workspace.Towers.ToG.Obby:GetChildren()[1896],
-        workspace.Towers.ToG.Obby:GetChildren()[1887],
-        workspace.Towers.ToG.Obby:GetChildren()[1892],
-        workspace.Towers.ToG.Obby:GetChildren()[1904],
-        workspace.Towers.ToG.Obby:GetChildren()[118],
-        workspace.Towers.ToG.Obby:GetChildren()[508],
-        workspace.ClientParts:GetChildren()[18]:GetChildren()[4],
-        workspace.Towers.ToG.Obby:GetChildren()[905],
-        workspace.Towers.ToG.WinPad
-    }
+    local route = {}
+    local function makeWaypoint(x, y, z)
+        local part = Instance.new("Part")
+        part.Anchored, part.CanCollide, part.Transparency = true, false, 1
+        part.Size = Vector3.new(1, 1, 1)
+        part.Position = Vector3.new(x, y, z)
+        part.Parent = workspace
+        return part
+    end
+
+    route[#route + 1] = makeWaypoint(-5644.945, 4312.829, -3170.762)
+    route[#route + 1] = makeWaypoint(-5644.945, 4312.829, -3174.414)
+    route[#route + 1] = makeWaypoint(-5644.945, 4312.829, -3180.679)
+    route[#route + 1] = makeWaypoint(-5644.945, 4312.829, -3184.479)
+    route[#route + 1] = makeWaypoint(-5644.945, 4313.109, -3188.811)
+    route[#route + 1] = makeWaypoint(-5644.945, 4315.546, -3193.476)
+    route[#route + 1] = makeWaypoint(-5644.945, 4317.140, -3196.875)
+    route[#route + 1] = makeWaypoint(-5644.945, 4318.969, -3200.475)
+    route[#route + 1] = makeWaypoint(-5644.945, 4320.897, -3204.274)
+    route[#route + 1] = makeWaypoint(-5644.945, 4322.802, -3207.806)
+    route[#route + 1] = makeWaypoint(-5644.945, 4324.735, -3211.272)
+    route[#route + 1] = makeWaypoint(-5644.945, 4326.658, -3215.004)
+    route[#route + 1] = makeWaypoint(-5644.945, 4328.659, -3219.003)
+    route[#route + 1] = makeWaypoint(-5644.945, 4330.235, -3222.269)
+    route[#route + 1] = makeWaypoint(-5644.945, 4331.872, -3225.802)
+    route[#route + 1] = makeWaypoint(-5644.945, 4333.627, -3229.534)
+    route[#route + 1] = makeWaypoint(-5644.945, 4335.140, -3232.867)
+    route[#route + 1] = makeWaypoint(-5644.945, 4337.052, -3236.666)
+    route[#route + 1] = makeWaypoint(-5644.945, 4338.915, -3240.332)
+    route[#route + 1] = makeWaypoint(-5644.945, 4340.806, -3243.864)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.695, -3247.063)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.829, -3250.662)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.829, -3254.528)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.829, -3258.660)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.829, -3262.260)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.822, -3266.392)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.779, -3269.258)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.779, -3272.524)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.779, -3276.123)
+    route[#route + 1] = makeWaypoint(-5644.945, 4341.779, -3279.922)
+    route[#route + 1] = makeWaypoint(-5644.945, 4340.780, -3284.587)
+    route[#route + 1] = makeWaypoint(-5644.996, 4340.780, -3287.919)
+    route[#route + 1] = makeWaypoint(-5645.731, 4340.530, -3291.710)
+    route[#route + 1] = makeWaypoint(-5646.994, 4340.530, -3295.149)
+    route[#route + 1] = makeWaypoint(-5648.447, 4340.530, -3298.073)
+    route[#route + 1] = makeWaypoint(-5650.607, 4339.777, -3301.355)
+    route[#route + 1] = makeWaypoint(-5652.895, 4340.022, -3303.678)
+    route[#route + 1] = makeWaypoint(-5655.257, 4341.403, -3305.267)
+    route[#route + 1] = makeWaypoint(-5656.593, 4344.464, -3305.874)
+    route[#route + 1] = makeWaypoint(-5659.804, 4352.826, -3307.366)
+    route[#route + 1] = makeWaypoint(-5661.535, 4357.086, -3308.275)
+    route[#route + 1] = makeWaypoint(-5664.583, 4362.365, -3309.863)
+    route[#route + 1] = makeWaypoint(-5666.514, 4369.167, -3310.820)
+    route[#route + 1] = makeWaypoint(-5668.701, 4372.156, -3311.980)
+    route[#route + 1] = makeWaypoint(-5670.822, 4378.604, -3313.108)
+    route[#route + 1] = makeWaypoint(-5674.282, 4377.878, -3314.833)
+    route[#route + 1] = makeWaypoint(-5677.417, 4376.345, -3316.138)
+    route[#route + 1] = makeWaypoint(-5681.567, 4382.376, -3318.095)
+    route[#route + 1] = makeWaypoint(-5685.923, 4379.577, -3321.786)
+    route[#route + 1] = makeWaypoint(-5687.872, 4379.872, -3325.259)
+    route[#route + 1] = makeWaypoint(-5688.611, 4380.240, -3328.832)
+    route[#route + 1] = makeWaypoint(-5688.173, 4387.443, -3333.339)
+    route[#route + 1] = makeWaypoint(-5688.208, 4380.539, -3337.587)
+    route[#route + 1] = makeWaypoint(-5688.604, 4380.279, -3341.438)
+    route[#route + 1] = makeWaypoint(-5689.104, 4387.545, -3346.286)
+    route[#route + 1] = makeWaypoint(-5689.452, 4384.563, -3349.673)
+    route[#route + 1] = makeWaypoint(-5689.975, 4384.489, -3353.169)
+    route[#route + 1] = makeWaypoint(-5691.705, 4387.604, -3356.302)
+    route[#route + 1] = makeWaypoint(-5688.328, 4391.913, -3359.317)
+    route[#route + 1] = makeWaypoint(-5684.715, 4391.708, -3359.291)
+    route[#route + 1] = makeWaypoint(-5681.026, 4393.116, -3359.525)
+    route[#route + 1] = makeWaypoint(-5677.408, 4394.389, -3359.803)
+    route[#route + 1] = makeWaypoint(-5673.282, 4395.650, -3360.121)
+    route[#route + 1] = makeWaypoint(-5669.283, 4396.873, -3360.428)
+    route[#route + 1] = makeWaypoint(-5665.543, 4398.080, -3361.962)
+    route[#route + 1] = makeWaypoint(-5662.115, 4399.124, -3362.225)
+    route[#route + 1] = makeWaypoint(-5654.068, 4405.782, -3363.074)
+    route[#route + 1] = makeWaypoint(-5651.695, 4402.974, -3363.419)
+    route[#route + 1] = makeWaypoint(-5639.140, 4404.883, -3364.746)
+    route[#route + 1] = makeWaypoint(-5635.771, 4411.281, -3365.163)
+    route[#route + 1] = makeWaypoint(-5632.324, 4408.615, -3364.755)
+    route[#route + 1] = makeWaypoint(-5629.817, 4408.780, -3362.912)
+    route[#route + 1] = makeWaypoint(-5627.001, 4410.070, -3359.281)
+    route[#route + 1] = makeWaypoint(-5625.327, 4416.087, -3356.397)
+    route[#route + 1] = makeWaypoint(-5623.806, 4413.723, -3353.507)
+    route[#route + 1] = makeWaypoint(-5622.378, 4408.716, -3351.020)
+    route[#route + 1] = makeWaypoint(-5618.853, 4413.768, -3348.156)
+    route[#route + 1] = makeWaypoint(-5613.306, 4409.476, -3344.574)
+    route[#route + 1] = makeWaypoint(-5609.758, 4415.935, -3342.156)
+    route[#route + 1] = makeWaypoint(-5607.357, 4408.553, -3340.100)
+    route[#route + 1] = makeWaypoint(-5604.966, 4415.512, -3337.263)
+    route[#route + 1] = makeWaypoint(-5603.122, 4412.205, -3334.938)
+    route[#route + 1] = makeWaypoint(-5602.096, 4412.458, -3332.124)
+    route[#route + 1] = makeWaypoint(-5601.875, 4415.958, -3329.133)
+    route[#route + 1] = makeWaypoint(-5601.767, 4412.710, -3326.200)
+    route[#route + 1] = makeWaypoint(-5601.660, 4409.706, -3323.268)
+    route[#route + 1] = makeWaypoint(-5601.538, 4409.779, -3319.935)
+    route[#route + 1] = makeWaypoint(-5601.420, 4409.779, -3316.736)
+    route[#route + 1] = makeWaypoint(-5601.262, 4407.980, -3313.272)
+    route[#route + 1] = makeWaypoint(-5600.874, 4403.772, -3309.974)
+    route[#route + 1] = makeWaypoint(-5600.552, 4403.779, -3307.261)
+    route[#route + 1] = makeWaypoint(-5600.204, 4404.998, -3304.483)
+    route[#route + 1] = makeWaypoint(-5599.870, 4407.833, -3301.568)
+    route[#route + 1] = makeWaypoint(-5599.703, 4410.862, -3298.574)
+    route[#route + 1] = makeWaypoint(-5599.875, 4417.795, -3295.108)
+    route[#route + 1] = makeWaypoint(-5600.044, 4418.742, -3292.310)
+    route[#route + 1] = makeWaypoint(-5600.346, 4420.196, -3289.259)
+    route[#route + 1] = makeWaypoint(-5600.757, 4426.627, -3285.883)
+    route[#route + 1] = makeWaypoint(-5601.088, 4428.716, -3282.830)
+    route[#route + 1] = makeWaypoint(-5602.318, 4422.397, -3279.665)
+    route[#route + 1] = makeWaypoint(-5605.391, 4419.832, -3277.990)
+    route[#route + 1] = makeWaypoint(-5608.583, 4423.256, -3276.920)
+    route[#route + 1] = makeWaypoint(-5612.014, 4423.764, -3275.853)
+    route[#route + 1] = makeWaypoint(-5614.765, 4421.742, -3275.787)
+    route[#route + 1] = makeWaypoint(-5617.508, 4421.267, -3275.727)
+    route[#route + 1] = makeWaypoint(-5619.983, 4416.752, -3275.672)
+    route[#route + 1] = makeWaypoint(-5623.261, 4406.546, -3275.601)
+    route[#route + 1] = makeWaypoint(-5625.736, 4412.046, -3275.546)
+    route[#route + 1] = makeWaypoint(-5629.147, 4414.067, -3275.472)
+    route[#route + 1] = makeWaypoint(-5632.425, 4420.714, -3275.400)
+    route[#route + 1] = makeWaypoint(-5634.967, 4420.240, -3275.344)
+    route[#route + 1] = makeWaypoint(-5636.464, 4423.249, -3275.203)
+    route[#route + 1] = makeWaypoint(-5639.627, 4424.774, -3275.118)
+    route[#route + 1] = makeWaypoint(-5645.401, 4424.779, -3276.125)
+    route[#route + 1] = makeWaypoint(-5649.856, 4424.292, -3276.749)
+    route[#route + 1] = makeWaypoint(-5653.320, 4423.029, -3276.938)
+    route[#route + 1] = makeWaypoint(-5656.912, 4422.312, -3276.873)
+    route[#route + 1] = makeWaypoint(-5660.603, 4421.719, -3276.777)
+    route[#route + 1] = makeWaypoint(-5664.111, 4421.430, -3276.687)
+    route[#route + 1] = makeWaypoint(-5667.630, 4421.519, -3276.687)
+    route[#route + 1] = makeWaypoint(-5671.413, 4421.665, -3276.743)
+    route[#route + 1] = makeWaypoint(-5675.249, 4422.429, -3276.801)
+    route[#route + 1] = makeWaypoint(-5677.977, 4423.017, -3276.842)
+    route[#route + 1] = makeWaypoint(-5681.138, 4423.954, -3276.882)
+    route[#route + 1] = makeWaypoint(-5684.933, 4425.815, -3276.894)
+    route[#route + 1] = makeWaypoint(-5686.739, 4428.632, -3276.882)
+    route[#route + 1] = makeWaypoint(-5688.582, 4431.497, -3276.869)
+    route[#route + 1] = makeWaypoint(-5691.256, 4435.658, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4437.879, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4440.223, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4442.285, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4444.770, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4447.254, -3276.863)
+    route[#route + 1] = makeWaypoint(-5691.945, 4450.910, -3276.863)
+    route[#route + 1] = makeWaypoint(-5693.421, 4452.687, -3277.815)
+    route[#route + 1] = makeWaypoint(-5693.793, 4452.779, -3280.386)
+    route[#route + 1] = makeWaypoint(-5692.825, 4452.779, -3282.843)
+    route[#route + 1] = makeWaypoint(-5690.111, 4452.779, -3284.326)
+    route[#route + 1] = makeWaypoint(-5687.127, 4452.779, -3284.163)
+    route[#route + 1] = makeWaypoint(-5683.530, 4452.779, -3283.182)
+    route[#route + 1] = makeWaypoint(-5680.565, 4452.779, -3282.385)
+    route[#route + 1] = makeWaypoint(-5677.741, 4452.779, -3281.585)
+    route[#route + 1] = makeWaypoint(-5674.209, 4459.342, -3280.178)
+    route[#route + 1] = makeWaypoint(-5671.694, 4459.852, -3279.588)
+    route[#route + 1] = makeWaypoint(-5668.569, 4457.771, -3279.779)
+    route[#route + 1] = makeWaypoint(-5665.373, 4457.779, -3279.249)
+    route[#route + 1] = makeWaypoint(-5660.729, 4457.779, -3278.257)
+    route[#route + 1] = makeWaypoint(-5657.475, 4457.422, -3278.583)
+    route[#route + 1] = makeWaypoint(-5654.819, 4452.725, -3278.811)
+    route[#route + 1] = makeWaypoint(-5651.831, 4456.118, -3278.987)
+    route[#route + 1] = makeWaypoint(-5648.909, 4460.215, -3279.115)
+    route[#route + 1] = makeWaypoint(-5645.788, 4457.307, -3279.232)
+    route[#route + 1] = makeWaypoint(-5642.600, 4452.761, -3279.408)
+    route[#route + 1] = makeWaypoint(-5638.605, 4459.959, -3279.385)
+    route[#route + 1] = makeWaypoint(-5635.949, 4459.051, -3279.229)
+    route[#route + 1] = makeWaypoint(-5632.421, 4452.691, -3279.096)
+    route[#route + 1] = makeWaypoint(-5628.928, 4452.779, -3279.545)
+    route[#route + 1] = makeWaypoint(-5625.080, 4459.814, -3281.191)
+    route[#route + 1] = makeWaypoint(-5621.588, 4457.169, -3282.990)
+    route[#route + 1] = makeWaypoint(-5618.282, 4452.777, -3284.854)
+    route[#route + 1] = makeWaypoint(-5615.796, 4452.779, -3287.345)
+    route[#route + 1] = makeWaypoint(-5614.138, 4452.779, -3290.228)
+    route[#route + 1] = makeWaypoint(-5613.090, 4452.779, -3293.249)
+    route[#route + 1] = makeWaypoint(-5612.203, 4452.779, -3298.231)
+    route[#route + 1] = makeWaypoint(-5612.154, 4452.779, -3300.694)
+    route[#route + 1] = makeWaypoint(-5613.412, 4459.565, -3304.810)
+    route[#route + 1] = makeWaypoint(-5615.799, 4457.453, -3308.092)
+    route[#route + 1] = makeWaypoint(-5618.231, 4454.035, -3310.451)
+    route[#route + 1] = makeWaypoint(-5621.230, 4460.143, -3312.314)
+    route[#route + 1] = makeWaypoint(-5623.823, 4457.818, -3313.841)
+    route[#route + 1] = makeWaypoint(-5626.397, 4454.284, -3315.791)
+    route[#route + 1] = makeWaypoint(-5629.237, 4454.275, -3317.206)
+    route[#route + 1] = makeWaypoint(-5632.129, 4454.275, -3317.999)
+    route[#route + 1] = makeWaypoint(-5634.973, 4454.275, -3318.253)
+    route[#route + 1] = makeWaypoint(-5637.696, 4454.275, -3318.191)
+    route[#route + 1] = makeWaypoint(-5640.540, 4454.275, -3317.875)
+    route[#route + 1] = makeWaypoint(-5644.047, 4460.585, -3317.556)
+    route[#route + 1] = makeWaypoint(-5648.239, 4459.475, -3317.508)
+    route[#route + 1] = makeWaypoint(-5652.014, 4455.794, -3317.487)
+    route[#route + 1] = makeWaypoint(-5657.740, 4455.794, -3318.913)
+    route[#route + 1] = makeWaypoint(-5660.423, 4458.068, -3320.498)
+    route[#route + 1] = makeWaypoint(-5663.690, 4463.215, -3320.570)
+    route[#route + 1] = makeWaypoint(-5667.547, 4458.738, -3320.448)
+    route[#route + 1] = makeWaypoint(-5671.284, 4458.379, -3320.642)
+    route[#route + 1] = makeWaypoint(-5674.734, 4465.388, -3320.985)
+    route[#route + 1] = makeWaypoint(-5679.078, 4462.923, -3321.416)
+    route[#route + 1] = makeWaypoint(-5681.652, 4468.388, -3321.624)
+    route[#route + 1] = makeWaypoint(-5684.773, 4470.122, -3321.868)
+    route[#route + 1] = makeWaypoint(-5687.560, 4466.952, -3323.440)
+    route[#route + 1] = makeWaypoint(-5687.735, 4466.677, -3327.010)
+    route[#route + 1] = makeWaypoint(-5687.661, 4466.640, -3329.742)
+    route[#route + 1] = makeWaypoint(-5687.732, 4472.538, -3333.075)
+    route[#route + 1] = makeWaypoint(-5687.958, 4472.301, -3337.007)
+    route[#route + 1] = makeWaypoint(-5688.111, 4466.199, -3339.807)
+    route[#route + 1] = makeWaypoint(-5688.243, 4471.483, -3342.673)
+    route[#route + 1] = makeWaypoint(-5688.380, 4472.736, -3345.805)
+    route[#route + 1] = makeWaypoint(-5688.516, 4467.090, -3348.738)
+    route[#route + 1] = makeWaypoint(-5688.695, 4463.291, -3351.795)
+    route[#route + 1] = makeWaypoint(-5688.836, 4469.021, -3354.658)
+    route[#route + 1] = makeWaypoint(-5688.860, 4470.726, -3357.258)
+    route[#route + 1] = makeWaypoint(-5688.655, 4466.932, -3359.981)
+    route[#route + 1] = makeWaypoint(-5687.612, 4462.595, -3361.919)
+    route[#route + 1] = makeWaypoint(-5684.895, 4464.959, -3362.289)
+    route[#route + 1] = makeWaypoint(-5681.902, 4471.371, -3362.249)
+    route[#route + 1] = makeWaypoint(-5678.515, 4470.299, -3361.967)
+    route[#route + 1] = makeWaypoint(-5675.667, 4462.512, -3361.635)
+    route[#route + 1] = makeWaypoint(-5672.030, 4445.710, -3361.128)
+    route[#route + 1] = makeWaypoint(-5669.307, 4446.479, -3360.927)
+    route[#route + 1] = makeWaypoint(-5666.636, 4447.973, -3361.019)
+    route[#route + 1] = makeWaypoint(-5663.814, 4449.570, -3361.396)
+    route[#route + 1] = makeWaypoint(-5661.250, 4451.035, -3362.212)
+    route[#route + 1] = makeWaypoint(-5658.438, 4452.656, -3364.071)
+    route[#route + 1] = makeWaypoint(-5654.833, 4454.675, -3366.750)
+    route[#route + 1] = makeWaypoint(-5652.409, 4458.712, -3367.363)
+    route[#route + 1] = makeWaypoint(-5649.148, 4462.189, -3367.342)
+    route[#route + 1] = makeWaypoint(-5644.954, 4454.090, -3366.865)
+    route[#route + 1] = makeWaypoint(-5645.401, 4454.259, -3366.717)
+    route[#route + 1] = makeWaypoint(-5646.313, 4454.424, -3366.706)
+    route[#route + 1] = makeWaypoint(-5646.801, 4454.526, -3366.706)
+    route[#route + 1] = makeWaypoint(-5647.001, 4454.573, -3366.738)
+    route[#route + 1] = makeWaypoint(-5646.555, 4454.470, -3366.759)
+    route[#route + 1] = makeWaypoint(-5645.332, 4454.239, -3366.772)
+    route[#route + 1] = makeWaypoint(-5643.731, 4454.030, -3366.776)
+    route[#route + 1] = makeWaypoint(-5641.832, 4453.918, -3366.776)
+    route[#route + 1] = makeWaypoint(-5639.999, 4453.951, -3366.777)
+    route[#route + 1] = makeWaypoint(-5637.843, 4454.174, -3366.777)
+    route[#route + 1] = makeWaypoint(-5631.293, 4456.788, -3366.271)
+    route[#route + 1] = makeWaypoint(-5628.081, 4462.401, -3365.860)
+    route[#route + 1] = makeWaypoint(-5623.737, 4457.546, -3365.207)
+    route[#route + 1] = makeWaypoint(-5621.103, 4457.780, -3364.261)
+    route[#route + 1] = makeWaypoint(-5617.941, 4457.780, -3362.998)
+    route[#route + 1] = makeWaypoint(-5614.985, 4457.780, -3361.617)
+    route[#route + 1] = makeWaypoint(-5612.228, 4457.780, -3359.998)
+    route[#route + 1] = makeWaypoint(-5609.080, 4457.780, -3357.433)
+    route[#route + 1] = makeWaypoint(-5606.753, 4457.780, -3354.953)
+    route[#route + 1] = makeWaypoint(-5604.429, 4457.780, -3351.722)
+    route[#route + 1] = makeWaypoint(-5603.264, 4463.493, -3349.046)
+    route[#route + 1] = makeWaypoint(-5602.809, 4458.378, -3348.481)
+    route[#route + 1] = makeWaypoint(-5602.508, 4460.904, -3346.229)
+    route[#route + 1] = makeWaypoint(-5601.762, 4461.823, -3341.029)
+    route[#route + 1] = makeWaypoint(-5601.276, 4463.335, -3337.397)
+    route[#route + 1] = makeWaypoint(-5600.677, 4464.825, -3333.810)
+    route[#route + 1] = makeWaypoint(-5599.813, 4466.770, -3329.137)
+    route[#route + 1] = makeWaypoint(-5599.369, 4468.228, -3327.015)
+    route[#route + 1] = makeWaypoint(-5598.719, 4474.652, -3322.196)
+    route[#route + 1] = makeWaypoint(-5598.458, 4468.156, -3319.309)
+    route[#route + 1] = makeWaypoint(-5598.372, 4470.777, -3315.852)
+    route[#route + 1] = makeWaypoint(-5598.308, 4468.583, -3311.161)
+    route[#route + 1] = makeWaypoint(-5598.271, 4461.418, -3308.484)
+    route[#route + 1] = makeWaypoint(-5598.215, 4467.853, -3305.018)
+    route[#route + 1] = makeWaypoint(-5597.883, 4465.489, -3301.771)
+    route[#route + 1] = makeWaypoint(-5597.453, 4460.723, -3299.019)
+    route[#route + 1] = makeWaypoint(-5597.237, 4460.778, -3296.299)
+    route[#route + 1] = makeWaypoint(-5597.700, 4466.597, -3293.276)
+    route[#route + 1] = makeWaypoint(-5598.450, 4468.037, -3290.512)
+    route[#route + 1] = makeWaypoint(-5599.073, 4465.757, -3287.517)
+    route[#route + 1] = makeWaypoint(-5598.808, 4473.263, -3282.407)
+    route[#route + 1] = makeWaypoint(-5598.119, 4472.482, -3278.945)
+    route[#route + 1] = makeWaypoint(-5597.337, 4478.982, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4481.326, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4483.623, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4485.498, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4487.513, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4489.904, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4492.107, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4494.451, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4496.607, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4498.810, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4500.779, -3273.041)
+    route[#route + 1] = makeWaypoint(-5597.337, 4503.169, -3273.041)
+    route[#route + 1] = makeWaypoint(-5599.693, 4504.778, -3271.855)
+    route[#route + 1] = makeWaypoint(-5601.349, 4504.778, -3275.089)
+    route[#route + 1] = makeWaypoint(-5600.600, 4504.778, -3278.063)
+    route[#route + 1] = makeWaypoint(-5599.955, 4504.778, -3281.123)
+    route[#route + 1] = makeWaypoint(-5600.343, 4505.219, -3283.586)
+    route[#route + 1] = makeWaypoint(-5602.280, 4512.007, -3286.438)
+    route[#route + 1] = makeWaypoint(-5604.917, 4508.716, -3289.263)
+    route[#route + 1] = makeWaypoint(-5607.347, 4502.254, -3291.406)
+    route[#route + 1] = makeWaypoint(-5609.535, 4503.049, -3293.344)
+    route[#route + 1] = makeWaypoint(-5611.723, 4504.220, -3295.454)
+    route[#route + 1] = makeWaypoint(-5613.349, 4505.105, -3297.078)
+    route[#route + 1] = makeWaypoint(-5615.195, 4506.183, -3299.185)
+    route[#route + 1] = makeWaypoint(-5617.395, 4507.495, -3301.804)
+    route[#route + 1] = makeWaypoint(-5618.828, 4510.942, -3303.429)
+    route[#route + 1] = makeWaypoint(-5619.971, 4515.195, -3307.491)
+    route[#route + 1] = makeWaypoint(-5621.681, 4515.813, -3308.985)
+    route[#route + 1] = makeWaypoint(-5623.793, 4511.140, -3310.831)
+    route[#route + 1] = makeWaypoint(-5625.178, 4506.712, -3311.908)
+    route[#route + 1] = makeWaypoint(-5625.010, 4506.735, -3311.589)
+    route[#route + 1] = makeWaypoint(-5624.592, 4506.856, -3311.238)
+    route[#route + 1] = makeWaypoint(-5625.324, 4506.631, -3311.913)
+    route[#route + 1] = makeWaypoint(-5626.118, 4506.432, -3312.716)
+    route[#route + 1] = makeWaypoint(-5627.282, 4506.230, -3313.986)
+    route[#route + 1] = makeWaypoint(-5628.282, 4506.156, -3315.067)
+    route[#route + 1] = makeWaypoint(-5629.440, 4506.174, -3316.304)
+    route[#route + 1] = makeWaypoint(-5630.521, 4506.301, -3317.452)
+    route[#route + 1] = makeWaypoint(-5632.175, 4506.555, -3319.103)
+    route[#route + 1] = makeWaypoint(-5635.425, 4512.941, -3322.137)
+    route[#route + 1] = makeWaypoint(-5638.191, 4512.908, -3324.554)
+    route[#route + 1] = makeWaypoint(-5640.479, 4505.501, -3326.783)
+    route[#route + 1] = makeWaypoint(-5642.052, 4506.860, -3329.020)
+    route[#route + 1] = makeWaypoint(-5643.119, 4509.260, -3330.848)
+    route[#route + 1] = makeWaypoint(-5644.492, 4514.625, -3333.389)
+    route[#route + 1] = makeWaypoint(-5645.734, 4517.531, -3335.749)
+    route[#route + 1] = makeWaypoint(-5647.231, 4520.877, -3338.690)
+    route[#route + 1] = makeWaypoint(-5648.377, 4524.060, -3341.110)
+    route[#route + 1] = makeWaypoint(-5649.330, 4524.198, -3343.236)
+    route[#route + 1] = makeWaypoint(-5650.807, 4529.228, -3346.518)
+    route[#route + 1] = makeWaypoint(-5651.795, 4528.037, -3348.851)
+    route[#route + 1] = makeWaypoint(-5652.505, 4529.557, -3351.086)
+    route[#route + 1] = makeWaypoint(-5652.988, 4531.362, -3353.038)
+    route[#route + 1] = makeWaypoint(-5653.522, 4533.142, -3355.226)
+    route[#route + 1] = makeWaypoint(-5654.988, 4536.749, -3357.049)
+    route[#route + 1] = makeWaypoint(-5657.769, 4541.628, -3358.088)
+    route[#route + 1] = makeWaypoint(-5661.474, 4539.936, -3358.548)
+    route[#route + 1] = makeWaypoint(-5664.285, 4542.952, -3358.006)
+    route[#route + 1] = makeWaypoint(-5667.923, 4546.259, -3357.274)
+    route[#route + 1] = makeWaypoint(-5671.246, 4540.183, -3357.351)
+    route[#route + 1] = makeWaypoint(-5674.163, 4542.140, -3357.988)
+    route[#route + 1] = makeWaypoint(-5676.908, 4545.796, -3359.335)
+    route[#route + 1] = makeWaypoint(-5679.462, 4540.783, -3362.245)
+    route[#route + 1] = makeWaypoint(-5678.765, 4546.587, -3364.774)
+    route[#route + 1] = makeWaypoint(-5675.104, 4547.145, -3364.947)
+    route[#route + 1] = makeWaypoint(-5673.786, 4551.646, -3364.950)
+    route[#route + 1] = makeWaypoint(-5672.444, 4554.554, -3364.837)
+    route[#route + 1] = makeWaypoint(-5671.420, 4560.145, -3364.754)
+    route[#route + 1] = makeWaypoint(-5670.345, 4562.444, -3363.721)
+    route[#route + 1] = makeWaypoint(-5667.744, 4569.132, -3360.132)
+    route[#route + 1] = makeWaypoint(-5664.536, 4562.384, -3358.273)
+    route[#route + 1] = makeWaypoint(-5661.265, 4560.213, -3357.938)
+    route[#route + 1] = makeWaypoint(-5657.769, 4567.042, -3358.445)
+    route[#route + 1] = makeWaypoint(-5654.382, 4564.582, -3358.646)
+    route[#route + 1] = makeWaypoint(-5650.541, 4563.034, -3358.977)
+    route[#route + 1] = makeWaypoint(-5647.469, 4566.358, -3359.857)
+    route[#route + 1] = makeWaypoint(-5645.014, 4563.133, -3360.896)
+    route[#route + 1] = makeWaypoint(-5642.258, 4562.324, -3362.250)
+    route[#route + 1] = makeWaypoint(-5640.021, 4566.379, -3363.443)
+    route[#route + 1] = makeWaypoint(-5637.639, 4565.238, -3364.790)
+    route[#route + 1] = makeWaypoint(-5634.690, 4559.489, -3365.941)
+    route[#route + 1] = makeWaypoint(-5632.082, 4565.530, -3365.681)
+    route[#route + 1] = makeWaypoint(-5629.401, 4565.879, -3364.495)
+    route[#route + 1] = makeWaypoint(-5626.694, 4558.967, -3362.929)
+    route[#route + 1] = makeWaypoint(-5624.735, 4551.663, -3361.046)
+    route[#route + 1] = makeWaypoint(-5623.402, 4551.780, -3358.595)
+    route[#route + 1] = makeWaypoint(-5622.671, 4551.780, -3356.173)
+    route[#route + 1] = makeWaypoint(-5621.692, 4551.780, -3350.665)
+    route[#route + 1] = makeWaypoint(-5621.443, 4551.780, -3348.211)
+    route[#route + 1] = makeWaypoint(-5621.358, 4551.780, -3345.415)
+    route[#route + 1] = makeWaypoint(-5621.404, 4551.905, -3343.772)
+    route[#route + 1] = makeWaypoint(-5621.502, 4553.619, -3342.119)
+    route[#route + 1] = makeWaypoint(-5621.521, 4555.674, -3339.503)
+    route[#route + 1] = makeWaypoint(-5621.529, 4556.040, -3336.017)
+    route[#route + 1] = makeWaypoint(-5621.552, 4557.146, -3333.437)
+    route[#route + 1] = makeWaypoint(-5621.574, 4558.392, -3330.701)
+    route[#route + 1] = makeWaypoint(-5621.596, 4559.608, -3328.027)
+    route[#route + 1] = makeWaypoint(-5621.615, 4560.712, -3325.595)
+    route[#route + 1] = makeWaypoint(-5621.634, 4561.763, -3323.285)
+    route[#route + 1] = makeWaypoint(-5621.655, 4562.880, -3320.635)
+    route[#route + 1] = makeWaypoint(-5621.408, 4562.869, -3315.536)
+    route[#route + 1] = makeWaypoint(-5621.883, 4564.269, -3312.482)
+    route[#route + 1] = makeWaypoint(-5623.540, 4564.279, -3310.021)
+    route[#route + 1] = makeWaypoint(-5625.821, 4564.279, -3308.434)
+    route[#route + 1] = makeWaypoint(-5628.856, 4564.279, -3307.741)
+    route[#route + 1] = makeWaypoint(-5630.703, 4564.283, -3307.637)
+    route[#route + 1] = makeWaypoint(-5632.639, 4564.283, -3307.637)
+    route[#route + 1] = makeWaypoint(-5636.149, 4564.283, -3307.637)
+    route[#route + 1] = makeWaypoint(-5641.896, 4564.283, -3307.637)
+    route[#route + 1] = makeWaypoint(-5649.707, 4570.943, -3307.664)
+    route[#route + 1] = makeWaypoint(-5653.255, 4571.091, -3307.805)
+    route[#route + 1] = makeWaypoint(-5656.301, 4571.370, -3308.187)
+    route[#route + 1] = makeWaypoint(-5661.215, 4574.392, -3308.553)
+    route[#route + 1] = makeWaypoint(-5664.428, 4570.459, -3308.761)
+    route[#route + 1] = makeWaypoint(-5666.572, 4572.648, -3309.509)
+    route[#route + 1] = makeWaypoint(-5669.034, 4573.278, -3312.150)
+    route[#route + 1] = makeWaypoint(-5670.228, 4578.656, -3315.959)
+    route[#route + 1] = makeWaypoint(-5670.363, 4574.144, -3318.479)
+    route[#route + 1] = makeWaypoint(-5670.273, 4576.161, -3321.086)
+    route[#route + 1] = makeWaypoint(-5670.182, 4577.873, -3323.714)
+    route[#route + 1] = makeWaypoint(-5670.089, 4579.328, -3325.950)
+    route[#route + 1] = makeWaypoint(-5669.974, 4581.041, -3328.578)
+    route[#route + 1] = makeWaypoint(-5669.886, 4582.350, -3330.591)
+    route[#route + 1] = makeWaypoint(-5669.789, 4583.805, -3332.827)
+    route[#route + 1] = makeWaypoint(-5669.576, 4586.972, -3337.691)
+    route[#route + 1] = makeWaypoint(-5669.507, 4587.010, -3340.117)
+    route[#route + 1] = makeWaypoint(-5669.567, 4585.462, -3343.130)
+    route[#route + 1] = makeWaypoint(-5669.753, 4588.094, -3346.188)
+    route[#route + 1] = makeWaypoint(-5669.685, 4590.953, -3349.042)
+    route[#route + 1] = makeWaypoint(-5668.960, 4593.671, -3351.812)
+    route[#route + 1] = makeWaypoint(-5667.665, 4594.278, -3354.502)
+    route[#route + 1] = makeWaypoint(-5665.053, 4594.279, -3356.516)
+    route[#route + 1] = makeWaypoint(-5662.360, 4594.279, -3357.188)
+    route[#route + 1] = makeWaypoint(-5659.632, 4595.569, -3356.990)
+    route[#route + 1] = makeWaypoint(-5656.843, 4601.196, -3356.703)
+    route[#route + 1] = makeWaypoint(-5653.722, 4600.367, -3356.461)
+    route[#route + 1] = makeWaypoint(-5650.543, 4590.486, -3356.396)
+    route[#route + 1] = makeWaypoint(-5648.623, 4590.573, -3356.404)
+    route[#route + 1] = makeWaypoint(-5646.698, 4590.402, -3356.414)
+    route[#route + 1] = makeWaypoint(-5643.197, 4590.456, -3356.428)
+    route[#route + 1] = makeWaypoint(-5638.471, 4591.208, -3356.451)
+    route[#route + 1] = makeWaypoint(-5634.233, 4597.809, -3356.458)
+    route[#route + 1] = makeWaypoint(-5631.424, 4598.571, -3356.468)
+    route[#route + 1] = makeWaypoint(-5628.156, 4594.211, -3356.379)
+    route[#route + 1] = makeWaypoint(-5625.701, 4594.279, -3355.407)
+    route[#route + 1] = makeWaypoint(-5623.962, 4594.279, -3353.117)
+    route[#route + 1] = makeWaypoint(-5623.685, 4594.279, -3350.222)
+    route[#route + 1] = makeWaypoint(-5623.685, 4594.279, -3347.222)
+    route[#route + 1] = makeWaypoint(-5623.769, 4594.279, -3343.890)
+    route[#route + 1] = makeWaypoint(-5623.903, 4594.281, -3341.224)
+    route[#route + 1] = makeWaypoint(-5624.142, 4594.281, -3338.568)
+    route[#route + 1] = makeWaypoint(-5624.932, 4600.100, -3334.993)
+    route[#route + 1] = makeWaypoint(-5626.134, 4601.177, -3331.887)
+    route[#route + 1] = makeWaypoint(-5626.917, 4594.761, -3328.958)
+    route[#route + 1] = makeWaypoint(-5625.708, 4601.404, -3326.550)
+    route[#route + 1] = makeWaypoint(-5623.705, 4606.185, -3324.141)
+    route[#route + 1] = makeWaypoint(-5622.575, 4604.326, -3321.741)
+    route[#route + 1] = makeWaypoint(-5621.936, 4605.112, -3318.679)
+    route[#route + 1] = makeWaypoint(-5621.706, 4609.239, -3315.623)
+    route[#route + 1] = makeWaypoint(-5622.023, 4606.841, -3312.917)
+    route[#route + 1] = makeWaypoint(-5622.941, 4600.648, -3310.063)
+    route[#route + 1] = makeWaypoint(-5623.699, 4600.562, -3307.234)
+    route[#route + 1] = makeWaypoint(-5624.225, 4600.474, -3304.689)
+    route[#route + 1] = makeWaypoint(-5624.512, 4600.424, -3301.705)
+    route[#route + 1] = makeWaypoint(-5624.436, 4600.439, -3299.442)
+    route[#route + 1] = makeWaypoint(-5623.957, 4600.521, -3296.892)
+    route[#route + 1] = makeWaypoint(-5623.385, 4600.617, -3294.359)
+    route[#route + 1] = makeWaypoint(-5622.920, 4600.481, -3291.536)
+    route[#route + 1] = makeWaypoint(-5623.197, 4605.439, -3288.294)
+    route[#route + 1] = makeWaypoint(-5624.381, 4607.813, -3285.411)
+    route[#route + 1] = makeWaypoint(-5626.462, 4603.116, -3283.090)
+    route[#route + 1] = makeWaypoint(-5629.111, 4608.434, -3281.752)
+    route[#route + 1] = makeWaypoint(-5632.155, 4609.583, -3281.472)
+    route[#route + 1] = makeWaypoint(-5634.897, 4604.531, -3281.492)
+    route[#route + 1] = makeWaypoint(-5637.968, 4606.587, -3281.470)
+    route[#route + 1] = makeWaypoint(-5641.161, 4609.749, -3281.671)
+    route[#route + 1] = makeWaypoint(-5644.029, 4605.751, -3282.259)
+    route[#route + 1] = makeWaypoint(-5646.871, 4602.234, -3283.690)
+    route[#route + 1] = makeWaypoint(-5649.533, 4602.279, -3286.382)
+    route[#route + 1] = makeWaypoint(-5652.314, 4602.279, -3287.523)
+    route[#route + 1] = makeWaypoint(-5654.502, 4602.279, -3288.767)
+    route[#route + 1] = makeWaypoint(-5655.240, 4605.570, -3291.876)
+    route[#route + 1] = makeWaypoint(-5655.352, 4608.699, -3293.604)
+    route[#route + 1] = makeWaypoint(-5655.230, 4609.076, -3296.198)
+    route[#route + 1] = makeWaypoint(-5653.577, 4602.203, -3298.835)
+    route[#route + 1] = makeWaypoint(-5650.805, 4602.278, -3300.274)
+    route[#route + 1] = makeWaypoint(-5649.254, 4604.169, -3303.062)
+    route[#route + 1] = makeWaypoint(-5649.035, 4609.295, -3307.981)
+    route[#route + 1] = makeWaypoint(-5649.856, 4603.730, -3310.599)
+    route[#route + 1] = makeWaypoint(-5652.594, 4602.279, -3312.591)
+    route[#route + 1] = makeWaypoint(-5655.861, 4602.280, -3318.232)
+    route[#route + 1] = makeWaypoint(-5656.182, 4604.170, -3320.876)
+    route[#route + 1] = makeWaypoint(-5656.205, 4609.621, -3324.075)
+    route[#route + 1] = makeWaypoint(-5656.060, 4609.747, -3326.741)
+    route[#route + 1] = makeWaypoint(-5655.873, 4616.340, -3329.941)
+    route[#route + 1] = makeWaypoint(-5655.705, 4615.583, -3332.807)
+    route[#route + 1] = makeWaypoint(-5655.484, 4619.562, -3335.058)
+    route[#route + 1] = makeWaypoint(-5655.369, 4621.252, -3337.600)
+    route[#route + 1] = makeWaypoint(-5655.307, 4627.567, -3341.199)
+    route[#route + 1] = makeWaypoint(-5655.329, 4631.618, -3344.132)
+    route[#route + 1] = makeWaypoint(-5655.352, 4635.114, -3347.265)
+    route[#route + 1] = makeWaypoint(-5655.384, 4633.891, -3349.718)
+    route[#route + 1] = makeWaypoint(-5655.404, 4642.707, -3353.665)
+    route[#route + 1] = makeWaypoint(-5655.233, 4640.015, -3357.061)
+    route[#route + 1] = makeWaypoint(-5655.159, 4640.702, -3360.060)
+    route[#route + 1] = makeWaypoint(-5655.159, 4640.780, -3362.460)
+    route[#route + 1] = makeWaypoint(-5655.167, 4646.145, -3365.726)
+    route[#route + 1] = makeWaypoint(-5655.127, 4648.406, -3368.033)
+    route[#route + 1] = makeWaypoint(-5655.113, 4650.187, -3368.654)
+    route[#route + 1] = makeWaypoint(-5655.113, 4653.280, -3368.654)
+    route[#route + 1] = makeWaypoint(-5655.113, 4655.343, -3368.654)
+    route[#route + 1] = makeWaypoint(-5655.113, 4657.780, -3368.654)
+    route[#route + 1] = makeWaypoint(-5657.350, 4661.774, -3368.576)
+    route[#route + 1] = makeWaypoint(-5660.476, 4661.780, -3367.427)
+    route[#route + 1] = makeWaypoint(-5660.149, 4661.780, -3363.302)
+    route[#route + 1] = makeWaypoint(-5660.825, 4661.780, -3360.721)
+    route[#route + 1] = makeWaypoint(-5662.979, 4667.859, -3357.106)
+    route[#route + 1] = makeWaypoint(-5664.448, 4668.566, -3354.639)
+    route[#route + 1] = makeWaypoint(-5665.998, 4662.589, -3351.916)
+    route[#route + 1] = makeWaypoint(-5666.839, 4662.680, -3349.604)
+    route[#route + 1] = makeWaypoint(-5666.943, 4662.666, -3346.225)
+    route[#route + 1] = makeWaypoint(-5666.385, 4662.739, -3343.215)
+    route[#route + 1] = makeWaypoint(-5663.885, 4670.249, -3339.032)
+    route[#route + 1] = makeWaypoint(-5661.458, 4665.527, -3336.372)
+    route[#route + 1] = makeWaypoint(-5659.572, 4661.774, -3333.897)
+    route[#route + 1] = makeWaypoint(-5659.123, 4665.234, -3331.104)
+    route[#route + 1] = makeWaypoint(-5659.815, 4669.050, -3328.057)
+    route[#route + 1] = makeWaypoint(-5660.782, 4663.960, -3324.530)
+    route[#route + 1] = makeWaypoint(-5660.026, 4665.144, -3322.688)
+    route[#route + 1] = makeWaypoint(-5658.755, 4665.947, -3319.389)
+    route[#route + 1] = makeWaypoint(-5657.689, 4665.776, -3317.029)
+    route[#route + 1] = makeWaypoint(-5657.606, 4672.086, -3313.992)
+    route[#route + 1] = makeWaypoint(-5657.606, 4672.539, -3310.860)
+    route[#route + 1] = makeWaypoint(-5657.111, 4666.660, -3307.876)
+    route[#route + 1] = makeWaypoint(-5655.433, 4672.648, -3305.001)
+    route[#route + 1] = makeWaypoint(-5655.298, 4673.483, -3301.935)
+    route[#route + 1] = makeWaypoint(-5654.464, 4671.736, -3299.050)
+    route[#route + 1] = makeWaypoint(-5653.406, 4676.632, -3295.808)
+    route[#route + 1] = makeWaypoint(-5652.200, 4679.167, -3292.918)
+    route[#route + 1] = makeWaypoint(-5650.395, 4675.126, -3289.798)
+    route[#route + 1] = makeWaypoint(-5647.355, 4675.505, -3288.537)
+    route[#route + 1] = makeWaypoint(-5644.080, 4674.801, -3288.490)
+    route[#route + 1] = makeWaypoint(-5640.988, 4674.342, -3288.756)
+    route[#route + 1] = makeWaypoint(-5639.046, 4673.626, -3289.412)
+    route[#route + 1] = makeWaypoint(-5636.047, 4673.815, -3290.514)
+    route[#route + 1] = makeWaypoint(-5632.116, 4674.168, -3291.964)
+    route[#route + 1] = makeWaypoint(-5629.430, 4674.779, -3293.805)
+    route[#route + 1] = makeWaypoint(-5626.984, 4675.689, -3295.765)
+    route[#route + 1] = makeWaypoint(-5624.759, 4676.840, -3297.823)
+    route[#route + 1] = makeWaypoint(-5623.359, 4678.203, -3300.244)
+    route[#route + 1] = makeWaypoint(-5622.425, 4679.656, -3302.773)
+    route[#route + 1] = makeWaypoint(-5621.587, 4681.058, -3305.206)
+    route[#route + 1] = makeWaypoint(-5620.849, 4682.747, -3308.140)
+    route[#route + 1] = makeWaypoint(-5620.166, 4684.447, -3311.086)
+    route[#route + 1] = makeWaypoint(-5619.423, 4685.842, -3313.478)
+    route[#route + 1] = makeWaypoint(-5617.956, 4689.537, -3315.661)
+    route[#route + 1] = makeWaypoint(-5615.636, 4694.184, -3317.953)
+    route[#route + 1] = makeWaypoint(-5613.022, 4690.955, -3319.652)
+    route[#route + 1] = makeWaypoint(-5609.007, 4684.771, -3320.628)
+    route[#route + 1] = makeWaypoint(-5606.446, 4684.776, -3321.562)
+    route[#route + 1] = makeWaypoint(-5603.313, 4684.776, -3324.453)
+    route[#route + 1] = makeWaypoint(-5601.521, 4684.776, -3328.240)
+    route[#route + 1] = makeWaypoint(-5600.202, 4688.592, -3329.559)
+    route[#route + 1] = makeWaypoint(-5599.962, 4692.506, -3331.750)
+    route[#route + 1] = makeWaypoint(-5599.719, 4692.514, -3336.656)
+    route[#route + 1] = makeWaypoint(-5599.745, 4694.062, -3339.139)
+    route[#route + 1] = makeWaypoint(-5599.766, 4695.944, -3341.248)
+    route[#route + 1] = makeWaypoint(-5599.784, 4697.581, -3343.100)
+    route[#route + 1] = makeWaypoint(-5599.801, 4699.176, -3344.902)
+    route[#route + 1] = makeWaypoint(-5599.822, 4701.035, -3347.004)
+    route[#route + 1] = makeWaypoint(-5599.844, 4707.188, -3349.771)
+    route[#route + 1] = makeWaypoint(-5599.865, 4708.286, -3352.704)
+    route[#route + 1] = makeWaypoint(-5599.878, 4702.544, -3356.170)
+    route[#route + 1] = makeWaypoint(-5599.817, 4702.776, -3360.369)
+    route[#route + 1] = makeWaypoint(-5599.755, 4702.776, -3364.568)
+    route[#route + 1] = makeWaypoint(-5599.719, 4704.156, -3367.034)
+    route[#route + 1] = makeWaypoint(-5596.828, 4702.932, -3365.025)
+    route[#route + 1] = makeWaypoint(-5596.830, 4702.748, -3363.167)
+    route[#route + 1] = makeWaypoint(-5597.025, 4702.776, -3361.309)
+    route[#route + 1] = makeWaypoint(-5597.350, 4702.776, -3359.677)
+    route[#route + 1] = makeWaypoint(-5598.550, 4702.776, -3355.615)
+    route[#route + 1] = makeWaypoint(-5599.655, 4702.776, -3353.724)
+    route[#route + 1] = makeWaypoint(-5600.032, 4706.121, -3350.803)
+    route[#route + 1] = makeWaypoint(-5600.097, 4710.264, -3347.604)
+    route[#route + 1] = makeWaypoint(-5600.157, 4707.586, -3344.871)
+    route[#route + 1] = makeWaypoint(-5600.224, 4697.768, -3341.825)
+    route[#route + 1] = makeWaypoint(-5600.266, 4694.967, -3339.680)
+    route[#route + 1] = makeWaypoint(-5600.288, 4693.310, -3337.688)
+    route[#route + 1] = makeWaypoint(-5600.101, 4691.564, -3335.698)
+    route[#route + 1] = makeWaypoint(-5599.684, 4689.499, -3333.475)
+    route[#route + 1] = makeWaypoint(-5599.115, 4686.954, -3330.615)
+    route[#route + 1] = makeWaypoint(-5598.690, 4684.998, -3328.552)
+    route[#route + 1] = makeWaypoint(-5598.086, 4684.776, -3325.418)
+    route[#route + 1] = makeWaypoint(-5597.101, 4684.776, -3320.731)
+    route[#route + 1] = makeWaypoint(-5596.673, 4684.776, -3318.425)
+    route[#route + 1] = makeWaypoint(-5596.499, 4684.776, -3314.762)
+    route[#route + 1] = makeWaypoint(-5596.512, 4684.776, -3312.963)
+    route[#route + 1] = makeWaypoint(-5596.571, 4684.779, -3310.766)
+    route[#route + 1] = makeWaypoint(-5597.029, 4686.186, -3308.383)
+    route[#route + 1] = makeWaypoint(-5598.813, 4687.780, -3306.878)
+    route[#route + 1] = makeWaypoint(-5599.302, 4689.515, -3305.028)
+    route[#route + 1] = makeWaypoint(-5599.845, 4691.556, -3302.987)
+    route[#route + 1] = makeWaypoint(-5600.230, 4694.361, -3300.176)
+    route[#route + 1] = makeWaypoint(-5600.304, 4696.719, -3297.820)
+    route[#route + 1] = makeWaypoint(-5600.343, 4699.168, -3295.370)
+    route[#route + 1] = makeWaypoint(-5600.363, 4704.939, -3292.873)
+    route[#route + 1] = makeWaypoint(-5600.269, 4706.761, -3290.074)
+    route[#route + 1] = makeWaypoint(-5599.993, 4711.446, -3289.277)
+    route[#route + 1] = makeWaypoint(-5599.592, 4713.717, -3287.618)
+    route[#route + 1] = makeWaypoint(-5600.221, 4713.776, -3284.636)
+    route[#route + 1] = makeWaypoint(-5601.815, 4720.174, -3281.718)
+    route[#route + 1] = makeWaypoint(-5604.438, 4719.557, -3278.982)
+    route[#route + 1] = makeWaypoint(-5607.252, 4714.873, -3277.357)
+    route[#route + 1] = makeWaypoint(-5610.100, 4720.467, -3276.675)
+    route[#route + 1] = makeWaypoint(-5612.653, 4719.050, -3276.350)
+    route[#route + 1] = makeWaypoint(-5613.883, 4713.604, -3276.271)
+    route[#route + 1] = makeWaypoint(-5617.141, 4719.954, -3276.143)
+    route[#route + 1] = makeWaypoint(-5618.874, 4719.725, -3276.125)
+    route[#route + 1] = makeWaypoint(-5620.222, 4716.699, -3276.157)
+    route[#route + 1] = makeWaypoint(-5622.546, 4722.049, -3277.060)
+    route[#route + 1] = makeWaypoint(-5625.157, 4721.861, -3278.783)
+    route[#route + 1] = makeWaypoint(-5627.676, 4718.734, -3279.793)
+    route[#route + 1] = makeWaypoint(-5630.791, 4718.776, -3279.858)
+    route[#route + 1] = makeWaypoint(-5633.225, 4718.776, -3279.444)
+    route[#route + 1] = makeWaypoint(-5636.431, 4718.421, -3278.786)
+    route[#route + 1] = makeWaypoint(-5638.525, 4715.101, -3278.353)
+    route[#route + 1] = makeWaypoint(-5641.942, 4716.243, -3277.770)
+    route[#route + 1] = makeWaypoint(-5645.395, 4718.604, -3277.601)
+    route[#route + 1] = makeWaypoint(-5649.711, 4710.558, -3277.419)
+    route[#route + 1] = makeWaypoint(-5653.751, 4717.795, -3276.966)
+    route[#route + 1] = makeWaypoint(-5656.564, 4715.280, -3276.433)
+    route[#route + 1] = makeWaypoint(-5660.759, 4717.170, -3275.665)
+    route[#route + 1] = makeWaypoint(-5663.894, 4718.205, -3275.859)
+    route[#route + 1] = makeWaypoint(-5665.911, 4718.258, -3277.268)
+    route[#route + 1] = makeWaypoint(-5673.542, 4718.776, -3278.881)
+    route[#route + 1] = makeWaypoint(-5677.251, 4717.772, -3277.337)
+    route[#route + 1] = makeWaypoint(-5678.035, 4717.776, -3275.288)
+    route[#route + 1] = makeWaypoint(-5680.397, 4717.776, -3274.111)
+    route[#route + 1] = makeWaypoint(-5682.999, 4717.776, -3275.312)
+    route[#route + 1] = makeWaypoint(-5686.223, 4717.776, -3276.754)
+    route[#route + 1] = makeWaypoint(-5689.212, 4717.776, -3275.971)
+    route[#route + 1] = makeWaypoint(-5692.807, 4717.776, -3274.875)
+    route[#route + 1] = makeWaypoint(-5698.709, 4717.776, -3275.964)
+    route[#route + 1] = makeWaypoint(-5703.746, 4717.776, -3276.547)
+    route[#route + 1] = makeWaypoint(-5706.928, 4717.776, -3278.153)
+    route[#route + 1] = makeWaypoint(-5709.315, 4717.776, -3281.596)
+    route[#route + 1] = makeWaypoint(-5709.948, 4717.776, -3286.583)
+    route[#route + 1] = makeWaypoint(-5709.769, 4717.776, -3289.649)
+    route[#route + 1] = makeWaypoint(-5709.682, 4717.776, -3292.915)
+    route[#route + 1] = makeWaypoint(-5709.809, 4717.776, -3296.113)
+    route[#route + 1] = makeWaypoint(-5710.185, 4724.339, -3299.623)
+    route[#route + 1] = makeWaypoint(-5710.535, 4724.466, -3302.600)
+    route[#route + 1] = makeWaypoint(-5710.819, 4718.362, -3305.387)
+    route[#route + 1] = makeWaypoint(-5710.711, 4716.268, -3308.589)
+    route[#route + 1] = makeWaypoint(-5710.703, 4716.494, -3311.742)
+    route[#route + 1] = makeWaypoint(-5710.807, 4723.467, -3316.480)
+    route[#route + 1] = makeWaypoint(-5710.845, 4717.752, -3321.345)
+    route[#route + 1] = makeWaypoint(-5710.845, 4717.776, -3324.611)
+    route[#route + 1] = makeWaypoint(-5710.845, 4724.644, -3328.477)
+    route[#route + 1] = makeWaypoint(-5710.845, 4722.366, -3332.143)
+    route[#route + 1] = makeWaypoint(-5710.845, 4710.259, -3336.186)
+    route[#route + 1] = makeWaypoint(-5710.845, 4713.586, -3336.605)
+    route[#route + 1] = makeWaypoint(-5710.845, 4716.118, -3336.605)
+    route[#route + 1] = makeWaypoint(-5710.871, 4717.776, -3339.391)
+    route[#route + 1] = makeWaypoint(-5710.871, 4717.842, -3344.638)
+    route[#route + 1] = makeWaypoint(-5710.872, 4719.477, -3346.558)
+    route[#route + 1] = makeWaypoint(-5710.892, 4721.633, -3348.352)
+    route[#route + 1] = makeWaypoint(-5710.903, 4724.041, -3350.360)
+    route[#route + 1] = makeWaypoint(-5711.521, 4727.347, -3353.042)
+    route[#route + 1] = makeWaypoint(-5715.387, 4735.336, -3355.740)
+    route[#route + 1] = makeWaypoint(-5718.823, 4735.776, -3349.338)
+    route[#route + 1] = makeWaypoint(-5718.438, 4735.776, -3346.520)
+    route[#route + 1] = makeWaypoint(-5716.341, 4743.006, -3342.515)
+    route[#route + 1] = makeWaypoint(-5714.899, 4741.865, -3340.192)
+    route[#route + 1] = makeWaypoint(-5713.469, 4737.082, -3337.877)
+    route[#route + 1] = makeWaypoint(-5712.583, 4736.872, -3335.687)
+    route[#route + 1] = makeWaypoint(-5712.132, 4737.653, -3333.112)
+    route[#route + 1] = makeWaypoint(-5711.800, 4738.431, -3330.583)
+    route[#route + 1] = makeWaypoint(-5712.146, 4739.708, -3326.068)
+    route[#route + 1] = makeWaypoint(-5712.105, 4739.777, -3322.895)
+    route[#route + 1] = makeWaypoint(-5711.699, 4746.565, -3319.755)
+    route[#route + 1] = makeWaypoint(-5711.408, 4741.389, -3318.355)
+    route[#route + 1] = makeWaypoint(-5711.344, 4743.716, -3315.588)
+    route[#route + 1] = makeWaypoint(-5711.282, 4745.755, -3313.589)
+    route[#route + 1] = makeWaypoint(-5711.231, 4747.394, -3311.884)
+    route[#route + 1] = makeWaypoint(-5711.168, 4749.386, -3309.816)
+    route[#route + 1] = makeWaypoint(-5711.054, 4752.999, -3306.064)
+    route[#route + 1] = makeWaypoint(-5710.998, 4754.757, -3304.237)
+    route[#route + 1] = makeWaypoint(-5710.942, 4756.519, -3302.409)
+    route[#route + 1] = makeWaypoint(-5710.871, 4757.188, -3300.170)
+    route[#route + 1] = makeWaypoint(-5710.735, 4756.101, -3297.516)
+    route[#route + 1] = makeWaypoint(-5709.326, 4757.118, -3295.629)
+    route[#route + 1] = makeWaypoint(-5707.011, 4762.560, -3294.307)
+    route[#route + 1] = makeWaypoint(-5704.352, 4764.708, -3293.076)
+    route[#route + 1] = makeWaypoint(-5701.265, 4759.338, -3293.197)
+    route[#route + 1] = makeWaypoint(-5699.878, 4766.017, -3296.632)
+    route[#route + 1] = makeWaypoint(-5699.469, 4764.598, -3300.002)
+    route[#route + 1] = makeWaypoint(-5699.682, 4767.881, -3303.325)
+    route[#route + 1] = makeWaypoint(-5699.926, 4770.152, -3306.645)
+    route[#route + 1] = makeWaypoint(-5700.228, 4767.060, -3309.560)
+    route[#route + 1] = makeWaypoint(-5700.571, 4773.470, -3312.803)
+    route[#route + 1] = makeWaypoint(-5700.010, 4772.396, -3316.830)
+    route[#route + 1] = makeWaypoint(-5701.704, 4771.205, -3319.369)
+    route[#route + 1] = makeWaypoint(-5704.157, 4774.711, -3319.220)
+    route[#route + 1] = makeWaypoint(-5708.440, 4772.202, -3321.954)
+    route[#route + 1] = makeWaypoint(-5707.506, 4772.694, -3327.133)
+    route[#route + 1] = makeWaypoint(-5707.036, 4767.647, -3329.554)
+    route[#route + 1] = makeWaypoint(-5706.554, 4772.860, -3332.041)
+    route[#route + 1] = makeWaypoint(-5706.084, 4775.233, -3334.461)
+    route[#route + 1] = makeWaypoint(-5705.304, 4769.639, -3340.058)
+    route[#route + 1] = makeWaypoint(-5705.754, 4774.836, -3343.488)
+    route[#route + 1] = makeWaypoint(-5706.426, 4772.175, -3346.280)
+    route[#route + 1] = makeWaypoint(-5707.290, 4765.103, -3348.498)
+    route[#route + 1] = makeWaypoint(-5709.110, 4761.768, -3350.438)
+    route[#route + 1] = makeWaypoint(-5711.411, 4767.266, -3352.240)
+    route[#route + 1] = makeWaypoint(-5713.860, 4768.918, -3353.447)
+    route[#route + 1] = makeWaypoint(-5716.582, 4764.674, -3353.955)
+    route[#route + 1] = makeWaypoint(-5718.816, 4765.503, -3352.405)
+    route[#route + 1] = makeWaypoint(-5719.648, 4768.731, -3350.158)
+    route[#route + 1] = makeWaypoint(-5720.315, 4768.456, -3348.399)
+    route[#route + 1] = makeWaypoint(-5721.011, 4773.478, -3346.406)
+    route[#route + 1] = makeWaypoint(-5721.323, 4775.722, -3344.097)
+    route[#route + 1] = makeWaypoint(-5721.520, 4780.218, -3341.646)
+    route[#route + 1] = makeWaypoint(-5721.742, 4783.127, -3338.924)
+    route[#route + 1] = makeWaypoint(-5722.031, 4786.649, -3336.002)
+    route[#route + 1] = makeWaypoint(-5722.066, 4785.272, -3333.155)
+    route[#route + 1] = makeWaypoint(-5721.985, 4791.952, -3329.268)
+    route[#route + 1] = makeWaypoint(-5721.922, 4790.902, -3326.402)
+    route[#route + 1] = makeWaypoint(-5721.865, 4784.828, -3323.771)
+    route[#route + 1] = makeWaypoint(-5721.816, 4790.851, -3321.278)
+    route[#route + 1] = makeWaypoint(-5721.765, 4792.315, -3318.845)
+    route[#route + 1] = makeWaypoint(-5721.744, 4794.039, -3317.407)
+    route[#route + 1] = makeWaypoint(-5721.675, 4795.668, -3314.811)
+    route[#route + 1] = makeWaypoint(-5721.487, 4798.595, -3312.088)
+    route[#route + 1] = makeWaypoint(-5721.165, 4801.934, -3308.103)
+    route[#route + 1] = makeWaypoint(-5720.907, 4798.737, -3304.916)
+    route[#route + 1] = makeWaypoint(-5720.660, 4798.776, -3301.861)
+    route[#route + 1] = makeWaypoint(-5720.329, 4798.776, -3299.218)
+    route[#route + 1] = makeWaypoint(-5719.633, 4800.066, -3296.929)
+    route[#route + 1] = makeWaypoint(-5717.965, 4805.915, -3294.371)
+    route[#route + 1] = makeWaypoint(-5716.110, 4804.961, -3292.269)
+    route[#route + 1] = makeWaypoint(-5714.089, 4798.509, -3290.335)
+    route[#route + 1] = makeWaypoint(-5711.653, 4799.859, -3288.837)
+    route[#route + 1] = makeWaypoint(-5708.579, 4806.117, -3287.245)
+    route[#route + 1] = makeWaypoint(-5705.908, 4804.099, -3285.892)
+    route[#route + 1] = makeWaypoint(-5702.942, 4798.729, -3284.702)
+    route[#route + 1] = makeWaypoint(-5699.145, 4798.776, -3283.401)
+    route[#route + 1] = makeWaypoint(-5692.566, 4798.776, -3283.902)
+    route[#route + 1] = makeWaypoint(-5691.547, 4798.466, -3285.295)
+    route[#route + 1] = makeWaypoint(-5691.393, 4797.302, -3287.342)
+    route[#route + 1] = makeWaypoint(-5691.044, 4795.946, -3289.687)
+    route[#route + 1] = makeWaypoint(-5690.712, 4794.689, -3291.859)
+    route[#route + 1] = makeWaypoint(-5690.579, 4793.233, -3294.391)
+    route[#route + 1] = makeWaypoint(-5690.874, 4798.824, -3297.178)
+    route[#route + 1] = makeWaypoint(-5691.359, 4799.190, -3301.084)
+    route[#route + 1] = makeWaypoint(-5691.525, 4793.900, -3303.911)
+    route[#route + 1] = makeWaypoint(-5691.516, 4795.370, -3305.028)
+    route[#route + 1] = makeWaypoint(-5691.457, 4796.598, -3308.717)
+    route[#route + 1] = makeWaypoint(-5691.543, 4790.297, -3311.741)
+    route[#route + 1] = makeWaypoint(-5691.614, 4788.062, -3314.367)
+    route[#route + 1] = makeWaypoint(-5691.602, 4794.417, -3317.969)
+    route[#route + 1] = makeWaypoint(-5691.488, 4792.901, -3321.835)
+    route[#route + 1] = makeWaypoint(-5691.394, 4786.012, -3325.279)
+    route[#route + 1] = makeWaypoint(-5691.351, 4781.703, -3327.269)
+    route[#route + 1] = makeWaypoint(-5691.291, 4778.320, -3328.707)
+    route[#route + 1] = makeWaypoint(-5691.084, 4778.013, -3332.083)
+    route[#route + 1] = makeWaypoint(-5690.815, 4777.063, -3335.827)
+    route[#route + 1] = makeWaypoint(-5690.557, 4773.864, -3339.082)
+    route[#route + 1] = makeWaypoint(-5690.322, 4765.706, -3341.961)
+    route[#route + 1] = makeWaypoint(-5690.102, 4764.218, -3344.669)
+    route[#route + 1] = makeWaypoint(-5689.871, 4762.451, -3347.723)
+    route[#route + 1] = makeWaypoint(-5689.706, 4761.189, -3349.912)
+    route[#route + 1] = makeWaypoint(-5689.633, 4766.737, -3352.772)
+    route[#route + 1] = makeWaypoint(-5689.604, 4767.103, -3356.704)
+    route[#route + 1] = makeWaypoint(-5690.506, 4767.529, -3352.515)
+    route[#route + 1] = makeWaypoint(-5688.067, 4761.200, -3351.854)
+    route[#route + 1] = makeWaypoint(-5685.626, 4760.372, -3351.081)
+    route[#route + 1] = makeWaypoint(-5683.187, 4760.916, -3350.016)
+    route[#route + 1] = makeWaypoint(-5681.505, 4761.907, -3348.136)
+    route[#route + 1] = makeWaypoint(-5681.319, 4763.193, -3345.889)
+    route[#route + 1] = makeWaypoint(-5681.204, 4764.490, -3343.642)
+    route[#route + 1] = makeWaypoint(-5681.190, 4766.786, -3339.666)
+    route[#route + 1] = makeWaypoint(-5681.202, 4768.149, -3337.304)
+    route[#route + 1] = makeWaypoint(-5681.238, 4769.379, -3335.172)
+    route[#route + 1] = makeWaypoint(-5681.279, 4770.777, -3332.752)
+    route[#route + 1] = makeWaypoint(-5681.314, 4771.974, -3330.678)
+    route[#route + 1] = makeWaypoint(-5681.345, 4773.004, -3328.892)
+    route[#route + 1] = makeWaypoint(-5681.383, 4774.303, -3326.645)
+    route[#route + 1] = makeWaypoint(-5681.415, 4775.399, -3324.743)
+    route[#route + 1] = makeWaypoint(-5681.454, 4776.731, -3322.438)
+    route[#route + 1] = makeWaypoint(-5681.499, 4778.261, -3319.788)
+    route[#route + 1] = makeWaypoint(-5681.530, 4779.825, -3317.080)
+    route[#route + 1] = makeWaypoint(-5681.432, 4782.618, -3312.240)
+    route[#route + 1] = makeWaypoint(-5681.367, 4783.716, -3310.339)
+    route[#route + 1] = makeWaypoint(-5681.310, 4784.847, -3308.380)
+    route[#route + 1] = makeWaypoint(-5681.250, 4786.210, -3306.018)
+    route[#route + 1] = makeWaypoint(-5681.200, 4787.341, -3304.059)
+    route[#route + 1] = makeWaypoint(-5680.686, 4792.359, -3295.374)
+    route[#route + 1] = makeWaypoint(-5680.325, 4793.578, -3293.260)
+    route[#route + 1] = makeWaypoint(-5680.019, 4794.631, -3291.432)
+    route[#route + 1] = makeWaypoint(-5679.907, 4795.726, -3289.533)
+    route[#route + 1] = makeWaypoint(-5679.747, 4796.888, -3287.528)
+    route[#route + 1] = makeWaypoint(-5678.575, 4797.998, -3285.667)
+    route[#route + 1] = makeWaypoint(-5675.542, 4805.710, -3281.621)
+    route[#route + 1] = makeWaypoint(-5673.109, 4802.335, -3280.396)
+    route[#route + 1] = makeWaypoint(-5670.819, 4798.563, -3279.681)
+    route[#route + 1] = makeWaypoint(-5667.986, 4797.776, -3279.421)
+    route[#route + 1] = makeWaypoint(-5665.491, 4797.776, -3279.844)
+    route[#route + 1] = makeWaypoint(-5663.416, 4797.776, -3280.335)
+    route[#route + 1] = makeWaypoint(-5660.522, 4803.141, -3281.112)
+    route[#route + 1] = makeWaypoint(-5657.553, 4805.035, -3282.106)
+    route[#route + 1] = makeWaypoint(-5655.347, 4800.542, -3283.668)
+    route[#route + 1] = makeWaypoint(-5653.738, 4805.375, -3286.339)
+    route[#route + 1] = makeWaypoint(-5652.489, 4806.318, -3289.573)
+    route[#route + 1] = makeWaypoint(-5651.429, 4800.612, -3292.448)
+    route[#route + 1] = makeWaypoint(-5650.471, 4807.514, -3295.982)
+    route[#route + 1] = makeWaypoint(-5649.667, 4805.401, -3299.973)
+    route[#route + 1] = makeWaypoint(-5649.021, 4800.605, -3302.210)
+    route[#route + 1] = makeWaypoint(-5647.989, 4800.776, -3304.374)
+    route[#route + 1] = makeWaypoint(-5646.410, 4806.802, -3307.078)
+    route[#route + 1] = makeWaypoint(-5644.836, 4807.673, -3309.859)
+    route[#route + 1] = makeWaypoint(-5643.708, 4799.759, -3313.122)
+    route[#route + 1] = makeWaypoint(-5643.846, 4789.759, -3317.156)
+    route[#route + 1] = makeWaypoint(-5644.617, 4796.061, -3319.683)
+    route[#route + 1] = makeWaypoint(-5647.204, 4796.939, -3319.595)
+    route[#route + 1] = makeWaypoint(-5649.513, 4797.774, -3319.801)
+    route[#route + 1] = makeWaypoint(-5650.044, 4797.776, -3321.436)
+    route[#route + 1] = makeWaypoint(-5649.626, 4797.776, -3324.806)
+    route[#route + 1] = makeWaypoint(-5649.557, 4798.766, -3328.339)
+    route[#route + 1] = makeWaypoint(-5649.532, 4800.694, -3331.738)
+    route[#route + 1] = makeWaypoint(-5649.511, 4803.553, -3334.671)
+    route[#route + 1] = makeWaypoint(-5648.692, 4805.801, -3335.919)
+    route[#route + 1] = makeWaypoint(-5648.911, 4810.681, -3333.193)
+    route[#route + 1] = makeWaypoint(-5649.170, 4812.794, -3330.670)
+    route[#route + 1] = makeWaypoint(-5649.389, 4811.985, -3328.545)
+    route[#route + 1] = makeWaypoint(-5649.669, 4814.657, -3325.822)
+    route[#route + 1] = makeWaypoint(-5649.870, 4816.813, -3323.631)
+    route[#route + 1] = makeWaypoint(-5650.065, 4819.551, -3320.840)
+    route[#route + 1] = makeWaypoint(-5650.084, 4822.258, -3318.041)
+    route[#route + 1] = makeWaypoint(-5649.349, 4822.776, -3312.287)
+    route[#route + 1] = makeWaypoint(-5644.322, 4822.776, -3312.219)
+    route[#route + 1] = makeWaypoint(-5641.790, 4822.776, -3312.809)
+    route[#route + 1] = makeWaypoint(-5633.803, 4830.139, -3314.702)
+    route[#route + 1] = makeWaypoint(-5630.975, 4823.577, -3316.846)
+    route[#route + 1] = makeWaypoint(-5629.169, 4819.776, -3320.019)
+    route[#route + 1] = makeWaypoint(-5628.063, 4823.719, -3322.100)
+    route[#route + 1] = makeWaypoint(-5627.600, 4828.062, -3323.073)
+    route[#route + 1] = makeWaypoint(-5626.972, 4829.348, -3324.505)
+    route[#route + 1] = makeWaypoint(-5625.737, 4830.380, -3327.292)
+    route[#route + 1] = makeWaypoint(-5620.534, 4820.885, -3339.069)
+    route[#route + 1] = makeWaypoint(-5619.488, 4813.703, -3341.434)
+    route[#route + 1] = makeWaypoint(-5618.067, 4812.572, -3343.695)
+    route[#route + 1] = makeWaypoint(-5616.227, 4810.861, -3345.823)
+    route[#route + 1] = makeWaypoint(-5614.307, 4805.587, -3347.666)
+    route[#route + 1] = makeWaypoint(-5611.909, 4812.214, -3350.167)
+    route[#route + 1] = makeWaypoint(-5609.821, 4812.346, -3352.508)
+    route[#route + 1] = makeWaypoint(-5607.777, 4805.486, -3354.799)
+    route[#route + 1] = makeWaypoint(-5605.389, 4805.776, -3357.309)
+    route[#route + 1] = makeWaypoint(-5602.124, 4805.654, -3360.253)
+    route[#route + 1] = makeWaypoint(-5599.687, 4799.958, -3362.394)
+    route[#route + 1] = makeWaypoint(-5598.041, 4798.768, -3364.471)
+    route[#route + 1] = makeWaypoint(-5595.600, 4798.788, -3365.947)
+    route[#route + 1] = makeWaypoint(-5592.615, 4799.769, -3365.285)
+    route[#route + 1] = makeWaypoint(-5589.941, 4799.776, -3363.925)
+    route[#route + 1] = makeWaypoint(-5587.639, 4799.776, -3362.232)
+    route[#route + 1] = makeWaypoint(-5585.612, 4799.045, -3360.205)
+    route[#route + 1] = makeWaypoint(-5583.690, 4798.800, -3357.990)
+    route[#route + 1] = makeWaypoint(-5582.166, 4798.800, -3356.052)
+    route[#route + 1] = makeWaypoint(-5580.350, 4798.800, -3353.664)
+    route[#route + 1] = makeWaypoint(-5578.540, 4798.800, -3351.357)
+    route[#route + 1] = makeWaypoint(-5576.621, 4798.800, -3348.965)
+    route[#route + 1] = makeWaypoint(-5574.251, 4804.283, -3346.081)
+    route[#route + 1] = makeWaypoint(-5571.675, 4806.059, -3344.809)
+    route[#route + 1] = makeWaypoint(-5568.810, 4801.462, -3343.945)
+    route[#route + 1] = makeWaypoint(-5567.022, 4806.741, -3342.640)
+    route[#route + 1] = makeWaypoint(-5566.982, 4808.318, -3342.590)
+    route[#route + 1] = makeWaypoint(-5566.927, 4810.438, -3340.594)
+    route[#route + 1] = makeWaypoint(-5567.533, 4813.205, -3338.302)
+    route[#route + 1] = makeWaypoint(-5568.741, 4812.776, -3335.202)
+    route[#route + 1] = makeWaypoint(-5569.854, 4812.776, -3332.929)
+    route[#route + 1] = makeWaypoint(-5571.054, 4811.192, -3330.547)
+    route[#route + 1] = makeWaypoint(-5572.475, 4802.810, -3327.829)
+    route[#route + 1] = makeWaypoint(-5574.078, 4794.736, -3324.983)
+    route[#route + 1] = makeWaypoint(-5581.177, 4794.776, -3319.262)
+    route[#route + 1] = makeWaypoint(-5582.832, 4794.776, -3317.812)
+    route[#route + 1] = makeWaypoint(-5584.693, 4794.776, -3316.190)
+    route[#route + 1] = makeWaypoint(-5586.630, 4800.141, -3314.363)
+    route[#route + 1] = makeWaypoint(-5588.188, 4802.129, -3312.124)
+    route[#route + 1] = makeWaypoint(-5588.418, 4807.547, -3311.501)
+    route[#route + 1] = makeWaypoint(-5588.808, 4809.473, -3309.676)
+    route[#route + 1] = makeWaypoint(-5588.097, 4807.716, -3309.539)
+    route[#route + 1] = makeWaypoint(-5589.573, 4812.776, -3307.471)
+    route[#route + 1] = makeWaypoint(-5587.380, 4819.417, -3302.708)
+    route[#route + 1] = makeWaypoint(-5586.665, 4819.994, -3300.488)
+    route[#route + 1] = makeWaypoint(-5585.400, 4815.720, -3298.248)
+    route[#route + 1] = makeWaypoint(-5583.350, 4811.715, -3296.909)
+    route[#route + 1] = makeWaypoint(-5580.967, 4817.347, -3295.708)
+    route[#route + 1] = makeWaypoint(-5578.654, 4817.591, -3294.519)
+    route[#route + 1] = makeWaypoint(-5576.108, 4812.732, -3292.716)
+    route[#route + 1] = makeWaypoint(-5573.903, 4812.422, -3291.542)
+    route[#route + 1] = makeWaypoint(-5571.449, 4818.681, -3289.859)
+    route[#route + 1] = makeWaypoint(-5569.940, 4818.660, -3287.918)
+    route[#route + 1] = makeWaypoint(-5568.903, 4814.603, -3285.610)
+    route[#route + 1] = makeWaypoint(-5568.692, 4819.625, -3283.921)
+    route[#route + 1] = makeWaypoint(-5570.265, 4821.947, -3282.168)
+    route[#route + 1] = makeWaypoint(-5572.886, 4827.357, -3282.090)
+    route[#route + 1] = makeWaypoint(-5575.583, 4829.249, -3282.214)
+    route[#route + 1] = makeWaypoint(-5577.924, 4831.847, -3282.352)
+    route[#route + 1] = makeWaypoint(-5583.250, 4836.629, -3282.738)
+    route[#route + 1] = makeWaypoint(-5585.125, 4837.550, -3282.875)
+    route[#route + 1] = makeWaypoint(-5587.501, 4839.499, -3283.030)
+    route[#route + 1] = makeWaypoint(-5590.812, 4846.367, -3282.945)
+    route[#route + 1] = makeWaypoint(-5591.501, 4848.065, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.501, 4850.409, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.501, 4852.284, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.501, 4857.156, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.501, 4858.609, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.501, 4860.250, -3282.919)
+    route[#route + 1] = makeWaypoint(-5591.614, 4861.845, -3282.981)
+    route[#route + 1] = makeWaypoint(-5592.876, 4862.766, -3284.253)
+    route[#route + 1] = makeWaypoint(-5592.880, 4862.776, -3286.271)
+    route[#route + 1] = makeWaypoint(-5590.844, 4862.776, -3288.412)
+    route[#route + 1] = makeWaypoint(-5589.088, 4862.776, -3289.502)
+    route[#route + 1] = makeWaypoint(-5587.950, 4862.776, -3292.172)
+    route[#route + 1] = makeWaypoint(-5587.420, 4862.997, -3294.445)
+    route[#route + 1] = makeWaypoint(-5586.500, 4869.962, -3297.727)
+    route[#route + 1] = makeWaypoint(-5584.518, 4867.720, -3300.246)
+    route[#route + 1] = makeWaypoint(-5583.808, 4862.260, -3303.630)
+    route[#route + 1] = makeWaypoint(-5583.235, 4865.561, -3306.423)
+    route[#route + 1] = makeWaypoint(-5581.994, 4866.770, -3311.748)
+    route[#route + 1] = makeWaypoint(-5580.556, 4859.776, -3317.917)
+    route[#route + 1] = makeWaypoint(-5579.799, 4863.610, -3321.165)
+    route[#route + 1] = makeWaypoint(-5578.894, 4866.466, -3325.607)
+    route[#route + 1] = makeWaypoint(-5578.390, 4859.234, -3328.700)
+    route[#route + 1] = makeWaypoint(-5575.639, 4859.775, -3335.703)
+    route[#route + 1] = makeWaypoint(-5574.159, 4862.660, -3337.454)
+    route[#route + 1] = makeWaypoint(-5573.923, 4866.334, -3339.766)
+    route[#route + 1] = makeWaypoint(-5573.766, 4866.166, -3341.759)
+    route[#route + 1] = makeWaypoint(-5573.977, 4861.915, -3344.130)
+    route[#route + 1] = makeWaypoint(-5575.053, 4857.845, -3347.600)
+    route[#route + 1] = makeWaypoint(-5575.732, 4859.608, -3349.567)
+    route[#route + 1] = makeWaypoint(-5576.713, 4860.801, -3352.141)
+    route[#route + 1] = makeWaypoint(-5577.929, 4866.285, -3354.346)
+    route[#route + 1] = makeWaypoint(-5579.560, 4868.280, -3356.194)
+    route[#route + 1] = makeWaypoint(-5581.706, 4866.735, -3357.873)
+    route[#route + 1] = makeWaypoint(-5584.341, 4866.776, -3358.979)
+    route[#route + 1] = makeWaypoint(-5587.149, 4866.776, -3359.521)
+    route[#route + 1] = makeWaypoint(-5590.697, 4873.373, -3359.702)
+    route[#route + 1] = makeWaypoint(-5591.474, 4875.174, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4877.237, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4879.440, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4881.315, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4884.034, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4886.049, -3359.701)
+    route[#route + 1] = makeWaypoint(-5591.474, 4888.018, -3359.701)
+    route[#route + 1] = makeWaypoint(-5593.233, 4893.577, -3359.593)
+    route[#route + 1] = makeWaypoint(-5591.016, 4897.008, -3358.591)
+    route[#route + 1] = makeWaypoint(-5589.124, 4893.398, -3356.646)
+    route[#route + 1] = makeWaypoint(-5587.540, 4889.693, -3354.265)
+    route[#route + 1] = makeWaypoint(-5585.776, 4890.218, -3352.008)
+    route[#route + 1] = makeWaypoint(-5583.562, 4897.083, -3349.172)
+    route[#route + 1] = makeWaypoint(-5582.408, 4894.850, -3346.240)
+    route[#route + 1] = makeWaypoint(-5582.277, 4890.401, -3343.379)
+    route[#route + 1] = makeWaypoint(-5582.282, 4889.776, -3340.580)
+    route[#route + 1] = makeWaypoint(-5582.262, 4889.776, -3337.980)
+    route[#route + 1] = makeWaypoint(-5582.136, 4889.776, -3334.848)
+    route[#route + 1] = makeWaypoint(-5581.870, 4889.776, -3331.862)
+    route[#route + 1] = makeWaypoint(-5579.999, 4889.776, -3326.717)
+    route[#route + 1] = makeWaypoint(-5578.005, 4889.776, -3327.878)
+    route[#route + 1] = makeWaypoint(-5575.710, 4889.776, -3327.442)
+    route[#route + 1] = makeWaypoint(-5573.672, 4889.776, -3327.116)
+    route[#route + 1] = makeWaypoint(-5569.276, 4889.776, -3326.669)
+    route[#route + 1] = makeWaypoint(-5569.149, 4889.776, -3326.646)
+    route[#route + 1] = makeWaypoint(-5565.918, 4889.776, -3323.779)
+    route[#route + 1] = makeWaypoint(-5565.101, 4889.776, -3321.693)
+    route[#route + 1] = makeWaypoint(-5565.123, 4896.125, -3318.183)
+    route[#route + 1] = makeWaypoint(-5565.953, 4895.869, -3315.380)
+    route[#route + 1] = makeWaypoint(-5568.277, 4889.645, -3313.034)
+    route[#route + 1] = makeWaypoint(-5571.079, 4889.776, -3311.957)
+    route[#route + 1] = makeWaypoint(-5573.141, 4889.776, -3311.205)
+    route[#route + 1] = makeWaypoint(-5576.223, 4889.776, -3309.950)
+    route[#route + 1] = makeWaypoint(-5578.523, 4889.776, -3307.965)
+    route[#route + 1] = makeWaypoint(-5581.600, 4897.244, -3303.600)
+    route[#route + 1] = makeWaypoint(-5583.257, 4893.558, -3301.259)
+    route[#route + 1] = makeWaypoint(-5584.608, 4894.622, -3297.754)
+    route[#route + 1] = makeWaypoint(-5584.752, 4896.628, -3294.697)
+    route[#route + 1] = makeWaypoint(-5584.495, 4895.776, -3289.703)
+    route[#route + 1] = makeWaypoint(-5593.786, 4895.776, -3283.482)
+    route[#route + 1] = makeWaypoint(-5595.151, 4895.776, -3283.215)
+    route[#route + 1] = makeWaypoint(-5597.590, 4894.399, -3282.846)
+    route[#route + 1] = makeWaypoint(-5600.227, 4887.798, -3282.450)
+    route[#route + 1] = makeWaypoint(-5602.190, 4875.375, -3281.747)
+    route[#route + 1] = makeWaypoint(-5602.211, 4859.747, -3281.736)
+    route[#route + 1] = makeWaypoint(-5602.211, 4842.934, -3281.736)
+    route[#route + 1] = makeWaypoint(-5602.211, 4843.766, -3281.736)
+    route[#route + 1] = makeWaypoint(-5609.436, 4843.776, -3282.540)
+    route[#route + 1] = makeWaypoint(-5611.915, 4843.776, -3281.751)
+    route[#route + 1] = makeWaypoint(-5614.518, 4843.776, -3280.716)
+    route[#route + 1] = makeWaypoint(-5616.768, 4843.776, -3279.710)
+    route[#route + 1] = makeWaypoint(-5619.165, 4844.119, -3278.541)
+    route[#route + 1] = makeWaypoint(-5621.395, 4844.769, -3277.489)
+    route[#route + 1] = makeWaypoint(-5624.796, 4850.744, -3276.325)
+    route[#route + 1] = makeWaypoint(-5627.346, 4852.045, -3275.815)
+    route[#route + 1] = makeWaypoint(-5631.420, 4858.976, -3273.467)
+    route[#route + 1] = makeWaypoint(-5633.493, 4859.941, -3272.996)
+    route[#route + 1] = makeWaypoint(-5636.676, 4865.255, -3273.612)
+    route[#route + 1] = makeWaypoint(-5639.059, 4863.698, -3275.471)
+    route[#route + 1] = makeWaypoint(-5640.567, 4864.859, -3278.055)
+    route[#route + 1] = makeWaypoint(-5641.646, 4871.234, -3281.696)
+    route[#route + 1] = makeWaypoint(-5643.512, 4865.716, -3285.710)
+    route[#route + 1] = makeWaypoint(-5645.857, 4872.057, -3287.919)
+    route[#route + 1] = makeWaypoint(-5647.784, 4872.973, -3289.568)
+    route[#route + 1] = makeWaypoint(-5649.112, 4872.907, -3290.712)
+    route[#route + 1] = makeWaypoint(-5650.196, 4874.734, -3292.003)
+    route[#route + 1] = makeWaypoint(-5651.812, 4881.992, -3295.049)
+    route[#route + 1] = makeWaypoint(-5653.285, 4880.529, -3298.478)
+    route[#route + 1] = makeWaypoint(-5654.935, 4879.193, -3301.576)
+    route[#route + 1] = makeWaypoint(-5655.895, 4878.895, -3304.229)
+    route[#route + 1] = makeWaypoint(-5657.351, 4886.202, -3307.653)
+    route[#route + 1] = makeWaypoint(-5658.732, 4884.453, -3310.239)
+    route[#route + 1] = makeWaypoint(-5660.354, 4876.494, -3312.995)
+    route[#route + 1] = makeWaypoint(-5662.643, 4883.673, -3316.752)
+    route[#route + 1] = makeWaypoint(-5664.189, 4883.034, -3319.320)
+    route[#route + 1] = makeWaypoint(-5665.293, 4879.165, -3321.851)
+    route[#route + 1] = makeWaypoint(-5666.158, 4879.160, -3324.338)
+    route[#route + 1] = makeWaypoint(-5668.116, 4881.626, -3327.375)
+    route[#route + 1] = makeWaypoint(-5669.585, 4886.143, -3329.842)
+    route[#route + 1] = makeWaypoint(-5670.953, 4884.688, -3332.136)
+    route[#route + 1] = makeWaypoint(-5672.514, 4886.067, -3334.764)
+    route[#route + 1] = makeWaypoint(-5673.720, 4889.322, -3336.917)
+    route[#route + 1] = makeWaypoint(-5674.835, 4888.689, -3339.765)
+    route[#route + 1] = makeWaypoint(-5674.053, 4888.776, -3343.078)
+    route[#route + 1] = makeWaypoint(-5671.520, 4892.610, -3345.679)
+    route[#route + 1] = makeWaypoint(-5668.995, 4896.266, -3347.546)
+    route[#route + 1] = makeWaypoint(-5666.793, 4893.310, -3349.176)
+    route[#route + 1] = makeWaypoint(-5664.461, 4888.736, -3350.850)
+    route[#route + 1] = makeWaypoint(-5661.723, 4888.776, -3352.753)
+    route[#route + 1] = makeWaypoint(-5659.105, 4888.776, -3354.346)
+    route[#route + 1] = makeWaypoint(-5653.651, 4888.776, -3355.286)
+    route[#route + 1] = makeWaypoint(-5650.925, 4888.776, -3353.919)
+    route[#route + 1] = makeWaypoint(-5646.998, 4888.776, -3349.510)
+    route[#route + 1] = makeWaypoint(-5645.213, 4888.776, -3346.073)
+    route[#route + 1] = makeWaypoint(-5642.987, 4895.962, -3341.247)
+    route[#route + 1] = makeWaypoint(-5641.557, 4894.099, -3338.497)
+    route[#route + 1] = makeWaypoint(-5642.208, 4888.208, -3339.670)
+    route[#route + 1] = makeWaypoint(-5642.535, 4888.505, -3340.261)
+    route[#route + 1] = makeWaypoint(-5642.390, 4888.402, -3340.083)
+    route[#route + 1] = makeWaypoint(-5641.500, 4887.708, -3338.645)
+    route[#route + 1] = makeWaypoint(-5640.713, 4887.190, -3337.278)
+    route[#route + 1] = makeWaypoint(-5639.849, 4886.753, -3335.755)
+    route[#route + 1] = makeWaypoint(-5639.125, 4886.488, -3334.466)
+    route[#route + 1] = makeWaypoint(-5638.315, 4886.297, -3333.003)
+    route[#route + 1] = makeWaypoint(-5636.896, 4886.312, -3330.340)
+    route[#route + 1] = makeWaypoint(-5635.068, 4886.834, -3326.861)
+    route[#route + 1] = makeWaypoint(-5633.383, 4887.628, -3323.738)
+    route[#route + 1] = makeWaypoint(-5631.483, 4894.682, -3320.153)
+    route[#route + 1] = makeWaypoint(-5630.037, 4894.106, -3317.451)
+    route[#route + 1] = makeWaypoint(-5628.440, 4886.324, -3314.834)
+    route[#route + 1] = makeWaypoint(-5626.413, 4890.229, -3311.548)
+    route[#route + 1] = makeWaypoint(-5624.911, 4891.736, -3308.952)
+    route[#route + 1] = makeWaypoint(-5623.273, 4892.755, -3305.973)
+    route[#route + 1] = makeWaypoint(-5621.871, 4897.232, -3303.383)
+    route[#route + 1] = makeWaypoint(-5620.874, 4888.586, -3301.170)
+    route[#route + 1] = makeWaypoint(-5619.833, 4893.720, -3298.921)
+    route[#route + 1] = makeWaypoint(-5618.602, 4896.210, -3296.482)
+    route[#route + 1] = makeWaypoint(-5617.209, 4896.240, -3293.753)
+    route[#route + 1] = makeWaypoint(-5615.411, 4902.168, -3290.835)
+    route[#route + 1] = makeWaypoint(-5613.625, 4899.820, -3289.562)
+    route[#route + 1] = makeWaypoint(-5614.032, 4898.784, -3285.508)
+    route[#route + 1] = makeWaypoint(-5615.380, 4901.360, -3282.387)
+    route[#route + 1] = makeWaypoint(-5617.233, 4895.285, -3279.650)
+    route[#route + 1] = makeWaypoint(-5620.045, 4893.774, -3278.051)
+    route[#route + 1] = makeWaypoint(-5622.602, 4893.776, -3277.646)
+    route[#route + 1] = makeWaypoint(-5625.833, 4891.757, -3277.862)
+    route[#route + 1] = makeWaypoint(-5628.528, 4891.776, -3279.009)
+    route[#route + 1] = makeWaypoint(-5631.238, 4892.557, -3280.427)
+    route[#route + 1] = makeWaypoint(-5633.053, 4892.776, -3282.698)
+    route[#route + 1] = makeWaypoint(-5634.153, 4893.916, -3285.409)
+    route[#route + 1] = makeWaypoint(-5634.824, 4895.225, -3288.059)
+    route[#route + 1] = makeWaypoint(-5635.466, 4896.719, -3290.990)
+    route[#route + 1] = makeWaypoint(-5636.062, 4898.122, -3293.859)
+    route[#route + 1] = makeWaypoint(-5636.537, 4900.195, -3297.024)
+    route[#route + 1] = makeWaypoint(-5636.710, 4902.495, -3299.351)
+    route[#route + 1] = makeWaypoint(-5636.544, 4905.130, -3302.007)
+    route[#route + 1] = makeWaypoint(-5635.542, 4908.039, -3304.860)
+    route[#route + 1] = makeWaypoint(-5634.449, 4910.342, -3307.145)
+    route[#route + 1] = makeWaypoint(-5633.128, 4913.180, -3310.032)
+    route[#route + 1] = makeWaypoint(-5632.499, 4916.264, -3313.137)
+    route[#route + 1] = makeWaypoint(-5632.584, 4919.102, -3315.999)
+    route[#route + 1] = makeWaypoint(-5632.979, 4922.373, -3319.241)
+    route[#route + 1] = makeWaypoint(-5633.353, 4925.375, -3322.219)
+    route[#route + 1] = makeWaypoint(-5590.738, 4957.843, -3290.673)
+    route[#route + 1] = makeWaypoint(-5591.153, 4960.525, -3294.586)
+    route[#route + 1] = makeWaypoint(-5591.325, 4963.713, -3297.780)
+    route[#route + 1] = makeWaypoint(-5591.139, 4966.650, -3300.706)
+    route[#route + 1] = makeWaypoint(-5590.755, 4969.786, -3303.882)
+    route[#route + 1] = makeWaypoint(-5590.423, 4972.437, -3306.529)
+    route[#route + 1] = makeWaypoint(-5590.107, 4974.983, -3309.043)
+    route[#route + 1] = makeWaypoint(-5589.792, 4977.492, -3311.557)
+    route[#route + 1] = makeWaypoint(-5589.501, 4979.789, -3313.873)
+    route[#route + 1] = makeWaypoint(-5588.642, 4983.577, -3317.080)
+    route[#route + 1] = makeWaypoint(-5587.368, 4988.514, -3319.943)
+    route[#route + 1] = makeWaypoint(-5585.861, 4986.060, -3322.611)
+    route[#route + 1] = makeWaypoint(-5583.563, 4992.569, -3325.632)
+    route[#route + 1] = makeWaypoint(-5582.073, 4992.789, -3327.424)
+    route[#route + 1] = makeWaypoint(-5580.320, 4986.083, -3329.378)
+    route[#route + 1] = makeWaypoint(-5577.599, 4992.190, -3331.639)
+    route[#route + 1] = makeWaypoint(-5574.068, 4988.494, -3335.040)
+    route[#route + 1] = makeWaypoint(-5573.321, 4990.063, -3338.054)
+    route[#route + 1] = makeWaypoint(-5573.455, 4992.842, -3341.417)
+    route[#route + 1] = makeWaypoint(-5573.798, 4987.646, -3343.179)
+    route[#route + 1] = makeWaypoint(-5574.956, 4993.593, -3346.008)
+    route[#route + 1] = makeWaypoint(-5576.175, 4995.137, -3347.914)
+    route[#route + 1] = makeWaypoint(-5577.874, 4991.912, -3349.965)
+    route[#route + 1] = makeWaypoint(-5581.898, 4994.425, -3353.554)
+    route[#route + 1] = makeWaypoint(-5583.917, 4993.872, -3355.192)
+    route[#route + 1] = makeWaypoint(-5586.605, 4987.586, -3356.886)
+    route[#route + 1] = makeWaypoint(-5590.704, 4994.894, -3357.380)
+    route[#route + 1] = makeWaypoint(-5591.271, 4996.816, -3357.403)
+    route[#route + 1] = makeWaypoint(-5591.271, 4999.066, -3357.403)
+    route[#route + 1] = makeWaypoint(-5591.271, 5001.269, -3357.403)
+    route[#route + 1] = makeWaypoint(-5590.966, 5004.646, -3357.403)
+    route[#route + 1] = makeWaypoint(-5588.704, 5012.880, -3354.723)
+    route[#route + 1] = makeWaypoint(-5584.747, 5010.754, -3352.012)
+    route[#route + 1] = makeWaypoint(-5581.486, 5005.769, -3350.674)
+    route[#route + 1] = makeWaypoint(-5578.516, 5009.922, -3349.331)
+    route[#route + 1] = makeWaypoint(-5575.681, 5013.076, -3347.024)
+    route[#route + 1] = makeWaypoint(-5574.604, 5008.581, -3344.513)
+    route[#route + 1] = makeWaypoint(-5575.403, 5008.775, -3341.973)
+    route[#route + 1] = makeWaypoint(-5577.054, 5014.679, -3339.254)
+    route[#route + 1] = makeWaypoint(-5579.854, 5012.337, -3335.151)
+    route[#route + 1] = makeWaypoint(-5580.367, 5010.777, -3332.539)
+    route[#route + 1] = makeWaypoint(-5580.772, 5010.779, -3329.299)
+    route[#route + 1] = makeWaypoint(-5580.932, 5010.779, -3326.036)
+    route[#route + 1] = makeWaypoint(-5580.943, 5010.370, -3323.010)
+    route[#route + 1] = makeWaypoint(-5580.943, 5009.641, -3320.098)
+    route[#route + 1] = makeWaypoint(-5580.943, 5008.893, -3316.987)
+    route[#route + 1] = makeWaypoint(-5580.943, 5014.474, -3312.863)
+    route[#route + 1] = makeWaypoint(-5580.943, 5015.847, -3310.131)
+    route[#route + 1] = makeWaypoint(-5580.905, 5006.089, -3303.276)
+    route[#route + 1] = makeWaypoint(-5580.854, 5006.296, -3299.044)
+    route[#route + 1] = makeWaypoint(-5580.841, 5012.864, -3293.570)
+    route[#route + 1] = makeWaypoint(-5580.841, 5013.663, -3290.637)
+    route[#route + 1] = makeWaypoint(-5580.841, 5007.446, -3287.572)
+    route[#route + 1] = makeWaypoint(-5580.841, 5007.557, -3285.439)
+    route[#route + 1] = makeWaypoint(-5580.841, 5012.337, -3282.973)
+    route[#route + 1] = makeWaypoint(-5580.841, 5014.711, -3279.840)
+    route[#route + 1] = makeWaypoint(-5580.841, 5009.561, -3276.708)
+    route[#route + 1] = makeWaypoint(-5580.821, 5006.058, -3272.877)
+    route[#route + 1] = makeWaypoint(-5580.821, 5005.905, -3271.257)
+    route[#route + 1] = makeWaypoint(-5580.862, 5006.036, -3266.923)
+    route[#route + 1] = makeWaypoint(-5581.036, 5006.680, -3262.944)
+    route[#route + 1] = makeWaypoint(-5581.302, 5010.677, -3259.229)
+    route[#route + 1] = makeWaypoint(-5581.829, 5014.444, -3256.486)
+    route[#route + 1] = makeWaypoint(-5583.242, 5012.445, -3254.265)
+    route[#route + 1] = makeWaypoint(-5585.682, 5007.657, -3253.126)
+    route[#route + 1] = makeWaypoint(-5588.347, 5007.779, -3253.461)
+    route[#route + 1] = makeWaypoint(-5590.534, 5007.779, -3254.270)
+    route[#route + 1] = makeWaypoint(-5593.588, 5012.768, -3255.430)
+    route[#route + 1] = makeWaypoint(-5596.001, 5015.265, -3256.564)
+    route[#route + 1] = makeWaypoint(-5598.043, 5011.236, -3258.865)
+    route[#route + 1] = makeWaypoint(-5599.481, 5007.775, -3261.632)
+    route[#route + 1] = makeWaypoint(-5603.095, 5014.746, -3264.559)
+    route[#route + 1] = makeWaypoint(-5607.394, 5013.427, -3266.314)
+    route[#route + 1] = makeWaypoint(-5607.452, 5016.917, -3266.178)
+    route[#route + 1] = makeWaypoint(-5608.283, 5015.731, -3264.232)
+    route[#route + 1] = makeWaypoint(-5608.944, 5015.781, -3261.797)
+    route[#route + 1] = makeWaypoint(-5610.852, 5022.123, -3258.696)
+    route[#route + 1] = makeWaypoint(-5614.988, 5018.793, -3259.279)
+    route[#route + 1] = makeWaypoint(-5619.660, 5023.763, -3260.211)
+    route[#route + 1] = makeWaypoint(-5621.380, 5022.713, -3262.482)
+    route[#route + 1] = makeWaypoint(-5623.883, 5014.972, -3264.234)
+    route[#route + 1] = makeWaypoint(-5627.229, 5020.138, -3262.550)
+    route[#route + 1] = makeWaypoint(-5630.272, 5021.386, -3261.216)
+    route[#route + 1] = makeWaypoint(-5634.349, 5014.527, -3260.824)
+    route[#route + 1] = makeWaypoint(-5639.442, 5020.546, -3261.216)
+    route[#route + 1] = makeWaypoint(-5643.068, 5014.406, -3261.696)
+    route[#route + 1] = makeWaypoint(-5645.929, 5013.772, -3262.111)
+    route[#route + 1] = makeWaypoint(-5649.040, 5014.431, -3262.366)
+    route[#route + 1] = makeWaypoint(-5651.753, 5020.750, -3263.401)
+    route[#route + 1] = makeWaypoint(-5653.760, 5020.049, -3265.513)
+    route[#route + 1] = makeWaypoint(-5656.547, 5016.591, -3266.216)
+    route[#route + 1] = makeWaypoint(-5659.339, 5022.132, -3265.544)
+    route[#route + 1] = makeWaypoint(-5662.197, 5021.282, -3264.857)
+    route[#route + 1] = makeWaypoint(-5665.109, 5016.403, -3263.954)
+    route[#route + 1] = makeWaypoint(-5668.776, 5015.723, -3262.575)
+    route[#route + 1] = makeWaypoint(-5673.124, 5015.730, -3262.216)
+    route[#route + 1] = makeWaypoint(-5678.100, 5015.731, -3262.982)
+    route[#route + 1] = makeWaypoint(-5682.537, 5022.545, -3263.508)
+    route[#route + 1] = makeWaypoint(-5685.339, 5021.877, -3263.463)
+    route[#route + 1] = makeWaypoint(-5689.143, 5015.560, -3262.653)
+    route[#route + 1] = makeWaypoint(-5691.063, 5020.548, -3261.409)
+    route[#route + 1] = makeWaypoint(-5693.287, 5021.363, -3260.725)
+    route[#route + 1] = makeWaypoint(-5696.304, 5016.087, -3260.989)
+    route[#route + 1] = makeWaypoint(-5698.407, 5016.567, -3262.029)
+    route[#route + 1] = makeWaypoint(-5700.525, 5020.530, -3263.533)
+    route[#route + 1] = makeWaypoint(-5702.777, 5018.665, -3265.509)
+    route[#route + 1] = makeWaypoint(-5704.621, 5017.982, -3268.196)
+    route[#route + 1] = makeWaypoint(-5704.942, 5020.915, -3272.836)
+    route[#route + 1] = makeWaypoint(-5702.224, 5013.511, -3274.291)
+    route[#route + 1] = makeWaypoint(-5699.402, 5019.775, -3275.859)
+    route[#route + 1] = makeWaypoint(-5697.022, 5019.655, -3277.329)
+    route[#route + 1] = makeWaypoint(-5697.050, 5016.273, -3280.337)
+    route[#route + 1] = makeWaypoint(-5697.010, 5016.281, -3283.208)
+    route[#route + 1] = makeWaypoint(-5699.304, 5016.281, -3291.818)
+    route[#route + 1] = makeWaypoint(-5700.934, 5016.281, -3292.955)
+    route[#route + 1] = makeWaypoint(-5703.524, 5016.281, -3293.136)
+    route[#route + 1] = makeWaypoint(-5709.187, 5023.454, -3295.008)
+    route[#route + 1] = makeWaypoint(-5711.535, 5017.909, -3296.663)
+    route[#route + 1] = makeWaypoint(-5712.718, 5016.845, -3301.255)
+    route[#route + 1] = makeWaypoint(-5712.471, 5016.864, -3303.266)
+    route[#route + 1] = makeWaypoint(-5711.270, 5017.130, -3305.509)
+    route[#route + 1] = makeWaypoint(-5709.890, 5017.465, -3307.268)
+    route[#route + 1] = makeWaypoint(-5706.872, 5023.426, -3307.512)
+    route[#route + 1] = makeWaypoint(-5703.493, 5024.037, -3308.428)
+    route[#route + 1] = makeWaypoint(-5701.387, 5017.959, -3310.864)
+    route[#route + 1] = makeWaypoint(-5697.263, 5023.923, -3316.185)
+    route[#route + 1] = makeWaypoint(-5697.903, 5016.221, -3319.854)
+    route[#route + 1] = makeWaypoint(-5700.311, 5019.227, -3322.653)
+    route[#route + 1] = makeWaypoint(-5701.075, 5018.599, -3327.548)
+    route[#route + 1] = makeWaypoint(-5700.155, 5017.554, -3329.353)
+    route[#route + 1] = makeWaypoint(-5699.236, 5024.325, -3334.231)
+    route[#route + 1] = makeWaypoint(-5698.677, 5023.413, -3336.095)
+    route[#route + 1] = makeWaypoint(-5698.661, 5028.409, -3339.028)
+    route[#route + 1] = makeWaypoint(-5698.708, 5026.698, -3342.027)
+    route[#route + 1] = makeWaypoint(-5698.714, 5030.372, -3345.342)
+    route[#route + 1] = makeWaypoint(-5698.958, 5029.945, -3351.373)
+    route[#route + 1] = makeWaypoint(-5701.674, 5030.885, -3354.117)
+    route[#route + 1] = makeWaypoint(-5703.401, 5031.606, -3355.503)
+    route[#route + 1] = makeWaypoint(-5702.884, 5033.477, -3358.816)
+    route[#route + 1] = makeWaypoint(-5701.455, 5041.136, -3362.265)
+    route[#route + 1] = makeWaypoint(-5699.788, 5040.106, -3360.968)
+    route[#route + 1] = makeWaypoint(-5699.315, 5044.565, -3358.556)
+    route[#route + 1] = makeWaypoint(-5699.004, 5047.375, -3355.302)
+    route[#route + 1] = makeWaypoint(-5698.569, 5049.541, -3352.307)
+    route[#route + 1] = makeWaypoint(-5698.569, 5048.990, -3349.375)
+    route[#route + 1] = makeWaypoint(-5698.569, 5052.224, -3346.042)
+    route[#route + 1] = makeWaypoint(-5698.569, 5054.982, -3343.176)
+    route[#route + 1] = makeWaypoint(-5698.569, 5052.779, -3338.710)
+    route[#route + 1] = makeWaypoint(-5698.569, 5052.780, -3335.978)
+    route[#route + 1] = makeWaypoint(-5698.569, 5054.506, -3332.912)
+    route[#route + 1] = makeWaypoint(-5698.569, 5057.193, -3330.246)
+    route[#route + 1] = makeWaypoint(-5698.569, 5059.375, -3328.046)
+    route[#route + 1] = makeWaypoint(-5699.303, 5061.877, -3325.746)
+    route[#route + 1] = makeWaypoint(-5702.324, 5059.413, -3320.784)
+    route[#route + 1] = makeWaypoint(-5698.886, 5055.780, -3316.845)
+    route[#route + 1] = makeWaypoint(-5697.350, 5055.780, -3309.617)
+    route[#route + 1] = makeWaypoint(-5697.036, 5056.599, -3306.504)
+    route[#route + 1] = makeWaypoint(-5696.975, 5057.675, -3303.290)
+    route[#route + 1] = makeWaypoint(-5701.071, 5058.780, -3299.780)
+    route[#route + 1] = makeWaypoint(-5704.085, 5058.780, -3298.706)
+    route[#route + 1] = makeWaypoint(-5706.604, 5058.780, -3297.829)
+    route[#route + 1] = makeWaypoint(-5709.608, 5058.780, -3297.235)
+    route[#route + 1] = makeWaypoint(-5712.193, 5058.780, -3296.974)
+    route[#route + 1] = makeWaypoint(-5714.717, 5058.780, -3296.775)
+    route[#route + 1] = makeWaypoint(-5717.439, 5058.780, -3296.632)
+    route[#route + 1] = makeWaypoint(-5719.896, 5058.780, -3296.494)
+    route[#route + 1] = makeWaypoint(-5721.186, 5058.787, -3296.439)
+    route[#route + 1] = makeWaypoint(-5724.820, 5058.787, -3296.439)
+    route[#route + 1] = makeWaypoint(-5732.510, 5058.787, -3296.439)
+    route[#route + 1] = makeWaypoint(-5742.676, 5058.787, -3296.439)
+    route[#route + 1] = makeWaypoint(-5753.771, 5058.788, -3296.422)
+    route[#route + 1] = makeWaypoint(-5764.391, 5058.794, -3295.818)
+    route[#route + 1] = makeWaypoint(-5767.320, 5066.534, -3295.839)
+    route[#route + 1] = makeWaypoint(-5769.795, 5064.512, -3295.866)
+    route[#route + 1] = makeWaypoint(-5772.605, 5058.650, -3295.896)
+    route[#route + 1] = makeWaypoint(-5775.130, 5058.780, -3295.724)
+    route[#route + 1] = makeWaypoint(-5777.568, 5058.780, -3295.056)
+    route[#route + 1] = makeWaypoint(-5780.265, 5058.780, -3293.900)
+    route[#route + 1] = makeWaypoint(-5782.482, 5059.770, -3292.822)
+    route[#route + 1] = makeWaypoint(-5784.996, 5060.780, -3291.076)
+    route[#route + 1] = makeWaypoint(-5786.906, 5060.781, -3289.036)
+    route[#route + 1] = makeWaypoint(-5788.303, 5060.781, -3286.623)
+    route[#route + 1] = makeWaypoint(-5789.134, 5060.781, -3284.092)
+    route[#route + 1] = makeWaypoint(-5789.562, 5062.337, -3280.791)
+    route[#route + 1] = makeWaypoint(-5789.261, 5067.161, -3277.009)
+    route[#route + 1] = makeWaypoint(-5788.812, 5061.714, -3274.612)
+    route[#route + 1] = makeWaypoint(-5788.117, 5064.325, -3271.775)
+    route[#route + 1] = makeWaypoint(-5787.338, 5066.937, -3269.014)
+    route[#route + 1] = makeWaypoint(-5786.540, 5063.250, -3266.264)
+    route[#route + 1] = makeWaypoint(-5785.232, 5064.324, -3262.715)
+    route[#route + 1] = makeWaypoint(-5783.271, 5066.800, -3260.107)
+    route[#route + 1] = makeWaypoint(-5781.078, 5059.704, -3256.687)
+    route[#route + 1] = makeWaypoint(-5779.882, 5058.780, -3253.794)
+    route[#route + 1] = makeWaypoint(-5778.878, 5058.780, -3250.617)
+    route[#route + 1] = makeWaypoint(-5778.114, 5058.780, -3247.139)
+    route[#route + 1] = makeWaypoint(-5776.120, 5058.780, -3245.087)
+    route[#route + 1] = makeWaypoint(-5774.707, 5058.780, -3242.532)
+    route[#route + 1] = makeWaypoint(-5773.791, 5058.730, -3239.225)
+    route[#route + 1] = makeWaypoint(-5775.142, 5059.406, -3236.120)
+    route[#route + 1] = makeWaypoint(-5776.515, 5061.274, -3237.412)
+    route[#route + 1] = makeWaypoint(-5776.656, 5063.509, -3239.680)
+    route[#route + 1] = makeWaypoint(-5776.729, 5065.776, -3242.017)
+    route[#route + 1] = makeWaypoint(-5777.472, 5068.975, -3245.132)
+    route[#route + 1] = makeWaypoint(-5778.127, 5070.960, -3247.009)
+    route[#route + 1] = makeWaypoint(-5778.642, 5072.607, -3248.578)
+    route[#route + 1] = makeWaypoint(-5779.350, 5074.958, -3250.824)
+    route[#route + 1] = makeWaypoint(-5780.065, 5077.178, -3252.927)
+    route[#route + 1] = makeWaypoint(-5780.836, 5079.453, -3255.344)
+    route[#route + 1] = makeWaypoint(-5780.735, 5079.887, -3258.404)
+    route[#route + 1] = makeWaypoint(-5779.303, 5079.887, -3260.258)
+    route[#route + 1] = makeWaypoint(-5777.424, 5079.887, -3261.089)
+    route[#route + 1] = makeWaypoint(-5771.918, 5079.887, -3262.109)
+    route[#route + 1] = makeWaypoint(-5769.592, 5079.887, -3262.684)
+    route[#route + 1] = makeWaypoint(-5768.123, 5080.107, -3261.239)
+    route[#route + 1] = makeWaypoint(-5767.098, 5085.912, -3259.082)
+    route[#route + 1] = makeWaypoint(-5763.988, 5085.876, -3256.870)
+    route[#route + 1] = makeWaypoint(-5761.485, 5079.577, -3256.988)
+    route[#route + 1] = makeWaypoint(-5757.060, 5078.354, -3258.418)
+    route[#route + 1] = makeWaypoint(-5754.818, 5079.719, -3259.189)
+    route[#route + 1] = makeWaypoint(-5753.454, 5080.546, -3259.656)
+    route[#route + 1] = makeWaypoint(-5752.195, 5081.537, -3261.228)
+    route[#route + 1] = makeWaypoint(-5750.574, 5082.559, -3262.339)
+    route[#route + 1] = makeWaypoint(-5747.365, 5088.449, -3264.499)
+    route[#route + 1] = makeWaypoint(-5747.037, 5090.916, -3266.856)
+    route[#route + 1] = makeWaypoint(-5745.875, 5088.751, -3268.594)
+    route[#route + 1] = makeWaypoint(-5741.500, 5082.887, -3275.502)
+    route[#route + 1] = makeWaypoint(-5739.979, 5082.887, -3277.358)
+    route[#route + 1] = makeWaypoint(-5737.658, 5082.887, -3277.973)
+    route[#route + 1] = makeWaypoint(-5735.145, 5082.887, -3278.649)
+    route[#route + 1] = makeWaypoint(-5732.650, 5082.887, -3279.385)
+    route[#route + 1] = makeWaypoint(-5730.085, 5082.887, -3280.122)
+    route[#route + 1] = makeWaypoint(-5726.241, 5082.887, -3280.421)
+    route[#route + 1] = makeWaypoint(-5723.959, 5082.887, -3278.361)
+    route[#route + 1] = makeWaypoint(-5722.761, 5082.887, -3275.913)
+    route[#route + 1] = makeWaypoint(-5720.840, 5082.887, -3273.537)
+    route[#route + 1] = makeWaypoint(-5718.201, 5082.887, -3272.983)
+    route[#route + 1] = makeWaypoint(-5716.074, 5082.887, -3272.837)
+    route[#route + 1] = makeWaypoint(-5713.989, 5082.887, -3272.172)
+    route[#route + 1] = makeWaypoint(-5711.186, 5082.887, -3270.635)
+    route[#route + 1] = makeWaypoint(-5709.142, 5080.741, -3269.507)
+    route[#route + 1] = makeWaypoint(-5707.361, 5076.504, -3268.764)
+    route[#route + 1] = makeWaypoint(-5704.979, 5076.780, -3268.128)
+    route[#route + 1] = makeWaypoint(-5701.755, 5076.780, -3267.607)
+    route[#route + 1] = makeWaypoint(-5699.316, 5076.780, -3267.254)
+    route[#route + 1] = makeWaypoint(-5696.731, 5076.780, -3266.996)
+    route[#route + 1] = makeWaypoint(-5693.743, 5076.557, -3266.837)
+    route[#route + 1] = makeWaypoint(-5691.391, 5074.530, -3266.719)
+    route[#route + 1] = makeWaypoint(-5689.006, 5075.156, -3266.618)
+    route[#route + 1] = makeWaypoint(-5686.814, 5075.744, -3266.610)
+    route[#route + 1] = makeWaypoint(-5684.430, 5076.383, -3266.634)
+    route[#route + 1] = makeWaypoint(-5681.658, 5077.732, -3266.666)
+    route[#route + 1] = makeWaypoint(-5678.517, 5084.108, -3266.700)
+    route[#route + 1] = makeWaypoint(-5675.841, 5083.609, -3266.729)
+    route[#route + 1] = makeWaypoint(-5672.619, 5079.840, -3266.665)
+    route[#route + 1] = makeWaypoint(-5670.005, 5080.508, -3266.519)
+    route[#route + 1] = makeWaypoint(-5667.737, 5079.550, -3266.383)
+    route[#route + 1] = makeWaypoint(-5664.998, 5086.418, -3266.212)
+    route[#route + 1] = makeWaypoint(-5662.143, 5085.514, -3266.054)
+    route[#route + 1] = makeWaypoint(-5659.729, 5080.243, -3265.918)
+    route[#route + 1] = makeWaypoint(-5657.649, 5086.240, -3265.945)
+    route[#route + 1] = makeWaypoint(-5655.392, 5087.437, -3266.037)
+    route[#route + 1] = makeWaypoint(-5652.793, 5084.058, -3266.106)
+    route[#route + 1] = makeWaypoint(-5649.730, 5084.391, -3266.131)
+    route[#route + 1] = makeWaypoint(-5646.514, 5084.788, -3266.156)
+    route[#route + 1] = makeWaypoint(-5641.707, 5091.753, -3265.927)
+    route[#route + 1] = makeWaypoint(-5638.510, 5089.223, -3265.295)
+    route[#route + 1] = makeWaypoint(-5635.382, 5082.677, -3265.321)
+    route[#route + 1] = makeWaypoint(-5632.195, 5084.469, -3265.551)
+    route[#route + 1] = makeWaypoint(-5629.339, 5087.306, -3265.671)
+    route[#route + 1] = makeWaypoint(-5624.260, 5092.382, -3265.756)
+    route[#route + 1] = makeWaypoint(-5621.738, 5095.540, -3266.116)
+    route[#route + 1] = makeWaypoint(-5623.095, 5094.275, -3267.560)
+    route[#route + 1] = makeWaypoint(-5625.813, 5095.602, -3267.855)
+    route[#route + 1] = makeWaypoint(-5628.204, 5097.896, -3268.084)
+    route[#route + 1] = makeWaypoint(-5631.059, 5100.790, -3268.325)
+    route[#route + 1] = makeWaypoint(-5633.506, 5103.404, -3267.085)
+    route[#route + 1] = makeWaypoint(-5635.693, 5104.780, -3263.354)
+    route[#route + 1] = makeWaypoint(-5635.275, 5104.780, -3260.799)
+    route[#route + 1] = makeWaypoint(-5635.373, 5106.274, -3258.401)
+    route[#route + 1] = makeWaypoint(-5635.446, 5111.090, -3256.201)
+    route[#route + 1] = makeWaypoint(-5635.590, 5111.395, -3252.936)
+    route[#route + 1] = makeWaypoint(-5635.735, 5100.899, -3251.288)
+    route[#route + 1] = makeWaypoint(-5635.719, 5100.944, -3251.427)
+    route[#route + 1] = makeWaypoint(-5635.702, 5100.649, -3250.342)
+    route[#route + 1] = makeWaypoint(-5635.723, 5100.372, -3249.084)
+    route[#route + 1] = makeWaypoint(-5635.712, 5100.105, -3247.367)
+    route[#route + 1] = makeWaypoint(-5635.227, 5099.802, -3243.309)
+    route[#route + 1] = makeWaypoint(-5634.687, 5099.800, -3240.276)
+    route[#route + 1] = makeWaypoint(-5633.100, 5106.259, -3236.076)
+    route[#route + 1] = makeWaypoint(-5631.450, 5105.911, -3233.413)
+    route[#route + 1] = makeWaypoint(-5630.004, 5099.578, -3230.634)
+    route[#route + 1] = makeWaypoint(-5628.696, 5099.781, -3227.784)
+    route[#route + 1] = makeWaypoint(-5627.471, 5099.781, -3225.120)
+    route[#route + 1] = makeWaypoint(-5626.191, 5099.781, -3222.335)
+    route[#route + 1] = makeWaypoint(-5625.217, 5099.781, -3220.216)
+    route[#route + 1] = makeWaypoint(-5624.137, 5099.781, -3217.997)
+    route[#route + 1] = makeWaypoint(-5622.807, 5099.781, -3215.457)
+    route[#route + 1] = makeWaypoint(-5621.282, 5099.781, -3212.570)
+    route[#route + 1] = makeWaypoint(-5619.988, 5106.421, -3209.210)
+    route[#route + 1] = makeWaypoint(-5618.983, 5106.612, -3206.595)
+    route[#route + 1] = makeWaypoint(-5617.969, 5102.899, -3204.830)
+    route[#route + 1] = makeWaypoint(-5617.701, 5101.776, -3201.833)
+    route[#route + 1] = makeWaypoint(-5619.136, 5101.780, -3204.998)
+    route[#route + 1] = makeWaypoint(-5619.697, 5100.203, -3208.617)
+    route[#route + 1] = makeWaypoint(-5620.646, 5099.795, -3212.297)
+    route[#route + 1] = makeWaypoint(-5621.683, 5099.801, -3215.609)
+    route[#route + 1] = makeWaypoint(-5622.645, 5099.801, -3218.520)
+    route[#route + 1] = makeWaypoint(-5623.798, 5099.793, -3221.788)
+    route[#route + 1] = makeWaypoint(-5624.729, 5099.785, -3224.214)
+    route[#route + 1] = makeWaypoint(-5625.864, 5099.785, -3226.845)
+    route[#route + 1] = makeWaypoint(-5627.028, 5099.785, -3229.246)
+    route[#route + 1] = makeWaypoint(-5628.371, 5099.790, -3231.780)
+    route[#route + 1] = makeWaypoint(-5629.616, 5099.790, -3233.828)
+    route[#route + 1] = makeWaypoint(-5631.404, 5105.608, -3236.236)
+    route[#route + 1] = makeWaypoint(-5633.354, 5106.862, -3238.688)
+    route[#route + 1] = makeWaypoint(-5635.229, 5099.819, -3241.743)
+    route[#route + 1] = makeWaypoint(-5636.001, 5107.813, -3259.778)
+    route[#route + 1] = makeWaypoint(-5636.182, 5104.702, -3262.217)
+    route[#route + 1] = makeWaypoint(-5638.039, 5110.686, -3264.457)
+    route[#route + 1] = makeWaypoint(-5641.404, 5111.214, -3265.863)
+    route[#route + 1] = makeWaypoint(-5644.308, 5105.633, -3266.194)
+    route[#route + 1] = makeWaypoint(-5647.978, 5112.314, -3266.151)
+    route[#route + 1] = makeWaypoint(-5650.773, 5111.846, -3266.226)
+    route[#route + 1] = makeWaypoint(-5654.359, 5116.217, -3266.345)
+    route[#route + 1] = makeWaypoint(-5657.280, 5119.265, -3266.439)
+    route[#route + 1] = makeWaypoint(-5658.109, 5123.205, -3264.943)
+    route[#route + 1] = makeWaypoint(-5659.779, 5126.866, -3264.971)
+    route[#route + 1] = makeWaypoint(-5663.271, 5123.267, -3265.644)
+    route[#route + 1] = makeWaypoint(-5662.701, 5117.780, -3266.195)
+    route[#route + 1] = makeWaypoint(-5661.032, 5116.764, -3265.987)
+    route[#route + 1] = makeWaypoint(-5660.987, 5112.183, -3266.070)
+    route[#route + 1] = makeWaypoint(-5660.500, 5104.780, -3266.293)
+    route[#route + 1] = makeWaypoint(-5662.785, 5104.780, -3266.971)
+    route[#route + 1] = makeWaypoint(-5665.904, 5104.780, -3267.710)
+    route[#route + 1] = makeWaypoint(-5668.948, 5104.780, -3267.990)
+    route[#route + 1] = makeWaypoint(-5671.517, 5104.780, -3267.618)
+    route[#route + 1] = makeWaypoint(-5675.155, 5104.780, -3267.199)
+    route[#route + 1] = makeWaypoint(-5678.557, 5104.780, -3266.562)
+    route[#route + 1] = makeWaypoint(-5680.089, 5104.780, -3264.415)
+    route[#route + 1] = makeWaypoint(-5684.359, 5104.780, -3262.195)
+    route[#route + 1] = makeWaypoint(-5688.644, 5107.425, -3262.528)
+    route[#route + 1] = makeWaypoint(-5690.702, 5111.421, -3262.689)
+    route[#route + 1] = makeWaypoint(-5691.364, 5111.343, -3263.162)
+    route[#route + 1] = makeWaypoint(-5691.332, 5115.995, -3263.163)
+    route[#route + 1] = makeWaypoint(-5692.246, 5116.696, -3263.368)
+    route[#route + 1] = makeWaypoint(-5692.448, 5121.206, -3264.323)
+    route[#route + 1] = makeWaypoint(-5695.059, 5124.528, -3264.823)
+    route[#route + 1] = makeWaypoint(-5697.585, 5122.222, -3264.833)
+    route[#route + 1] = makeWaypoint(-5700.564, 5121.780, -3265.900)
+    route[#route + 1] = makeWaypoint(-5701.559, 5121.780, -3267.369)
+    route[#route + 1] = makeWaypoint(-5701.530, 5121.780, -3269.156)
+    route[#route + 1] = makeWaypoint(-5701.424, 5127.145, -3271.888)
+    route[#route + 1] = makeWaypoint(-5701.301, 5129.195, -3274.688)
+    route[#route + 1] = makeWaypoint(-5701.199, 5126.313, -3277.020)
+    route[#route + 1] = makeWaypoint(-5701.174, 5119.810, -3277.775)
+    route[#route + 1] = makeWaypoint(-5701.146, 5119.910, -3277.385)
+    route[#route + 1] = makeWaypoint(-5701.144, 5119.719, -3278.437)
+    route[#route + 1] = makeWaypoint(-5701.149, 5119.526, -3279.936)
+    route[#route + 1] = makeWaypoint(-5701.166, 5119.423, -3281.433)
+    route[#route + 1] = makeWaypoint(-5701.194, 5119.418, -3283.072)
+    route[#route + 1] = makeWaypoint(-5701.171, 5119.496, -3284.421)
+    route[#route + 1] = makeWaypoint(-5701.143, 5119.716, -3286.191)
+    route[#route + 1] = makeWaypoint(-5701.058, 5120.449, -3289.864)
+    route[#route + 1] = makeWaypoint(-5700.925, 5126.847, -3292.981)
+    route[#route + 1] = makeWaypoint(-5700.714, 5124.230, -3297.780)
+    route[#route + 1] = makeWaypoint(-5700.574, 5128.434, -3301.096)
+    route[#route + 1] = makeWaypoint(-5700.438, 5125.780, -3304.311)
+    route[#route + 1] = makeWaypoint(-5700.377, 5125.780, -3305.723)
+    route[#route + 1] = makeWaypoint(-5700.805, 5133.487, -3312.353)
+    route[#route + 1] = makeWaypoint(-5701.133, 5132.676, -3315.131)
+    route[#route + 1] = makeWaypoint(-5701.407, 5132.373, -3317.447)
+    route[#route + 1] = makeWaypoint(-5701.883, 5137.742, -3321.483)
+    route[#route + 1] = makeWaypoint(-5702.245, 5135.143, -3324.593)
+    route[#route + 1] = makeWaypoint(-5702.670, 5141.602, -3329.371)
+    route[#route + 1] = makeWaypoint(-5702.855, 5138.980, -3332.981)
+    route[#route + 1] = makeWaypoint(-5700.594, 5141.775, -3339.832)
+    route[#route + 1] = makeWaypoint(-5698.562, 5144.605, -3341.082)
+    route[#route + 1] = makeWaypoint(-5695.540, 5149.222, -3341.875)
+    route[#route + 1] = makeWaypoint(-5692.700, 5146.854, -3342.236)
+    route[#route + 1] = makeWaypoint(-5690.368, 5141.557, -3342.315)
+    route[#route + 1] = makeWaypoint(-5687.893, 5141.780, -3342.282)
+    route[#route + 1] = makeWaypoint(-5685.150, 5141.780, -3342.242)
+    route[#route + 1] = makeWaypoint(-5682.025, 5141.780, -3342.049)
+    route[#route + 1] = makeWaypoint(-5679.703, 5141.780, -3341.452)
+    route[#route + 1] = makeWaypoint(-5676.568, 5148.758, -3340.495)
+    route[#route + 1] = makeWaypoint(-5673.626, 5147.869, -3339.597)
+    route[#route + 1] = makeWaypoint(-5670.681, 5145.341, -3338.695)
+    route[#route + 1] = makeWaypoint(-5667.998, 5150.539, -3337.875)
+    route[#route + 1] = makeWaypoint(-5665.503, 5149.985, -3337.113)
+    route[#route + 1] = makeWaypoint(-5663.074, 5152.931, -3336.368)
+    route[#route + 1] = makeWaypoint(-5661.155, 5156.029, -3335.782)
+    route[#route + 1] = makeWaypoint(-5658.240, 5154.827, -3334.818)
+    route[#route + 1] = makeWaypoint(-5656.726, 5153.743, -3333.563)
+    route[#route + 1] = makeWaypoint(-5655.420, 5158.500, -3330.438)
+    route[#route + 1] = makeWaypoint(-5654.029, 5161.170, -3327.565)
+    route[#route + 1] = makeWaypoint(-5649.524, 5161.023, -3329.561)
+    route[#route + 1] = makeWaypoint(-5647.833, 5163.195, -3331.874)
+    route[#route + 1] = makeWaypoint(-5645.189, 5159.714, -3333.765)
+    route[#route + 1] = makeWaypoint(-5643.525, 5158.780, -3332.519)
+    route[#route + 1] = makeWaypoint(-5642.317, 5158.780, -3330.760)
+    route[#route + 1] = makeWaypoint(-5638.222, 5164.386, -3324.603)
+    route[#route + 1] = makeWaypoint(-5636.353, 5159.303, -3323.631)
+    route[#route + 1] = makeWaypoint(-5633.291, 5158.062, -3323.211)
+    route[#route + 1] = makeWaypoint(-5629.073, 5163.562, -3324.129)
+    route[#route + 1] = makeWaypoint(-5625.715, 5159.696, -3324.972)
+    route[#route + 1] = makeWaypoint(-5622.190, 5159.762, -3325.126)
+    route[#route + 1] = makeWaypoint(-5618.722, 5159.780, -3325.683)
+    route[#route + 1] = makeWaypoint(-5615.940, 5160.123, -3324.326)
+    route[#route + 1] = makeWaypoint(-5613.380, 5160.780, -3321.539)
+    route[#route + 1] = makeWaypoint(-5613.461, 5160.780, -3318.336)
+    route[#route + 1] = makeWaypoint(-5614.204, 5160.780, -3315.291)
+    route[#route + 1] = makeWaypoint(-5614.711, 5166.712, -3313.859)
+    route[#route + 1] = makeWaypoint(-5617.138, 5162.474, -3303.771)
+    route[#route + 1] = makeWaypoint(-5618.005, 5162.537, -3301.181)
+    route[#route + 1] = makeWaypoint(-5618.966, 5162.610, -3298.123)
+    route[#route + 1] = makeWaypoint(-5619.867, 5162.680, -3295.255)
+    route[#route + 1] = makeWaypoint(-5620.693, 5162.754, -3292.166)
+    route[#route + 1] = makeWaypoint(-5621.454, 5162.759, -3288.865)
+    route[#route + 1] = makeWaypoint(-5621.565, 5161.772, -3285.813)
+    route[#route + 1] = makeWaypoint(-5622.567, 5160.780, -3282.950)
+    route[#route + 1] = makeWaypoint(-5624.526, 5160.780, -3281.261)
+    route[#route + 1] = makeWaypoint(-5627.785, 5160.780, -3281.476)
+    route[#route + 1] = makeWaypoint(-5630.294, 5160.780, -3281.829)
+    route[#route + 1] = makeWaypoint(-5633.833, 5166.599, -3282.470)
+    route[#route + 1] = makeWaypoint(-5640.551, 5158.637, -3283.710)
+    route[#route + 1] = makeWaypoint(-5645.926, 5158.778, -3279.529)
+    route[#route + 1] = makeWaypoint(-5650.452, 5158.778, -3279.633)
+    route[#route + 1] = makeWaypoint(-5654.821, 5158.778, -3282.694)
+    route[#route + 1] = makeWaypoint(-5655.817, 5158.778, -3284.406)
+    route[#route + 1] = makeWaypoint(-5656.848, 5158.778, -3287.529)
+    route[#route + 1] = makeWaypoint(-5660.914, 5166.193, -3291.552)
+    route[#route + 1] = makeWaypoint(-5663.417, 5161.896, -3290.443)
+    route[#route + 1] = makeWaypoint(-5666.175, 5160.684, -3289.939)
+    route[#route + 1] = makeWaypoint(-5669.839, 5160.730, -3290.744)
+    route[#route + 1] = makeWaypoint(-5673.512, 5160.730, -3292.939)
+    route[#route + 1] = makeWaypoint(-5675.860, 5160.556, -3296.002)
+    route[#route + 1] = makeWaypoint(-5675.573, 5160.678, -3300.283)
+    route[#route + 1] = makeWaypoint(-5676.865, 5165.229, -3303.252)
+    route[#route + 1] = makeWaypoint(-5680.359, 5167.467, -3304.884)
+    route[#route + 1] = makeWaypoint(-5683.171, 5161.309, -3305.906)
+    route[#route + 1] = makeWaypoint(-5685.808, 5158.777, -3307.021)
+    route[#route + 1] = makeWaypoint(-5688.257, 5165.904, -3313.193)
+    route[#route + 1] = makeWaypoint(-5688.656, 5165.147, -3315.284)
+    route[#route + 1] = makeWaypoint(-5688.933, 5171.420, -3318.140)
+    route[#route + 1] = makeWaypoint(-5689.276, 5172.273, -3321.726)
+    route[#route + 1] = makeWaypoint(-5689.834, 5177.167, -3327.569)
+    route[#route + 1] = makeWaypoint(-5690.146, 5177.218, -3330.823)
+    route[#route + 1] = makeWaypoint(-5690.380, 5182.869, -3333.280)
+    route[#route + 1] = makeWaypoint(-5690.672, 5183.391, -3336.335)
+    route[#route + 1] = makeWaypoint(-5690.914, 5178.386, -3338.858)
+    route[#route + 1] = makeWaypoint(-5691.364, 5183.483, -3343.573)
+    route[#route + 1] = makeWaypoint(-5691.870, 5177.852, -3348.886)
+    route[#route + 1] = makeWaypoint(-5691.202, 5176.773, -3350.816)
+    route[#route + 1] = makeWaypoint(-5689.644, 5176.780, -3352.820)
+    route[#route + 1] = makeWaypoint(-5687.167, 5183.966, -3356.132)
+    route[#route + 1] = makeWaypoint(-5685.167, 5182.223, -3358.627)
+    route[#route + 1] = makeWaypoint(-5683.034, 5174.518, -3360.318)
+    route[#route + 1] = makeWaypoint(-5680.452, 5171.990, -3361.354)
+    route[#route + 1] = makeWaypoint(-5675.497, 5171.780, -3361.911)
+    route[#route + 1] = makeWaypoint(-5672.955, 5171.780, -3361.967)
+    route[#route + 1] = makeWaypoint(-5670.620, 5171.780, -3362.056)
+    route[#route + 1] = makeWaypoint(-5668.184, 5175.455, -3363.235)
+    route[#route + 1] = makeWaypoint(-5667.514, 5179.307, -3365.921)
+    route[#route + 1] = makeWaypoint(-5667.542, 5181.743, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5185.352, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5187.555, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5189.383, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5191.305, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5193.133, -3366.598)
+    route[#route + 1] = makeWaypoint(-5667.542, 5194.868, -3366.365)
+    route[#route + 1] = makeWaypoint(-5666.473, 5196.739, -3367.334)
+    route[#route + 1] = makeWaypoint(-5664.107, 5196.780, -3368.187)
+    route[#route + 1] = makeWaypoint(-5661.524, 5196.780, -3368.449)
+    route[#route + 1] = makeWaypoint(-5658.926, 5196.780, -3368.511)
+    route[#route + 1] = makeWaypoint(-5656.270, 5196.780, -3368.424)
+    route[#route + 1] = makeWaypoint(-5653.157, 5196.780, -3368.142)
+    route[#route + 1] = makeWaypoint(-5650.239, 5196.780, -3367.454)
+    route[#route + 1] = makeWaypoint(-5647.552, 5200.771, -3366.674)
+    route[#route + 1] = makeWaypoint(-5643.906, 5204.039, -3365.603)
+    route[#route + 1] = makeWaypoint(-5641.352, 5199.724, -3364.835)
+    route[#route + 1] = makeWaypoint(-5638.021, 5194.766, -3363.455)
+    route[#route + 1] = makeWaypoint(-5633.887, 5194.730, -3362.268)
+    route[#route + 1] = makeWaypoint(-5630.240, 5194.730, -3361.706)
+    route[#route + 1] = makeWaypoint(-5623.483, 5201.345, -3360.065)
+    route[#route + 1] = makeWaypoint(-5620.272, 5192.780, -3357.969)
+    route[#route + 1] = makeWaypoint(-5620.387, 5192.780, -3353.008)
+    route[#route + 1] = makeWaypoint(-5619.072, 5200.251, -3347.849)
+    route[#route + 1] = makeWaypoint(-5619.383, 5194.207, -3344.600)
+    route[#route + 1] = makeWaypoint(-5619.453, 5189.515, -3345.973)
+    route[#route + 1] = makeWaypoint(-5619.366, 5189.210, -3344.749)
+    route[#route + 1] = makeWaypoint(-5619.353, 5188.953, -3343.355)
+    route[#route + 1] = makeWaypoint(-5619.349, 5188.758, -3341.752)
+    route[#route + 1] = makeWaypoint(-5619.317, 5188.670, -3338.889)
+    route[#route + 1] = makeWaypoint(-5619.263, 5188.792, -3336.937)
+    route[#route + 1] = makeWaypoint(-5618.772, 5189.051, -3334.347)
+    route[#route + 1] = makeWaypoint(-5618.424, 5192.281, -3331.121)
+    route[#route + 1] = makeWaypoint(-5618.182, 5196.564, -3328.037)
+    route[#route + 1] = makeWaypoint(-5618.075, 5194.549, -3325.437)
+    route[#route + 1] = makeWaypoint(-5617.985, 5191.254, -3322.571)
+    route[#route + 1] = makeWaypoint(-5618.040, 5191.280, -3319.772)
+    route[#route + 1] = makeWaypoint(-5618.242, 5191.280, -3316.846)
+    route[#route + 1] = makeWaypoint(-5618.371, 5191.401, -3312.542)
+    route[#route + 1] = makeWaypoint(-5616.136, 5191.270, -3314.469)
+    route[#route + 1] = makeWaypoint(-5615.276, 5191.280, -3316.707)
+    route[#route + 1] = makeWaypoint(-5615.103, 5191.280, -3319.400)
+    route[#route + 1] = makeWaypoint(-5616.271, 5191.280, -3323.778)
+    route[#route + 1] = makeWaypoint(-5616.678, 5194.792, -3329.210)
+    route[#route + 1] = makeWaypoint(-5616.754, 5198.621, -3331.810)
+    route[#route + 1] = makeWaypoint(-5616.771, 5196.723, -3334.742)
+    route[#route + 1] = makeWaypoint(-5616.692, 5189.377, -3337.581)
+    route[#route + 1] = makeWaypoint(-5616.660, 5188.924, -3336.098)
+    route[#route + 1] = makeWaypoint(-5616.792, 5189.716, -3332.508)
+    route[#route + 1] = makeWaypoint(-5616.875, 5189.832, -3332.240)
+    route[#route + 1] = makeWaypoint(-5616.867, 5189.323, -3333.863)
+    route[#route + 1] = makeWaypoint(-5616.848, 5189.077, -3334.998)
+    route[#route + 1] = makeWaypoint(-5616.828, 5188.830, -3336.543)
+    route[#route + 1] = makeWaypoint(-5617.275, 5188.687, -3339.085)
+    route[#route + 1] = makeWaypoint(-5617.821, 5188.816, -3342.869)
+    route[#route + 1] = makeWaypoint(-5618.028, 5189.317, -3346.692)
+    route[#route + 1] = makeWaypoint(-5618.087, 5193.651, -3349.716)
+    route[#route + 1] = makeWaypoint(-5618.033, 5196.976, -3352.915)
+    route[#route + 1] = makeWaypoint(-5618.094, 5192.797, -3355.979)
+    route[#route + 1] = makeWaypoint(-5618.357, 5192.780, -3358.833)
+    route[#route + 1] = makeWaypoint(-5618.387, 5192.864, -3361.948)
+    route[#route + 1] = makeWaypoint(-5618.348, 5194.399, -3364.851)
+    route[#route + 1] = makeWaypoint(-5618.216, 5196.409, -3368.065)
+    route[#route + 1] = makeWaypoint(-5618.201, 5198.874, -3371.013)
+    route[#route + 1] = makeWaypoint(-5618.252, 5199.780, -3374.346)
+    route[#route + 1] = makeWaypoint(-5618.373, 5206.177, -3377.745)
+    route[#route + 1] = makeWaypoint(-5618.395, 5208.496, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5210.089, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5212.667, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5214.824, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5216.792, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5218.574, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5220.167, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5222.277, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5224.105, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5225.417, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5227.386, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5229.636, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5231.230, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5233.246, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5235.683, -3379.258)
+    route[#route + 1] = makeWaypoint(-5618.395, 5238.261, -3379.258)
+    route[#route + 1] = makeWaypoint(-5619.335, 5240.725, -3382.415)
+    route[#route + 1] = makeWaypoint(-5622.155, 5240.778, -3384.476)
+    route[#route + 1] = makeWaypoint(-5626.184, 5240.778, -3384.520)
+    route[#route + 1] = makeWaypoint(-5629.270, 5240.778, -3383.993)
+    route[#route + 1] = makeWaypoint(-5631.833, 5240.778, -3382.906)
+    route[#route + 1] = makeWaypoint(-5634.242, 5240.778, -3380.913)
+    route[#route + 1] = makeWaypoint(-5636.274, 5240.778, -3378.708)
+    route[#route + 1] = makeWaypoint(-5638.918, 5240.778, -3374.931)
+    route[#route + 1] = makeWaypoint(-5641.942, 5240.778, -3370.338)
+    route[#route + 1] = makeWaypoint(-5644.184, 5241.115, -3366.140)
+    route[#route + 1] = makeWaypoint(-5643.556, 5242.412, -3361.970)
+    route[#route + 1] = makeWaypoint(-5639.928, 5243.510, -3359.032)
+    route[#route + 1] = makeWaypoint(-5636.966, 5244.218, -3357.423)
+    route[#route + 1] = makeWaypoint(-5633.923, 5245.095, -3355.806)
+    route[#route + 1] = makeWaypoint(-5629.924, 5250.055, -3353.792)
+    route[#route + 1] = makeWaypoint(-5625.889, 5253.125, -3351.268)
+    route[#route + 1] = makeWaypoint(-5620.312, 5254.861, -3345.791)
+    route[#route + 1] = makeWaypoint(-5618.245, 5255.676, -3343.347)
+    route[#route + 1] = makeWaypoint(-5616.354, 5252.769, -3341.112)
+    route[#route + 1] = makeWaypoint(-5614.526, 5255.898, -3338.836)
+    route[#route + 1] = makeWaypoint(-5612.529, 5259.086, -3335.656)
+    route[#route + 1] = makeWaypoint(-5611.151, 5257.492, -3332.965)
+    route[#route + 1] = makeWaypoint(-5610.040, 5256.553, -3330.123)
+    route[#route + 1] = makeWaypoint(-5608.533, 5260.939, -3322.592)
+    route[#route + 1] = makeWaypoint(-5607.970, 5258.797, -3319.631)
+    route[#route + 1] = makeWaypoint(-5607.349, 5264.360, -3315.969)
+    route[#route + 1] = makeWaypoint(-5606.865, 5264.724, -3313.079)
+    route[#route + 1] = makeWaypoint(-5606.517, 5261.445, -3310.078)
+    route[#route + 1] = makeWaypoint(-5607.176, 5267.142, -3304.105)
+    route[#route + 1] = makeWaypoint(-5608.362, 5266.987, -3300.739)
+    route[#route + 1] = makeWaypoint(-5615.539, 5270.813, -3294.613)
+    route[#route + 1] = makeWaypoint(-5618.471, 5267.868, -3292.575)
+    route[#route + 1] = makeWaypoint(-5620.731, 5268.409, -3291.192)
+    route[#route + 1] = makeWaypoint(-5623.720, 5272.988, -3289.796)
+    route[#route + 1] = makeWaypoint(-5626.408, 5273.352, -3288.608)
+    route[#route + 1] = makeWaypoint(-5628.760, 5270.808, -3287.573)
+    route[#route + 1] = makeWaypoint(-5631.031, 5270.458, -3286.763)
+    route[#route + 1] = makeWaypoint(-5633.903, 5275.273, -3285.959)
+    route[#route + 1] = makeWaypoint(-5637.052, 5276.327, -3285.344)
+    route[#route + 1] = makeWaypoint(-5640.063, 5273.497, -3285.081)
+    route[#route + 1] = makeWaypoint(-5642.781, 5274.264, -3285.229)
+    route[#route + 1] = makeWaypoint(-5645.877, 5278.589, -3285.510)
+    route[#route + 1] = makeWaypoint(-5648.525, 5279.166, -3285.751)
+    route[#route + 1] = makeWaypoint(-5652.146, 5275.463, -3286.076)
+    route[#route + 1] = makeWaypoint(-5655.472, 5279.960, -3286.521)
+    route[#route + 1] = makeWaypoint(-5659.282, 5281.809, -3287.825)
+    route[#route + 1] = makeWaypoint(-5662.135, 5278.767, -3289.365)
+    route[#route + 1] = makeWaypoint(-5669.746, 5283.626, -3295.735)
+    route[#route + 1] = makeWaypoint(-5675.106, 5288.013, -3300.756)
+    route[#route + 1] = makeWaypoint(-5676.894, 5287.039, -3303.415)
+    route[#route + 1] = makeWaypoint(-5678.531, 5286.158, -3306.735)
+    route[#route + 1] = makeWaypoint(-5679.921, 5290.562, -3310.125)
+    route[#route + 1] = makeWaypoint(-5682.610, 5289.491, -3316.684)
+    route[#route + 1] = makeWaypoint(-5683.438, 5293.233, -3319.496)
+    route[#route + 1] = makeWaypoint(-5684.103, 5293.212, -3322.819)
+    route[#route + 1] = makeWaypoint(-5684.231, 5288.802, -3326.181)
+    route[#route + 1] = makeWaypoint(-5683.922, 5293.012, -3328.627)
+    route[#route + 1] = makeWaypoint(-5683.080, 5296.210, -3331.719)
+    route[#route + 1] = makeWaypoint(-5680.907, 5293.812, -3335.516)
+    route[#route + 1] = makeWaypoint(-5678.331, 5295.873, -3338.418)
+    route[#route + 1] = makeWaypoint(-5675.857, 5299.070, -3341.598)
+    route[#route + 1] = makeWaypoint(-5673.213, 5294.636, -3345.818)
+    route[#route + 1] = makeWaypoint(-5671.415, 5299.474, -3348.205)
+    route[#route + 1] = makeWaypoint(-5667.642, 5301.771, -3351.815)
+    route[#route + 1] = makeWaypoint(-5664.635, 5299.308, -3354.609)
+    route[#route + 1] = makeWaypoint(-5660.325, 5305.095, -3357.333)
+    route[#route + 1] = makeWaypoint(-5655.758, 5300.599, -3359.084)
+    route[#route + 1] = makeWaypoint(-5650.478, 5307.692, -3359.431)
+    route[#route + 1] = makeWaypoint(-5645.829, 5305.580, -3358.979)
+    route[#route + 1] = makeWaypoint(-5642.638, 5307.074, -3358.332)
+    route[#route + 1] = makeWaypoint(-5639.115, 5310.904, -3357.682)
+    route[#route + 1] = makeWaypoint(-5636.515, 5310.394, -3357.122)
+    route[#route + 1] = makeWaypoint(-5632.648, 5308.382, -3355.905)
+    route[#route + 1] = makeWaypoint(-5629.316, 5313.526, -3354.226)
+    route[#route + 1] = makeWaypoint(-5626.080, 5312.858, -3352.141)
+    route[#route + 1] = makeWaypoint(-5623.589, 5309.352, -3350.133)
+    route[#route + 1] = makeWaypoint(-5621.244, 5315.771, -3347.407)
+    route[#route + 1] = makeWaypoint(-5618.750, 5315.893, -3344.353)
+    route[#route + 1] = makeWaypoint(-5616.459, 5313.264, -3341.384)
+    route[#route + 1] = makeWaypoint(-5615.001, 5317.664, -3339.447)
+    route[#route + 1] = makeWaypoint(-5613.401, 5319.622, -3337.323)
+    route[#route + 1] = makeWaypoint(-5611.093, 5317.124, -3334.020)
+    route[#route + 1] = makeWaypoint(-5610.908, 5319.295, -3330.628)
+    route[#route + 1] = makeWaypoint(-5614.593, 5322.542, -3327.744)
+    route[#route + 1] = makeWaypoint(-5617.402, 5319.090, -3325.703)
+    route[#route + 1] = makeWaypoint(-5621.115, 5316.767, -3325.302)
+    route[#route + 1] = makeWaypoint(-5624.396, 5316.776, -3325.403)
+    route[#route + 1] = makeWaypoint(-5628.602, 5317.153, -3325.365)
+    route[#route + 1] = makeWaypoint(-5632.126, 5317.774, -3324.776)
+    route[#route + 1] = makeWaypoint(-5636.359, 5317.778, -3323.583)
+    route[#route + 1] = makeWaypoint(-5641.790, 5317.778, -3321.611)
+    route[#route + 1] = makeWaypoint(-5651.479, 4318.779, -3227.396)
+    route[#route + 1] = makeWaypoint(-5666.936, 5241.778, -3400.437)
+    route[#route + 1] = makeWaypoint(-5669.091, 5241.778, -3401.323)
+    route[#route + 1] = makeWaypoint(-5671.644, 5241.778, -3402.765)
+    route[#route + 1] = makeWaypoint(-5674.119, 5241.778, -3404.461)
+    route[#route + 1] = makeWaypoint(-5675.728, 5241.778, -3405.399)
+    route[#route + 1] = makeWaypoint(-5678.498, 5241.778, -3406.547)
+    route[#route + 1] = makeWaypoint(-5680.799, 5241.778, -3407.216)
+    route[#route + 1] = makeWaypoint(-5682.752, 5241.778, -3407.648)
+    route[#route + 1] = makeWaypoint(-5684.920, 5241.778, -3408.021)
+    route[#route + 1] = makeWaypoint(-5687.431, 5241.778, -3408.362)
+    route[#route + 1] = makeWaypoint(-5690.087, 5241.778, -3408.621)
+    route[#route + 1] = makeWaypoint(-5692.345, 5241.778, -3408.708)
+    route[#route + 1] = makeWaypoint(-5694.943, 5241.778, -3408.763)
+    route[#route + 1] = makeWaypoint(-5697.686, 5241.778, -3408.803)
+    route[#route + 1] = makeWaypoint(-5700.228, 5241.778, -3408.840)
+    route[#route + 1] = makeWaypoint(-5701.900, 5241.778, -3408.865)
+    route[#route + 1] = makeWaypoint(-5704.368, 5241.778, -3408.823)
+    route[#route + 1] = makeWaypoint(-5706.931, 5241.778, -3408.399)
+    route[#route + 1] = makeWaypoint(-5709.226, 5241.778, -3407.701)
+    route[#route + 1] = makeWaypoint(-5711.245, 5241.778, -3406.828)
+    route[#route + 1] = makeWaypoint(-5713.706, 5241.778, -3405.244)
+    route[#route + 1] = makeWaypoint(-5715.672, 5241.840, -3403.087)
+    route[#route + 1] = makeWaypoint(-5716.947, 5242.766, -3400.530)
+    route[#route + 1] = makeWaypoint(-5717.700, 5243.372, -3398.044)
+    route[#route + 1] = makeWaypoint(-5718.368, 5243.775, -3395.604)
+    route[#route + 1] = makeWaypoint(-5719.053, 5243.857, -3393.100)
+    route[#route + 1] = makeWaypoint(-5719.594, 5244.746, -3390.765)
+    route[#route + 1] = makeWaypoint(-5719.877, 5244.778, -3388.317)
+    route[#route + 1] = makeWaypoint(-5720.042, 5244.778, -3385.518)
+    route[#route + 1] = makeWaypoint(-5720.233, 5250.021, -3382.792)
+    route[#route + 1] = makeWaypoint(-5720.475, 5252.141, -3379.803)
+    route[#route + 1] = makeWaypoint(-5720.701, 5247.896, -3377.014)
+    route[#route + 1] = makeWaypoint(-5720.902, 5253.037, -3374.502)
+    route[#route + 1] = makeWaypoint(-5721.133, 5255.209, -3371.647)
+    route[#route + 1] = makeWaypoint(-5721.308, 5253.882, -3369.479)
+    route[#route + 1] = makeWaypoint(-5721.542, 5254.989, -3367.337)
+    route[#route + 1] = makeWaypoint(-5722.085, 5262.588, -3363.415)
+    route[#route + 1] = makeWaypoint(-5722.527, 5261.183, -3360.448)
+    route[#route + 1] = makeWaypoint(-5722.179, 5263.092, -3356.781)
+    route[#route + 1] = makeWaypoint(-5722.996, 5264.639, -3352.724)
+    route[#route + 1] = makeWaypoint(-5723.216, 5257.902, -3349.586)
+    route[#route + 1] = makeWaypoint(-5723.177, 5265.424, -3344.813)
+    route[#route + 1] = makeWaypoint(-5723.875, 5261.603, -3341.345)
+    route[#route + 1] = makeWaypoint(-5723.687, 5263.028, -3337.618)
+    route[#route + 1] = makeWaypoint(-5724.138, 5264.787, -3334.312)
+    route[#route + 1] = makeWaypoint(-5724.420, 5258.030, -3331.004)
+    route[#route + 1] = makeWaypoint(-5723.474, 5264.894, -3326.610)
+    route[#route + 1] = makeWaypoint(-5723.286, 5263.151, -3323.411)
+    route[#route + 1] = makeWaypoint(-5723.100, 5256.865, -3320.321)
+    route[#route + 1] = makeWaypoint(-5722.921, 5263.263, -3316.926)
+    route[#route + 1] = makeWaypoint(-5722.768, 5259.613, -3312.994)
+    route[#route + 1] = makeWaypoint(-5722.668, 5255.189, -3309.594)
+    route[#route + 1] = makeWaypoint(-5722.704, 5261.534, -3305.266)
+    route[#route + 1] = makeWaypoint(-5723.820, 5260.336, -3301.645)
+    route[#route + 1] = makeWaypoint(-5724.950, 5254.778, -3296.922)
+    route[#route + 1] = makeWaypoint(-5725.310, 5254.778, -3293.809)
+    route[#route + 1] = makeWaypoint(-5725.540, 5254.778, -3290.954)
+    route[#route + 1] = makeWaypoint(-5725.730, 5254.778, -3288.364)
+    route[#route + 1] = makeWaypoint(-5725.925, 5254.778, -3285.302)
+    route[#route + 1] = makeWaypoint(-5726.147, 5254.778, -3282.711)
+    route[#route + 1] = makeWaypoint(-5726.737, 5259.359, -3280.326)
+    route[#route + 1] = makeWaypoint(-5727.968, 5262.214, -3277.448)
+    route[#route + 1] = makeWaypoint(-5728.454, 5257.722, -3274.433)
+    route[#route + 1] = makeWaypoint(-5728.630, 5252.766, -3271.237)
+    route[#route + 1] = makeWaypoint(-5728.743, 5252.778, -3268.904)
+    route[#route + 1] = makeWaypoint(-5728.740, 5252.778, -3266.505)
+    route[#route + 1] = makeWaypoint(-5728.516, 5252.778, -3264.049)
+    route[#route + 1] = makeWaypoint(-5728.041, 5258.702, -3260.952)
+    route[#route + 1] = makeWaypoint(-5727.547, 5259.851, -3257.931)
+    route[#route + 1] = makeWaypoint(-5727.262, 5254.205, -3255.024)
+    route[#route + 1] = makeWaypoint(-5728.264, 5257.529, -3251.656)
+    route[#route + 1] = makeWaypoint(-5729.804, 5253.915, -3245.561)
+    route[#route + 1] = makeWaypoint(-5729.833, 5247.574, -3243.162)
+    route[#route + 1] = makeWaypoint(-5730.162, 5247.778, -3240.454)
+    route[#route + 1] = makeWaypoint(-5730.402, 5247.778, -3237.616)
+    route[#route + 1] = makeWaypoint(-5728.530, 5247.778, -3234.829)
+    route[#route + 1] = makeWaypoint(-5724.968, 5247.778, -3238.748)
+    route[#route + 1] = makeWaypoint(-5722.623, 5254.260, -3239.291)
+    route[#route + 1] = makeWaypoint(-5722.213, 5255.852, -3239.009)
+    route[#route + 1] = makeWaypoint(-5722.213, 5258.055, -3239.009)
+    route[#route + 1] = makeWaypoint(-5722.213, 5259.883, -3239.009)
+    route[#route + 1] = makeWaypoint(-5721.185, 5261.608, -3238.464)
+    route[#route + 1] = makeWaypoint(-5718.123, 5264.603, -3236.831)
+    route[#route + 1] = makeWaypoint(-5716.218, 5268.438, -3235.795)
+    route[#route + 1] = makeWaypoint(-5716.077, 5270.454, -3235.718)
+    route[#route + 1] = makeWaypoint(-5716.077, 5272.470, -3235.718)
+    route[#route + 1] = makeWaypoint(-5716.077, 5274.720, -3235.718)
+    route[#route + 1] = makeWaypoint(-5716.011, 5276.747, -3235.677)
+    route[#route + 1] = makeWaypoint(-5712.843, 5277.778, -3233.747)
+    route[#route + 1] = makeWaypoint(-5709.401, 5284.535, -3231.709)
+    route[#route + 1] = makeWaypoint(-5706.942, 5284.999, -3230.242)
+    route[#route + 1] = makeWaypoint(-5702.823, 5292.214, -3227.920)
+    route[#route + 1] = makeWaypoint(-5700.496, 5289.040, -3226.624)
+    route[#route + 1] = makeWaypoint(-5697.667, 5291.602, -3225.140)
+    route[#route + 1] = makeWaypoint(-5695.008, 5291.778, -3223.767)
+    route[#route + 1] = makeWaypoint(-5692.290, 5291.778, -3222.363)
+    route[#route + 1] = makeWaypoint(-5689.690, 5291.778, -3221.020)
+    route[#route + 1] = makeWaypoint(-5686.083, 5297.377, -3219.701)
+    route[#route + 1] = makeWaypoint(-5682.830, 5298.851, -3219.600)
+    route[#route + 1] = makeWaypoint(-5680.179, 5293.991, -3219.858)
+    route[#route + 1] = makeWaypoint(-5676.751, 5289.776, -3220.392)
+    route[#route + 1] = makeWaypoint(-5673.455, 5289.778, -3220.917)
+    route[#route + 1] = makeWaypoint(-5671.082, 5289.778, -3221.295)
+    route[#route + 1] = makeWaypoint(-5668.449, 5294.634, -3221.728)
+    route[#route + 1] = makeWaypoint(-5666.224, 5297.220, -3222.174)
+    route[#route + 1] = makeWaypoint(-5663.934, 5295.768, -3222.653)
+    route[#route + 1] = makeWaypoint(-5661.845, 5289.697, -3223.089)
+    route[#route + 1] = makeWaypoint(-5664.818, 5285.143, -3222.279)
+    route[#route + 1] = makeWaypoint(-5665.664, 5285.374, -3222.060)
+    route[#route + 1] = makeWaypoint(-5664.945, 5285.173, -3222.266)
+    route[#route + 1] = makeWaypoint(-5663.983, 5284.942, -3222.526)
+    route[#route + 1] = makeWaypoint(-5662.724, 5284.706, -3222.864)
+    route[#route + 1] = makeWaypoint(-5661.187, 5284.519, -3223.273)
+    route[#route + 1] = makeWaypoint(-5658.480, 5284.442, -3223.953)
+    route[#route + 1] = makeWaypoint(-5654.552, 5284.711, -3224.875)
+    route[#route + 1] = makeWaypoint(-5650.847, 5290.464, -3225.689)
+    route[#route + 1] = makeWaypoint(-5646.725, 5290.426, -3226.551)
+    route[#route + 1] = makeWaypoint(-5643.930, 5285.174, -3227.201)
+    route[#route + 1] = makeWaypoint(-5641.110, 5285.720, -3228.015)
+    route[#route + 1] = makeWaypoint(-5638.423, 5291.919, -3228.796)
+    route[#route + 1] = makeWaypoint(-5636.185, 5292.496, -3229.435)
+    route[#route + 1] = makeWaypoint(-5632.560, 5285.197, -3230.417)
+    route[#route + 1] = makeWaypoint(-5627.130, 5284.458, -3231.926)
+    route[#route + 1] = makeWaypoint(-5624.273, 5284.485, -3232.705)
+    route[#route + 1] = makeWaypoint(-5619.831, 5284.948, -3233.828)
+    route[#route + 1] = makeWaypoint(-5615.893, 5288.976, -3234.803)
+    route[#route + 1] = makeWaypoint(-5611.960, 5292.474, -3235.817)
+    route[#route + 1] = makeWaypoint(-5609.125, 5286.728, -3236.958)
+    route[#route + 1] = makeWaypoint(-5606.322, 5280.792, -3238.504)
+    route[#route + 1] = makeWaypoint(-5603.647, 5280.778, -3239.858)
+    route[#route + 1] = makeWaypoint(-5600.591, 5280.778, -3241.349)
+    route[#route + 1] = makeWaypoint(-5598.059, 5280.778, -3242.537)
+    route[#route + 1] = makeWaypoint(-5594.910, 5280.778, -3243.821)
+    route[#route + 1] = makeWaypoint(-5591.692, 5280.778, -3244.917)
+    route[#route + 1] = makeWaypoint(-5588.291, 5280.778, -3245.489)
+    route[#route + 1] = makeWaypoint(-5584.609, 5280.775, -3244.739)
+    route[#route + 1] = makeWaypoint(-5581.168, 5280.778, -3242.993)
+    route[#route + 1] = makeWaypoint(-5576.604, 5280.778, -3242.777)
+    route[#route + 1] = makeWaypoint(-5571.412, 5280.778, -3243.896)
+    route[#route + 1] = makeWaypoint(-5568.229, 5280.778, -3245.824)
+    route[#route + 1] = makeWaypoint(-5566.312, 5280.778, -3247.567)
+    route[#route + 1] = makeWaypoint(-5564.970, 5280.778, -3250.369)
+    route[#route + 1] = makeWaypoint(-5564.597, 5280.778, -3253.265)
+    route[#route + 1] = makeWaypoint(-5564.906, 5280.778, -3255.775)
+    route[#route + 1] = makeWaypoint(-5566.561, 5280.778, -3260.909)
+    route[#route + 1] = makeWaypoint(-5567.391, 5280.778, -3263.998)
+    route[#route + 1] = makeWaypoint(-5567.855, 5280.778, -3266.823)
+    route[#route + 1] = makeWaypoint(-5567.790, 5280.778, -3269.352)
+    route[#route + 1] = makeWaypoint(-5567.446, 5280.778, -3271.996)
+    route[#route + 1] = makeWaypoint(-5567.018, 5281.435, -3274.493)
+    route[#route + 1] = makeWaypoint(-5566.555, 5281.778, -3276.778)
+    route[#route + 1] = makeWaypoint(-5565.980, 5282.735, -3279.516)
+    route[#route + 1] = makeWaypoint(-5565.393, 5285.019, -3282.319)
+    route[#route + 1] = makeWaypoint(-5564.723, 5289.999, -3285.513)
+    route[#route + 1] = makeWaypoint(-5564.107, 5287.368, -3288.447)
+    route[#route + 1] = makeWaypoint(-5563.542, 5285.276, -3291.124)
+    route[#route + 1] = makeWaypoint(-5562.848, 5290.462, -3294.042)
+    route[#route + 1] = makeWaypoint(-5562.068, 5289.508, -3296.650)
+    route[#route + 1] = makeWaypoint(-5561.434, 5294.228, -3298.663)
+    route[#route + 1] = makeWaypoint(-5560.473, 5296.898, -3301.719)
+    route[#route + 1] = makeWaypoint(-5559.803, 5292.834, -3304.578)
+    route[#route + 1] = makeWaypoint(-5559.158, 5298.733, -3307.638)
+    route[#route + 1] = makeWaypoint(-5558.028, 5299.826, -3310.560)
+    route[#route + 1] = makeWaypoint(-5556.974, 5293.395, -3313.499)
+    route[#route + 1] = makeWaypoint(-5556.217, 5298.647, -3316.520)
+    route[#route + 1] = makeWaypoint(-5555.293, 5300.055, -3319.018)
+    route[#route + 1] = makeWaypoint(-5554.304, 5295.124, -3321.852)
+    route[#route + 1] = makeWaypoint(-5554.018, 5292.866, -3324.459)
+    route[#route + 1] = makeWaypoint(-5553.566, 5296.951, -3328.051)
+    route[#route + 1] = makeWaypoint(-5552.281, 5300.066, -3331.564)
+    route[#route + 1] = makeWaypoint(-5551.330, 5293.726, -3335.996)
+    route[#route + 1] = makeWaypoint(-5551.597, 5293.467, -3341.515)
+    route[#route + 1] = makeWaypoint(-5550.939, 5290.764, -3344.200)
+    route[#route + 1] = makeWaypoint(-5550.414, 5288.230, -3346.787)
+    route[#route + 1] = makeWaypoint(-5550.014, 5287.021, -3349.518)
+    route[#route + 1] = makeWaypoint(-5549.568, 5293.072, -3352.875)
+    route[#route + 1] = makeWaypoint(-5549.236, 5291.402, -3355.653)
+    route[#route + 1] = makeWaypoint(-5548.914, 5283.209, -3358.564)
+    route[#route + 1] = makeWaypoint(-5548.751, 5279.751, -3361.023)
+    route[#route + 1] = makeWaypoint(-5548.943, 5279.778, -3364.148)
+    route[#route + 1] = makeWaypoint(-5549.787, 5286.176, -3367.979)
+    route[#route + 1] = makeWaypoint(-5551.198, 5285.665, -3371.435)
+    route[#route + 1] = makeWaypoint(-5552.495, 5279.691, -3374.435)
+    route[#route + 1] = makeWaypoint(-5554.401, 5285.902, -3378.768)
+    route[#route + 1] = makeWaypoint(-5557.358, 5280.364, -3384.108)
+    route[#route + 1] = makeWaypoint(-5559.479, 5279.778, -3385.920)
+    route[#route + 1] = makeWaypoint(-5562.379, 5282.603, -3387.699)
+    route[#route + 1] = makeWaypoint(-5567.978, 5283.717, -3391.073)
+    route[#route + 1] = makeWaypoint(-5573.429, 5279.528, -3394.426)
+    route[#route + 1] = makeWaypoint(-5576.198, 5285.554, -3396.160)
+    route[#route + 1] = makeWaypoint(-5581.032, 5283.467, -3395.757)
+    route[#route + 1] = makeWaypoint(-5583.128, 5282.458, -3396.650)
+    route[#route + 1] = makeWaypoint(-5586.349, 5289.678, -3398.958)
+    route[#route + 1] = makeWaypoint(-5588.724, 5287.437, -3400.434)
+    route[#route + 1] = makeWaypoint(-5591.346, 5284.215, -3401.570)
+    route[#route + 1] = makeWaypoint(-5596.238, 5286.977, -3402.753)
+    route[#route + 1] = makeWaypoint(-5598.637, 5288.357, -3403.224)
+    route[#route + 1] = makeWaypoint(-5600.710, 5289.506, -3403.909)
+    route[#route + 1] = makeWaypoint(-5602.218, 5290.796, -3405.082)
+    route[#route + 1] = makeWaypoint(-5604.863, 5292.580, -3406.757)
+    route[#route + 1] = makeWaypoint(-5609.459, 5292.223, -3407.373)
+    route[#route + 1] = makeWaypoint(-5613.558, 5291.278, -3406.990)
+    route[#route + 1] = makeWaypoint(-5618.074, 5297.588, -3406.589)
+    route[#route + 1] = makeWaypoint(-5621.992, 5296.950, -3406.233)
+    route[#route + 1] = makeWaypoint(-5625.425, 5293.014, -3405.759)
+    route[#route + 1] = makeWaypoint(-5628.587, 5298.464, -3405.290)
+    route[#route + 1] = makeWaypoint(-5631.401, 5296.682, -3404.776)
+    route[#route + 1] = makeWaypoint(-5634.542, 5292.644, -3404.202)
+    route[#route + 1] = makeWaypoint(-5637.837, 5298.491, -3403.704)
+    route[#route + 1] = makeWaypoint(-5640.708, 5296.592, -3403.135)
+    route[#route + 1] = makeWaypoint(-5643.120, 5291.712, -3401.652)
+    route[#route + 1] = makeWaypoint(-5644.712, 5293.472, -3398.273)
+    route[#route + 1] = makeWaypoint(-5645.129, 5299.577, -3394.321)
+    route[#route + 1] = makeWaypoint(-5645.152, 5301.593, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5304.499, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5307.687, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5310.077, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5312.327, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5314.296, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5316.546, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5318.327, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5320.296, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5322.077, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5325.499, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5327.140, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5330.655, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5332.577, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.152, 5336.468, -3393.902)
+    route[#route + 1] = makeWaypoint(-5645.234, 5339.178, -3392.317)
+    route[#route + 1] = makeWaypoint(-5645.354, 5339.770, -3389.985)
+    route[#route + 1] = makeWaypoint(-5645.480, 5339.778, -3387.519)
+    route[#route + 1] = makeWaypoint(-5645.597, 5341.196, -3385.252)
+    route[#route + 1] = makeWaypoint(-5645.774, 5344.639, -3381.787)
+    route[#route + 1] = makeWaypoint(-5645.925, 5347.562, -3378.854)
+    route[#route + 1] = makeWaypoint(-5645.987, 5348.776, -3375.521)
+    route[#route + 1] = makeWaypoint(-5645.962, 5348.778, -3372.656)
+    route[#route + 1] = makeWaypoint(-5646.800, 5348.778, -3369.418)
+    route[#route + 1] = makeWaypoint(-5646.855, 5348.778, -3362.994)
+    route[#route + 1] = makeWaypoint(-5646.291, 5348.778, -3355.192)
+    route[#route + 1] = makeWaypoint(-5646.291, 5348.778, -3344.897)
+    route[#route + 1] = makeWaypoint(-5646.291, 5348.778, -3330.630)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3313.759)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3293.174)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3270.785)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3251.125)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3210.000)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3162.133)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3141.794)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3113.936)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3083.701)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3055.863)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3032.664)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -3003.384)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2964.610)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2928.725)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2897.326)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2857.602)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2818.434)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2775.589)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2731.142)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2683.891)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2648.582)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2586.908)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2532.033)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2486.250)
+    route[#route + 1] = makeWaypoint(-5646.016, 5348.778, -2436.448)
+    route[#route + 1] = makeWaypoint(-5646.014, 5348.781, -2432.163)
+    route[#route + 1] = makeWaypoint(-5646.014, 5348.781, -2432.163)
+    route[#route + 1] = makeWaypoint(-5646.653, 5355.833, -2430.711)
+    route[#route + 1] = makeWaypoint(-5646.714, 5355.779, -2428.112)
+    route[#route + 1] = makeWaypoint(-5646.700, 5350.341, -2425.446)
+    route[#route + 1] = makeWaypoint(-5646.706, 5343.886, -2423.713)
+    route[#route + 1] = makeWaypoint(-5646.860, 5334.125, -2421.119)
+    route[#route + 1] = makeWaypoint(-5646.490, 5333.476, -2418.444)
+    route[#route + 1] = makeWaypoint(-5646.783, 5333.476, -2415.411)
+    route[#route + 1] = makeWaypoint(-5647.385, 5333.476, -2413.295)
+    route[#route + 1] = makeWaypoint(-5648.108, 5333.476, -2410.800)
+    route[#route + 1] = makeWaypoint(-5648.795, 5333.476, -2408.020)
+    route[#route + 1] = makeWaypoint(-5649.057, 5333.476, -2405.169)
+    route[#route + 1] = makeWaypoint(-5648.999, 5333.476, -2402.970)
+    route[#route + 1] = makeWaypoint(-5648.719, 5333.476, -2400.052)
+    route[#route + 1] = makeWaypoint(-5648.713, 5333.476, -2397.697)
+    route[#route + 1] = makeWaypoint(-5649.897, 5333.476, -2395.766)
+    route[#route + 1] = makeWaypoint(-5650.972, 5333.476, -2394.002)
+    route[#route + 1] = makeWaypoint(-5651.769, 5333.882, -2392.694)
+    route[#route + 1] = makeWaypoint(-5653.121, 5334.456, -2390.476)
+
+    return route
 end
