@@ -256,12 +256,15 @@ local function getInputPosition(input)
 	return screenPos - getGuiOrigin() + Library.MouseOffset
 end
 
-local function makeDraggable(handle, target)
+local function makeDraggable(handle, target, adjust)
 	local dragging = false
 	local dragStart
 	local startPos
 
 	handle.InputBegan:Connect(function(input)
+		if Library.DragLocked then
+			return
+		end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
@@ -282,12 +285,16 @@ local function makeDraggable(handle, target)
 			return
 		end
 		local delta = input.Position - dragStart
-		target.Position = UDim2.new(
+		local newPos = UDim2.new(
 			startPos.X.Scale,
 			startPos.X.Offset + delta.X,
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
 		)
+		if adjust then
+			newPos = adjust(newPos) or newPos
+		end
+		target.Position = newPos
 	end)
 end
 
@@ -298,6 +305,9 @@ local function resolveIcon(icon)
 	if type(icon) == "string" and icon ~= "" then
 		if icon:match("^rbxasset") or icon:match("^http") then
 			return icon
+		end
+		if icon:match("^%d+$") then
+			return "rbxassetid://" .. icon
 		end
 	end
 	return nil
@@ -446,14 +456,53 @@ function Library:CreateWindow(config)
 	local windowTitle = config.Title or "UI Library"
 	local footerText = config.Footer or ""
 	local toggleKey = config.ToggleKeybind or config.MenuKeybind or Enum.KeyCode.RightControl
-	local size = config.Size or UDim2.fromOffset(620, 420)
+	local size = config.Size or UDim2.fromOffset(680, 460)
 	local position = config.Position or UDim2.fromScale(0.5, 0.5)
+	if config.Center then
+		position = UDim2.fromScale(0.5, 0.5)
+	end
+
+	-- theme overrides from the window props
+	if typeof(config.Font) == "EnumItem" then
+		selfLib.Theme.Font = config.Font
+	elseif type(config.Font) == "string" and Enum.Font[config.Font] then
+		selfLib.Theme.Font = Enum.Font[config.Font]
+	end
+	if tonumber(config.CornerRadius) then
+		selfLib.Theme.CornerRadius = tonumber(config.CornerRadius)
+	end
+
+	-- opt-in animations (all off unless enabled, like Obsidian)
+	selfLib.Animations = { ToggleWindow = false, TabSwitch = false, Groupbox = false, Dropdown = false, KeyPicker = false }
+	if type(config.Animations) == "table" then
+		for k, v in pairs(config.Animations) do
+			selfLib.Animations[k] = v == true
+		end
+	end
+	selfLib.TabTransitionTime = tonumber(config.TabTransitionTime) or 0.22
+	selfLib.TabSwipeOffset = tonumber(config.TabSwipeOffset) or 26
+	selfLib.TabSwipeFrom = string.lower(tostring(config.TabSwipeFrom or "bottom"))
+
+	selfLib.TabButtonsStyle = {
+		Gap = 6,
+		Padding = 8,
+		CornerRadius = selfLib.Theme.CornerRadius,
+		Indicator = false,
+		IndicatorWidth = 2,
+		IndicatorHeight = 20,
+	}
+	if type(config.TabButtonsStyle) == "table" then
+		for k, v in pairs(config.TabButtonsStyle) do
+			selfLib.TabButtonsStyle[k] = v
+		end
+	end
 
 	local screenGui = create("ScreenGui", {
 		Name = "ObsidianCompat",
 		ResetOnSpawn = false,
 		IgnoreGuiInset = true,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		DisplayOrder = config.AlwaysOnTop == true and 999999 or 0,
 	})
 	protectGui(screenGui)
 	self.ScreenGui = screenGui
@@ -508,6 +557,16 @@ function Library:CreateWindow(config)
 	-- ====================================================================
 	-- Unified KeyPicker (used by Label / Toggle / groupbox variants)
 	-- ====================================================================
+	-- small "pop" for popups (dropdown menus) when the Dropdown animation is on
+	local function popIn(frame)
+		if not (selfLib.Animations and selfLib.Animations.Dropdown) then
+			return
+		end
+		local sc = frame:FindFirstChildOfClass("UIScale") or create("UIScale", { Parent = frame })
+		sc.Scale = 0.9
+		TweenService:Create(sc, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	end
+
 	local MODIFIER_KEYS = {
 		LeftShift = true, RightShift = true,
 		LeftControl = true, RightControl = true,
@@ -672,8 +731,19 @@ function Library:CreateWindow(config)
 			end
 		end
 
+		local function pulse()
+			if not (selfLib.Animations and selfLib.Animations.KeyPicker) then
+				return
+			end
+			button.BackgroundColor3 = selfLib.Theme.Accent
+			TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+			}):Play()
+		end
+
 		-- "Always" has a constant state (true); it never reacts to the key.
 		local function press()
+			pulse()
 			if picker.Mode == "Toggle" then
 				picker.Toggled = not picker.Toggled
 				fireClick(picker.Toggled)
@@ -922,6 +992,7 @@ function Library:CreateWindow(config)
 			if oldKey ~= picker.Value or oldMods ~= modsKey() then
 				applyModeState()
 				fireChanged()
+				pulse()
 			end
 			refreshButton()
 			refreshList()
@@ -1850,6 +1921,74 @@ function Library:CreateWindow(config)
 	})
 	addCorner(main, self.Theme.CornerRadius)
 	addStroke(main, self.Theme.Outline)
+	local mainScale = create("UIScale", { Scale = 1, Parent = main })
+
+	local bgAsset = resolveIcon(config.BackgroundImage)
+	if bgAsset then
+		local bg = create("ImageLabel", {
+			Name = "BackgroundImage",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Image = bgAsset,
+			ImageTransparency = 0.5,
+			ScaleType = Enum.ScaleType.Crop,
+			ZIndex = 0,
+			Parent = main,
+		})
+		addCorner(bg, self.Theme.CornerRadius)
+	end
+
+	-- unlock the mouse (first-person / shift-lock) while the window is visible
+	if config.UnlockMouseWhileOpen then
+		create("TextButton", {
+			Name = "ModalUnlock",
+			Modal = true,
+			Size = UDim2.fromOffset(0, 0),
+			BackgroundTransparency = 1,
+			Text = "",
+			Parent = main,
+		})
+	end
+
+	-- software cursor drawn on top of everything while the window is visible
+	if config.ShowCustomCursor then
+		local cursor = create("Frame", {
+			Name = "CustomCursor",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(8, 8),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BorderSizePixel = 0,
+			Visible = false,
+			ZIndex = 10000,
+			Parent = screenGui,
+		})
+		addCorner(cursor, 4)
+		addStroke(cursor, Color3.new(0, 0, 0))
+
+		local hidSystemCursor, prevIconEnabled = false, true
+		local function restoreCursor()
+			cursor.Visible = false
+			if hidSystemCursor then
+				hidSystemCursor = false
+				UserInputService.MouseIconEnabled = prevIconEnabled
+			end
+		end
+		selfLib:Connect(RunService.RenderStepped, function()
+			if main.Visible and not selfLib.Unloaded then
+				if not hidSystemCursor then
+					hidSystemCursor = true
+					prevIconEnabled = UserInputService.MouseIconEnabled
+				end
+				UserInputService.MouseIconEnabled = false
+				local pos = getMouseLocation()
+				cursor.Position = UDim2.fromOffset(pos.X, pos.Y)
+				cursor.Visible = true
+			else
+				restoreCursor()
+			end
+		end)
+		table.insert(selfLib.UnloadCallbacks, restoreCursor)
+	end
 
 	local topbar = create("Frame", {
 		Name = "Topbar",
@@ -1896,7 +2035,136 @@ function Library:CreateWindow(config)
 	addStroke(toggleButton, self.Theme.Outline)
 	bindHover(toggleButton, self.Theme.SurfaceAlt, self.Theme.Outline)
 
-	makeDraggable(topbar, main)
+	-- window icon (left of the title)
+	local iconAsset = resolveIcon(config.Icon)
+	if iconAsset then
+		local iconSize = typeof(config.IconSize) == "UDim2" and config.IconSize or UDim2.fromOffset(20, 20)
+		create("ImageLabel", {
+			Name = "WindowIcon",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 12, 0.5, 0),
+			Size = iconSize,
+			BackgroundTransparency = 1,
+			Image = iconAsset,
+			Parent = topbar,
+		})
+		local shift = 12 + iconSize.X.Offset + 8
+		titleLabel.Position = UDim2.fromOffset(shift, 0)
+		titleLabel.Size = UDim2.new(1, -(shift + 106), 1, 0)
+	end
+
+	-- edge / center snapping while dragging
+	local snapAdjust
+	if config.Snapping then
+		local dist = tonumber(config.SnapDistance) or 12
+		local margin = tonumber(config.SnapMargin) or 8
+		local function snapAxis(c, h, total, loMargin, hiMargin)
+			if math.abs((c - h) - loMargin) <= dist then
+				return loMargin + h
+			elseif math.abs((c + h) - (total - hiMargin)) <= dist then
+				return total - hiMargin - h
+			elseif math.abs(c - total / 2) <= dist then
+				return total / 2
+			end
+			return c
+		end
+		snapAdjust = function(pos)
+			local gui = screenGui.AbsoluteSize
+			if gui.X <= 0 or gui.Y <= 0 then
+				return pos
+			end
+			local half = main.AbsoluteSize / 2
+			local topMargin = margin
+			if config.SnapAvoidCoreGui then
+				topMargin += GuiService:GetGuiInset().Y
+			end
+			local cx = pos.X.Scale * gui.X + pos.X.Offset
+			local cy = pos.Y.Scale * gui.Y + pos.Y.Offset
+			cx = snapAxis(cx, half.X, gui.X, margin, margin)
+			cy = snapAxis(cy, half.Y, gui.Y, topMargin, margin)
+			return UDim2.new(pos.X.Scale, cx - pos.X.Scale * gui.X, pos.Y.Scale, cy - pos.Y.Scale * gui.Y)
+		end
+	end
+
+	makeDraggable(topbar, main, snapAdjust)
+
+	-- ---------- resize grip (bottom-right corner) ----------
+	if config.Resizable ~= false then
+		local minSize = Vector2.new(480, 320)
+		if typeof(config.MinSize) == "Vector2" then
+			minSize = config.MinSize
+		elseif typeof(config.MinSize) == "UDim2" then
+			minSize = Vector2.new(config.MinSize.X.Offset, config.MinSize.Y.Offset)
+		end
+
+		local grip = create("TextButton", {
+			Name = "ResizeGrip",
+			AnchorPoint = Vector2.new(1, 1),
+			Position = UDim2.new(1, -4, 1, -4),
+			Size = UDim2.fromOffset(14, 14),
+			BackgroundColor3 = self.Theme.SurfaceAlt,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
+			ZIndex = 100,
+			Parent = main,
+		})
+		addCorner(grip, 3)
+		addStroke(grip, self.Theme.Outline)
+		bindHover(grip, self.Theme.SurfaceAlt, self.Theme.Outline)
+
+		local resizing = false
+		local dragStart, startSize, startPos
+
+		grip.InputBegan:Connect(function(input)
+			if Library.DragLocked then
+				return
+			end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				resizing = true
+				dragStart = input.Position
+				startSize = main.AbsoluteSize
+				startPos = main.Position
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						resizing = false
+					end
+				end)
+			end
+		end)
+
+		selfLib:Connect(UserInputService.InputChanged, function(input)
+			if not resizing then
+				return
+			end
+			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then
+				return
+			end
+			local delta = input.Position - dragStart
+			local maxW, maxH = math.huge, math.huge
+			local gui = selfLib.ScreenGui
+			if gui and gui.AbsoluteSize.X > 0 then
+				maxW, maxH = gui.AbsoluteSize.X - 20, gui.AbsoluteSize.Y - 20
+			end
+			local w = math.clamp(startSize.X + delta.X, minSize.X, math.max(minSize.X, maxW))
+			local h = math.clamp(startSize.Y + delta.Y, minSize.Y, math.max(minSize.Y, maxH))
+			-- the window is center-anchored: shift by half the change so the
+			-- top-left corner stays put while the bottom-right follows the cursor
+			local dx, dy = w - startSize.X, h - startSize.Y
+			main.Size = UDim2.fromOffset(w, h)
+			main.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + dx / 2,
+				startPos.Y.Scale,
+				startPos.Y.Offset + dy / 2
+			)
+		end)
+		selfLib:Connect(UserInputService.InputEnded, function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				resizing = false
+			end
+		end)
+	end
 
 	local body = create("Frame", {
 		Name = "Body",
@@ -1938,7 +2206,13 @@ function Library:CreateWindow(config)
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		Parent = tabButtons,
 	})
-	addPadding(tabButtons, 8)
+	addPadding(tabButtons, selfLib.TabButtonsStyle.Padding)
+	do
+		local tbLayout = tabButtons:FindFirstChildOfClass("UIListLayout")
+		if tbLayout then
+			tbLayout.Padding = UDim.new(0, tonumber(selfLib.TabButtonsStyle.Gap) or 6)
+		end
+	end
 
 	local footer = create("TextLabel", {
 		Name = "Footer",
@@ -1962,6 +2236,171 @@ function Library:CreateWindow(config)
 		BackgroundTransparency = 1,
 		Parent = body,
 	})
+
+	local tabButtonInfos = {}
+	local applyButtonCompact
+
+	-- ====================================================================
+	-- Sidebar: resize handle, compact (icon-only) mode
+	-- ====================================================================
+	local sb = {
+		Min = tonumber(config.MinSidebarWidth) or 140,
+		CompactWidth = tonumber(config.SidebarCompactWidth) or 56,
+		MinContainer = tonumber(config.MinContainerWidth) or 300,
+		EnableResize = config.EnableSidebarResize == true,
+		EnableCompacting = config.EnableCompacting == true,
+		NoSnap = config.DisableCompactingSnap == true,
+		Activation = tonumber(config.CompactWidthActivation) or 0,
+		Compacted = config.SidebarCompacted == true,
+		Auto = false,
+	}
+	sb.CollapseThreshold = tonumber(config.SidebarCollapseThreshold) or (sb.Min - 20)
+	sb.Width = math.max(170, sb.Min)
+
+	local function isSidebarCompact()
+		return sb.Compacted or sb.Auto
+	end
+
+	local function firstChar(str)
+		local ok, c = pcall(function()
+			return utf8.char(utf8.codepoint(str, 1))
+		end)
+		if ok and c then
+			return c
+		end
+		return str:sub(1, 1)
+	end
+
+	function applyButtonCompact(info, compact)
+		local label, icon = info.label, info.icon
+		if compact then
+			if not info.compact then
+				info.fullText = label.Text
+			end
+			if icon then
+				label.Visible = false
+				icon.AnchorPoint = Vector2.new(0.5, 0.5)
+				icon.Position = UDim2.fromScale(0.5, 0.5)
+			else
+				label.Position = UDim2.fromOffset(0, 0)
+				label.Size = UDim2.fromScale(1, 1)
+				label.TextXAlignment = Enum.TextXAlignment.Center
+				label.Text = firstChar(info.fullText or info.name)
+			end
+		elseif info.compact then
+			label.Visible = true
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Position = UDim2.fromOffset(icon and 30 or 10, 0)
+			label.Size = UDim2.new(1, icon and -36 or -16, 1, 0)
+			label.Text = info.fullText or info.name
+			if icon then
+				icon.AnchorPoint = Vector2.new(0, 0.5)
+				icon.Position = UDim2.new(0, 8, 0.5, 0)
+			end
+		end
+		info.compact = compact
+	end
+
+	local function maxSidebarWidth()
+		local mw = main.AbsoluteSize.X
+		if mw <= 0 then
+			-- layout not computed yet: fall back to the requested window width
+			mw = size.X.Offset > 0 and size.X.Offset or 680
+		end
+		return math.max(sb.Min, mw - sb.MinContainer)
+	end
+
+	local function applySidebar()
+		local compact = isSidebarCompact()
+		local w
+		if compact then
+			w = sb.CompactWidth
+		else
+			sb.Width = math.clamp(sb.Width, sb.Min, maxSidebarWidth())
+			w = sb.Width
+		end
+		sidebar.Size = UDim2.new(0, w, 1, 0)
+		pages.Position = UDim2.fromOffset(w, 0)
+		pages.Size = UDim2.new(1, -w, 1, 0)
+		footer.Visible = not compact
+		for _, info in ipairs(tabButtonInfos) do
+			applyButtonCompact(info, compact)
+		end
+	end
+
+	local function updateAutoCompact()
+		local auto = sb.Activation > 0 and main.AbsoluteSize.X < sb.Activation
+		if auto ~= sb.Auto then
+			sb.Auto = auto
+		end
+		applySidebar()
+	end
+	main:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateAutoCompact)
+
+	if sb.EnableResize then
+		local handle = create("TextButton", {
+			Name = "SidebarResizeHandle",
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.fromScale(1, 0),
+			Size = UDim2.new(0, 6, 1, 0),
+			BackgroundColor3 = selfLib.Theme.Accent,
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
+			ZIndex = 20,
+			Parent = sidebar,
+		})
+		local dragging = false
+		local dragStart, startWidth
+		handle.MouseEnter:Connect(function()
+			handle.BackgroundTransparency = 0.6
+		end)
+		handle.MouseLeave:Connect(function()
+			if not dragging then
+				handle.BackgroundTransparency = 1
+			end
+		end)
+		handle.InputBegan:Connect(function(input)
+			if Library.DragLocked then
+				return
+			end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startWidth = sidebar.AbsoluteSize.X
+				handle.BackgroundTransparency = 0.4
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+						handle.BackgroundTransparency = 1
+					end
+				end)
+			end
+		end)
+		selfLib:Connect(UserInputService.InputChanged, function(input)
+			if not dragging then
+				return
+			end
+			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then
+				return
+			end
+			local raw = startWidth + (input.Position.X - dragStart.X)
+			if sb.EnableCompacting and not sb.NoSnap and raw < sb.CollapseThreshold then
+				sb.Compacted = true
+			else
+				sb.Compacted = false
+				sb.Width = math.clamp(raw, sb.Min, maxSidebarWidth())
+			end
+			applySidebar()
+		end)
+		selfLib:Connect(UserInputService.InputEnded, function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false
+				handle.BackgroundTransparency = 1
+			end
+		end)
+	end
 
 	local Window = {
 		Library = selfLib,
@@ -1998,15 +2437,32 @@ function Library:CreateWindow(config)
 		return self.Sidebar.AbsoluteSize.X
 	end
 	function Window:IsSidebarCompacted()
-		return false
+		return isSidebarCompact()
 	end
 	function Window:SetSidebarWidth(width)
-		self.Sidebar.Size = UDim2.new(0, math.max(120, tonumber(width) or 170), 1, 0)
-		self.Pages.Position = UDim2.fromOffset(self.Sidebar.Size.X.Offset, 0)
-		self.Pages.Size = UDim2.new(1, -self.Sidebar.Size.X.Offset, 1, 0)
+		sb.Width = math.clamp(tonumber(width) or sb.Width, sb.Min, maxSidebarWidth())
+		applySidebar()
 	end
-	function Window:SetCompact(_) end
-	function Window:SetAnimations() end
+	function Window:SetCompact(state)
+		sb.Compacted = state == true
+		applySidebar()
+	end
+	function Window:SetAnimations(animations, transitionTime, swipeOffset, swipeFrom)
+		if type(animations) == "table" then
+			for k, v in pairs(animations) do
+				selfLib.Animations[k] = v == true
+			end
+		end
+		if tonumber(transitionTime) then
+			selfLib.TabTransitionTime = tonumber(transitionTime)
+		end
+		if tonumber(swipeOffset) then
+			selfLib.TabSwipeOffset = tonumber(swipeOffset)
+		end
+		if type(swipeFrom) == "string" then
+			selfLib.TabSwipeFrom = string.lower(swipeFrom)
+		end
+	end
 
 	function Window:Toggle(force)
 		local state = force
@@ -2014,7 +2470,27 @@ function Library:CreateWindow(config)
 			state = not self.Visible
 		end
 		self.Visible = state
-		self.Main.Visible = state
+		if selfLib.Animations.ToggleWindow then
+			self._toggleToken = (self._toggleToken or 0) + 1
+			local token = self._toggleToken
+			if state then
+				self.Main.Visible = true
+				mainScale.Scale = 0.92
+				TweenService:Create(mainScale, TweenInfo.new(0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+			else
+				local tw = TweenService:Create(mainScale, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Scale = 0.92 })
+				tw.Completed:Connect(function()
+					if self._toggleToken == token then
+						self.Main.Visible = false
+						mainScale.Scale = 1
+					end
+				end)
+				tw:Play()
+			end
+		else
+			mainScale.Scale = 1
+			self.Main.Visible = state
+		end
 		return state
 	end
 
@@ -2028,8 +2504,23 @@ function Library:CreateWindow(config)
 			Text = "",
 			Parent = tabButtons,
 		})
-		addCorner(button, selfLib.Theme.CornerRadius)
+		addCorner(button, tonumber(selfLib.TabButtonsStyle.CornerRadius) or selfLib.Theme.CornerRadius)
 		addStroke(button, selfLib.Theme.Outline)
+
+		if selfLib.TabButtonsStyle.Indicator then
+			local ind = create("Frame", {
+				Name = "Indicator",
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 2, 0.5, 0),
+				Size = UDim2.fromOffset(tonumber(selfLib.TabButtonsStyle.IndicatorWidth) or 2, tonumber(selfLib.TabButtonsStyle.IndicatorHeight) or 20),
+				BackgroundColor3 = selfLib.Theme.Accent,
+				BorderSizePixel = 0,
+				Visible = false,
+				ZIndex = 3,
+				Parent = button,
+			})
+			addCorner(ind, 2)
+		end
 
 		local iconImage
 		local iconAsset = resolveIcon(icon)
@@ -2056,6 +2547,10 @@ function Library:CreateWindow(config)
 			Text = tostring(name),
 			Parent = button,
 		})
+
+		local info = { button = button, label = label, icon = iconImage, name = tostring(name) }
+		table.insert(tabButtonInfos, info)
+		applyButtonCompact(info, isSidebarCompact())
 
 		return button, label
 	end
@@ -3403,6 +3898,7 @@ function Library:CreateWindow(config)
 				end
 				menu.Parent = overlay or (selfLib.OverlayFrame or menu.Parent)
 				menu.Visible = true
+				popIn(menu)
 				dropdown.Open = true
 				selfLib._OpenDropdownCloser = closeList
 				if searchBox then
@@ -4025,6 +4521,7 @@ function Library:CreateWindow(config)
 				end
 			end
 
+			local previousTab = Window.ActiveTab
 			for _, other in ipairs(Window.Tabs) do
 				if type(other) == "table" then
 					if other.Page and other.Page:IsA("GuiObject") then
@@ -4032,6 +4529,10 @@ function Library:CreateWindow(config)
 					end
 					if other.Button and other.Button:IsA("GuiObject") then
 						other.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+						local ind = other.Button:FindFirstChild("Indicator")
+						if ind then
+							ind.Visible = false
+						end
 					end
 				end
 			end
@@ -4042,9 +4543,39 @@ function Library:CreateWindow(config)
 				end
 				self.Page.Visible = true
 				self.Page.ZIndex = 2
+
+				if self._swipeTween then
+					self._swipeTween:Cancel()
+					self._swipeTween = nil
+				end
+				self.Page.Position = UDim2.new()
+				if selfLib.Animations.TabSwitch and previousTab and previousTab ~= self and pagesContainer then
+					local off = selfLib.TabSwipeOffset
+					local dir = selfLib.TabSwipeFrom
+					local from = UDim2.fromOffset(0, off)
+					if dir == "top" then
+						from = UDim2.fromOffset(0, -off)
+					elseif dir == "left" then
+						from = UDim2.fromOffset(-off, 0)
+					elseif dir == "right" then
+						from = UDim2.fromOffset(off, 0)
+					end
+					pagesContainer.ClipsDescendants = true
+					self.Page.Position = from
+					self._swipeTween = TweenService:Create(
+						self.Page,
+						TweenInfo.new(selfLib.TabTransitionTime, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+						{ Position = UDim2.new() }
+					)
+					self._swipeTween:Play()
+				end
 			end
 			if self.Button then
 				self.Button.BackgroundColor3 = selfLib.Theme.AccentDark
+				local ind = self.Button:FindFirstChild("Indicator")
+				if ind then
+					ind.Visible = true
+				end
 			end
 
 			Window.ActiveTab = self
@@ -4394,6 +4925,62 @@ function Library:CreateWindow(config)
 			Window:Toggle()
 		end
 	end)
+
+	-- floating buttons for touch devices: show/hide the window, lock dragging
+	local showMobile = config.ShowMobileButtons
+	if showMobile == nil then
+		showMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	end
+	if showMobile then
+		local onRight = config.MobileButtonsSide == "Right"
+		local holder = create("Frame", {
+			Name = "MobileButtons",
+			AnchorPoint = Vector2.new(onRight and 1 or 0, 0.5),
+			Position = UDim2.new(onRight and 1 or 0, onRight and -10 or 10, 0.5, 0),
+			Size = UDim2.fromOffset(52, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			ZIndex = 7000,
+			Parent = screenGui,
+		})
+		create("UIListLayout", {
+			Padding = UDim.new(0, 8),
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = holder,
+		})
+		local function mobileButton(text, order, onClick)
+			local btn = create("TextButton", {
+				LayoutOrder = order,
+				Size = UDim2.fromOffset(52, 34),
+				BackgroundColor3 = selfLib.Theme.Surface,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Font = selfLib.Theme.Font,
+				TextSize = 13,
+				TextColor3 = selfLib.Theme.Text,
+				Text = text,
+				ZIndex = 7001,
+				Parent = holder,
+			})
+			addCorner(btn, selfLib.Theme.CornerRadius)
+			addStroke(btn, selfLib.Theme.Outline)
+			btn.MouseButton1Click:Connect(function()
+				onClick(btn)
+			end)
+			return btn
+		end
+		mobileButton("Menu", 1, function()
+			Window:Toggle()
+		end)
+		mobileButton("Lock", 2, function(btn)
+			Library.DragLocked = not Library.DragLocked
+			btn.Text = Library.DragLocked and "Unlock" or "Lock"
+			btn.TextColor3 = Library.DragLocked and selfLib.Theme.Accent or selfLib.Theme.Text
+		end)
+	end
+
+	applySidebar()
 
 	if config.AutoShow == false then
 		main.Visible = false
