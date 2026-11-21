@@ -336,19 +336,56 @@ local function isGuiVisible(inst)
 	return inst ~= nil
 end
 
-local function resolveIcon(icon)
-	if type(icon) == "number" then
-		return "rbxassetid://" .. tostring(icon)
+-- Obsidian resolves an icon name through the installed IconModule. The result
+-- is either a sprite descriptor (Url + rect) or a font descriptor (FontFace +
+-- Text). Keep both here so ImageLabel call sites and CreateIcon call sites can
+-- share one lookup path.
+local function getIconData(icon)
+	if type(icon) == "table" and (icon.Url or icon.FontFace) then
+		return icon
 	end
-	if type(icon) == "string" and icon ~= "" then
-		if icon:match("^rbxasset") or icon:match("^http") then
-			return icon
-		end
-		if icon:match("^%d+$") then
-			return "rbxassetid://" .. icon
-		end
+	local data = Library:GetCustomIcon(icon)
+	if type(data) == "table" and (data.Url or data.FontFace) then
+		return data
 	end
 	return nil
+end
+
+local function resolveIcon(icon)
+	local data = getIconData(icon)
+	-- Font glyphs need a TextLabel; the ImageLabel call sites below only want
+	-- a URL.
+	if type(data) == "table" and not data.FontFace then
+		return data.Url or nil
+	end
+	return nil
+end
+
+-- Applies the full image descriptor (including sprite-sheet rects) to an
+-- already-created ImageLabel/ImageButton. Returns the instance either way.
+local function applyIconData(target, icon)
+	if not target then
+		return target
+	end
+	local data = getIconData(icon)
+	if type(data) ~= "table" or data.FontFace then
+		return target
+	end
+	target.Image = data.Url or ""
+	target.ImageRectOffset = data.ImageRectOffset or Vector2.zero
+	target.ImageRectSize = data.ImageRectSize or Vector2.zero
+	return target
+end
+
+-- Creates the right GuiObject for either a sprite or a font glyph and applies
+-- the descriptor. Props must not contain Image/Text/FontFace; ApplyIcon sets
+-- those.
+local function createIconInstance(icon, props, isButton)
+	local data = getIconData(icon)
+	if not data then
+		return nil
+	end
+	return Library:CreateIcon(data, props, isButton)
 end
 
 function Library:Notify(message, duration, title)
@@ -606,6 +643,28 @@ function Library:SetDPIScale(scale)
 end
 
 function Library:UpdateColorsUsingRegistry()
+	-- ThemeManager swaps Library.Scheme for a plain table instead of writing
+	-- individual keys. Mirror the Obsidian palette names back into PESUI's
+	-- live Theme first, otherwise the registry would keep applying the old
+	-- colors.
+	if self.Scheme ~= nil and self.Theme ~= nil then
+		local schemeToTheme = {
+			BackgroundColor = "Background",
+			MainColor = "Surface",
+			AccentColor = "Accent",
+			OutlineColor = "Outline",
+			FontColor = "Text",
+			Font = "Font",
+			RedColor = "Danger",
+			DarkColor = "SurfaceAlt",
+		}
+		for schemeKey, themeKey in pairs(schemeToTheme) do
+			local value = self.Scheme[schemeKey]
+			if value ~= nil then
+				self.Theme[themeKey] = value
+			end
+		end
+	end
 	for key, entry in pairs(self.Registry or {}) do
 		if typeof(key) == "Instance" and type(entry) == "table" then
 			-- { [instance] = { Property = ThemeKey | function } }
@@ -755,21 +814,29 @@ end
 
 function Library:SetIconModule(module)
 	self._IconModule = module
+	self.IconModule = module
+	self._FetchIcons = module ~= nil
+	local _, names = pcall(function()
+		return type(module.Icons) == "table" and module.Icons or nil
+	end)
+	self._IconNames = names
 end
 
 function Library:GetIcon(name)
-	if self._IconModule
-		and self._IconModule ~= self.ImageManager
-		and type(self._IconModule.GetAsset) == "function" then
-		local ok, res = pcall(self._IconModule.GetAsset, name)
-		if ok then
-			return res
-		end
+	if not self._FetchIcons or not self._IconModule then
+		return nil
 	end
-	return nil
+	if type(self._IconModule.GetAsset) ~= "function" then
+		return nil
+	end
+	local ok, res = pcall(self._IconModule.GetAsset, name)
+	return ok and res or nil
 end
 
 function Library:GetCustomIcon(name)
+	if not name then
+		return nil
+	end
 	if type(name) == "number" then
 		name = "rbxassetid://" .. tostring(name)
 	end
@@ -784,31 +851,117 @@ function Library:GetCustomIcon(name)
 	return self:GetIcon(name)
 end
 
+-- Obsidian loads a Lucide icon module at startup. The module exposes
+-- `GetAsset(name)` and returns either a sprite descriptor
+-- (`Url`/`ImageRectOffset`/`ImageRectSize`) or a font descriptor
+-- (`FontFace`/`Text`). Failures are silent so the UI still builds offline.
+local function loadIconModule()
+	if typeof(loadstring) ~= "function" or not game or typeof(game.HttpGet) ~= "function" then
+		return
+	end
+	local sources = {
+		{
+			url = "https://raw.githubusercontent.com/notpoiu/Molto/refs/heads/main/source.lua",
+			provider = "lucide",
+		},
+		{
+			url = "https://raw.githubusercontent.com/notpoiu/lucide-roblox-direct/refs/heads/main/source.lua",
+		},
+	}
+	for _, source in ipairs(sources) do
+		local ok, module = pcall(function()
+			return loadstring(game:HttpGet(source.url))()
+		end)
+		if ok and type(module) == "table" and type(module.GetAsset) == "function" then
+			if source.provider and type(module.SetProvider) == "function" then
+				pcall(module.SetProvider, source.provider)
+			end
+			Library:SetIconModule(module)
+			return
+		end
+	end
+end
+pcall(loadIconModule)
+
+local IconTextProperties = { ImageColor3 = "TextColor3", ImageTransparency = "TextTransparency" }
+local IconSharedProperties = {
+	"Name", "AnchorPoint", "Position", "Size", "SizeConstraint", "LayoutOrder",
+	"ZIndex", "Visible", "Rotation", "ImageColor3", "ImageTransparency",
+}
+
+local function isFontIcon(icon)
+	return type(icon) == "table" and icon.FontFace ~= nil
+end
+
+local function mapIconProperties(className, props)
+	if className ~= "TextLabel" and className ~= "TextButton" then
+		return props
+	end
+	local mapped = {}
+	for prop, value in pairs(props or {}) do
+		mapped[IconTextProperties[prop] or prop] = value
+	end
+	return mapped
+end
+
 function Library:CreateIcon(icon, props, isButton)
-	props = props or {}
-	local inst
-	if isButton then
-		inst = create("ImageButton", props)
-	else
-		inst = create("ImageLabel", props)
+	local font = isFontIcon(icon)
+	local className = (font and "Text" or "Image") .. (isButton and "Button" or "Label")
+	local merged = {
+		BackgroundTransparency = 1,
+		ImageColor3 = Color3.new(1, 1, 1),
+	}
+	if not font then
+		merged.ScaleType = Enum.ScaleType.Fit
 	end
-	if type(icon) == "table" and icon.Url then
-		inst.Image = icon.Url
-		if icon.ImageRectOffset then
-			inst.ImageRectOffset = icon.ImageRectOffset
-		end
-		if icon.ImageRectSize then
-			inst.ImageRectSize = icon.ImageRectSize
-		end
+	for prop, value in pairs(props or {}) do
+		merged[prop] = value
 	end
-	return inst
+	local inst = create(className, mapIconProperties(className, merged))
+	return self:ApplyIcon(inst, icon)
 end
 
 function Library:ApplyIcon(target, icon)
+	local font = isFontIcon(icon)
+	local isText = target:IsA("TextLabel") or target:IsA("TextButton")
+	if font ~= isText then
+		local props = { Parent = target.Parent }
+		for _, prop in ipairs(IconSharedProperties) do
+			local source = isText and (IconTextProperties[prop] or prop) or prop
+			local ok, value = pcall(function() return target[source] end)
+			props[prop] = ok and value or nil
+		end
+		local replacement = self:CreateIcon(icon, props, target:IsA("GuiButton"))
+		safeDestroy(target)
+		return replacement
+	end
+	if font and icon then
+		target.FontFace = icon.FontFace
+		target.RichText = false
+		target.Text = icon.Text or ""
+		target.TextScaled = true
+		if not target:FindFirstChild("IconPadding") then
+			create("UIPadding", {
+				Name = "IconPadding",
+				PaddingLeft = UDim.new(-0.5, -0.5),
+				PaddingRight = UDim.new(-0.5, 0),
+				Parent = target,
+			})
+		end
+	elseif type(icon) == "table" then
+		target.Image = icon.Url or ""
+		target.ImageRectOffset = icon.ImageRectOffset or Vector2.zero
+		target.ImageRectSize = icon.ImageRectSize or Vector2.zero
+	end
 	return target
 end
 
-function Library:ApplyLucideIcon(imageGui, icon, rotation) end
+function Library:ApplyLucideIcon(imageGui, icon, rotation)
+	if rotation ~= nil then
+		imageGui.Rotation = rotation
+	end
+	return self:ApplyIcon(imageGui, icon)
+end
 
 function Library:MakeDraggable(handle, target, adjust)
 	makeDraggable(handle, target, adjust)
@@ -1451,6 +1604,9 @@ function Library:CreateWindow(config)
 		picker.ClickCallbacks = {}
 		picker.SyncToggleState = info.SyncToggleState == true
 		picker.NoUI = info.NoUI == true
+		-- SaveManager persists "hidden from the keybind list" through this
+		-- flag; Obsidian's default is visible.
+		picker.MenuVisible = info.MenuVisible ~= false
 		picker.DisplayName = tostring(info.Text or info.Title or id)
 		picker.Toggled = picker.Mode == "Always"
 		picker.Destroyed = false
@@ -1934,7 +2090,14 @@ function Library:CreateWindow(config)
 			end
 		end
 		function picker:SetMenuVisibility(visible)
-			-- no-op: menu visibility managed internally
+			picker.MenuVisible = visible ~= false
+			if selfLib and selfLib._RefreshKeybindList then
+				task.defer(function()
+					if selfLib and selfLib._RefreshKeybindList then
+						pcall(selfLib._RefreshKeybindList, selfLib)
+					end
+				end)
+			end
 		end
 		function picker:RunChanged()
 			if picker.ChangedCallback then
@@ -2881,6 +3044,7 @@ function Library:CreateWindow(config)
 			ZIndex = 0,
 			Parent = main,
 		})
+		applyIconData(bg, config.BackgroundImage)
 		addCorner(bg, self.Theme.CornerRadius)
 	end
 
@@ -2989,18 +3153,15 @@ function Library:CreateWindow(config)
 	bindHover(toggleButton, self.Theme.SurfaceAlt, self.Theme.Outline)
 
 	-- window icon (left of the title)
-	local iconAsset = resolveIcon(config.Icon)
-	if iconAsset then
-		local iconSize = typeof(config.IconSize) == "UDim2" and config.IconSize or UDim2.fromOffset(20, 20)
-		create("ImageLabel", {
-			Name = "WindowIcon",
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, 12, 0.5, 0),
-			Size = iconSize,
-			BackgroundTransparency = 1,
-			Image = iconAsset,
-			Parent = topbar,
-		})
+	local iconSize = typeof(config.IconSize) == "UDim2" and config.IconSize or UDim2.fromOffset(20, 20)
+	if createIconInstance(config.Icon, {
+		Name = "WindowIcon",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 12, 0.5, 0),
+		Size = iconSize,
+		BackgroundTransparency = 1,
+		Parent = topbar,
+	}) then
 		local shift = 12 + iconSize.X.Offset + 8
 		titleLabel.Position = UDim2.fromOffset(shift, 0)
 		titleLabel.Size = UDim2.new(1, -(shift + 106 + searchReserve), 1, 0)
@@ -3469,12 +3630,12 @@ function Library:CreateWindow(config)
 				Name = "BackgroundImage",
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
-				Image = asset,
 				ImageTransparency = 0.5,
 				ScaleType = Enum.ScaleType.Crop,
 				ZIndex = 0,
 				Parent = self.Main,
 			})
+			applyIconData(bg, image)
 			addCorner(bg, Library.Theme.CornerRadius)
 		end
 	end
@@ -3787,8 +3948,40 @@ function Library:CreateWindow(config)
 	end
 
 	function Window:AddCustomTab(...)
-		local name = ...
-		return self:AddTab(name)
+		local tab = self:AddTab(...)
+		if not tab then
+			return nil, nil
+		end
+		if tab.Scroll then tab.Scroll.Visible = false end
+		if tab.LeftColumn then tab.LeftColumn.Visible = false end
+		if tab.RightColumn then tab.RightColumn.Visible = false end
+
+		local container = create("Frame", {
+			Name = "CustomTabContainer",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Parent = tab.Page,
+		})
+		addPadding(container, 10)
+
+		-- Custom tabs deliberately expose no groupbox/tabbox helpers.
+		for _, method in ipairs({
+			"AddGroupbox", "AddLeftGroupbox", "AddRightGroupbox",
+			"AddTabbox", "AddLeftTabbox", "AddRightTabbox",
+			"UpdateWarningBox", "AddSubTab",
+		}) do
+			tab[method] = nil
+		end
+		function tab:Hide()
+			if self.Page then
+				self.Page.Visible = false
+			end
+			if Window.ActiveTab == self then
+				Window.ActiveTab = nil
+			end
+		end
+		tab.Container = container
+		return container, tab
 	end
 
 	function Window:ChangeTitle(text)
@@ -3904,18 +4097,14 @@ function Library:CreateWindow(config)
 			addCorner(ind, 2)
 		end
 
-		local iconImage
-		local iconAsset = resolveIcon(icon)
-		if iconAsset then
-			iconImage = create("ImageLabel", {
-				AnchorPoint = Vector2.new(0, 0.5),
-				Position = UDim2.new(0, 8, 0.5, 0),
-				Size = UDim2.fromOffset(16, 16),
-				BackgroundTransparency = 1,
-				Image = iconAsset,
-				Parent = button,
-			})
-		end
+		local iconImage = createIconInstance(icon, {
+			Name = "IconImage",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 8, 0.5, 0),
+			Size = UDim2.fromOffset(16, 16),
+			BackgroundTransparency = 1,
+			Parent = button,
+		})
 
 		local label = create("TextLabel", {
 			BackgroundTransparency = 1,
@@ -3998,6 +4187,10 @@ function Library:CreateWindow(config)
 		return page, left, right
 	end
 
+	-- Set by attachTabMethods so groupboxes can create nested tabboxes with
+	-- the same implementation (Obsidian: Groupbox:AddTabbox()).
+	local addTabboxImpl
+
 	local function attachGroupboxMethods(groupbox)
 		function groupbox:SetVisible(state)
 			if self.Container then
@@ -4016,15 +4209,146 @@ function Library:CreateWindow(config)
 				self.DescriptionLabel.Visible = text ~= nil and text ~= ""
 			end
 		end
-		function groupbox:SetMaxHeight(h) end
-		function groupbox:SetPoppedOut(v) end
-		function groupbox:TogglePoppedOut() end
-		function groupbox:SetMaxPopOutHeight(h) end
-		function groupbox:SetPopOutWidth(w) end
+		function groupbox:SetMaxHeight(h)
+			self.MaxHeight = tonumber(h) or nil
+			self:_ApplyMaxHeight()
+		end
+		function groupbox:_ApplyMaxHeight()
+			local holder = self.Holder
+			if not holder then return end
+			if not self.MaxHeight then
+				if self._HolderScroll then
+					holder.Parent = self._HolderScrollParent
+					holder.Size = UDim2.new(1, 0, 0, 0)
+					holder.AutomaticSize = Enum.AutomaticSize.Y
+					safeDestroy(self._HolderScroll)
+					self._HolderScroll = nil
+					self._HolderScrollParent = nil
+				end
+				return
+			end
+			if not self._HolderScroll then
+				local parent = holder.Parent
+				local scroll = create("ScrollingFrame", {
+					Size = UDim2.new(1, 0, 0, self.MaxHeight),
+					CanvasSize = UDim2.new(),
+					AutomaticCanvasSize = Enum.AutomaticSize.Y,
+					ScrollBarThickness = 3,
+					ScrollBarImageColor3 = selfLib.Theme.Outline,
+					BackgroundTransparency = 1,
+					BorderSizePixel = 0,
+					LayoutOrder = holder.LayoutOrder,
+					Parent = parent,
+				})
+				holder.Parent = scroll
+				self._HolderScroll = scroll
+				self._HolderScrollParent = parent
+			else
+				self._HolderScroll.Size = UDim2.new(1, 0, 0, self.MaxHeight)
+			end
+		end
+		function groupbox:SetPoppedOut(v, position)
+			if not self.PopOutEnabled or self.Destroyed then return end
+			local value = v == true
+			if self.PoppedOut == value then
+				if value and position and self.PopOutFloat then
+					self.PopOutFloat.Position = position
+				end
+				return
+			end
+			self.PoppedOut = value
+			if self.PoppedOut then
+				if not self.PopOutFloat or not self.PopOutFloat.Parent then
+					local float = create("Frame", {
+						Name = "PopOutFloat",
+						Size = UDim2.fromOffset(self.PopOutWidth or 300, 0),
+						AutomaticSize = Enum.AutomaticSize.Y,
+						BackgroundColor3 = selfLib.Theme.Surface,
+						BorderSizePixel = 0,
+						ZIndex = 6000,
+						Parent = selfLib.OverlayFrame or selfLib.ScreenGui,
+					})
+					addCorner(float, selfLib.Theme.CornerRadius)
+					addStroke(float, selfLib.Theme.Outline)
+					local header = create("TextLabel", {
+						Name = "PopOutTitle",
+						LayoutOrder = 1,
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, -24, 0, 24),
+						Font = selfLib.Theme.Font,
+						TextSize = 14,
+						TextColor3 = selfLib.Theme.Text,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						Text = tostring(self.Name or "Groupbox"),
+						Parent = float,
+					})
+					create("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = header })
+					local close = create("TextButton", {
+						Name = "PopOutClose",
+						AnchorPoint = Vector2.new(1, 0),
+						Position = UDim2.fromScale(1, 0),
+						Size = UDim2.fromOffset(24, 24),
+						BackgroundTransparency = 1,
+						Font = selfLib.Theme.Font,
+						TextSize = 16,
+						TextColor3 = selfLib.Theme.SubText,
+						Text = "×",
+						ZIndex = 6001,
+						Parent = float,
+					})
+					close.MouseButton1Click:Connect(function()
+						self:SetPoppedOut(false)
+					end)
+					self.PopOutFloat = float
+				end
+				if typeof(position) == "UDim2" then
+					self.PopOutFloat.Position = position
+				elseif self.PopOutFloat.Position == UDim2.new() then
+					self.PopOutFloat.Position = UDim2.fromOffset(80, 80)
+				end
+				if self.Container then
+					self._PopOutOriginalParent = self._PopOutOriginalParent or self.Container.Parent
+					self.Container.Parent = self.PopOutFloat
+					self.Container.Position = UDim2.fromOffset(0, 24)
+				end
+			else
+				if self.Container and self._PopOutOriginalParent then
+					self.Container.Parent = self._PopOutOriginalParent
+					self.Container.Position = UDim2.new()
+					self._PopOutOriginalParent = nil
+				end
+				if self.PopOutFloat then
+					safeDestroy(self.PopOutFloat)
+					self.PopOutFloat = nil
+				end
+			end
+		end
+		function groupbox:TogglePoppedOut()
+			self:SetPoppedOut(not self.PoppedOut)
+		end
+		function groupbox:SetMaxPopOutHeight(h)
+			self.MaxPopOutHeight = tonumber(h) or nil
+			if self.PoppedOut and self.PopOutFloat then
+				self.PopOutFloat.AutomaticSize = self.MaxPopOutHeight and Enum.AutomaticSize.X or Enum.AutomaticSize.Y
+				if self.MaxPopOutHeight then
+					self.PopOutFloat.Size = UDim2.fromOffset(self.PopOutWidth or 300, self.MaxPopOutHeight)
+				end
+			end
+		end
+		function groupbox:SetPopOutWidth(w)
+			self.PopOutWidth = tonumber(w) or nil
+			if self.PopOutFloat then
+				self.PopOutFloat.Size = UDim2.fromOffset(
+					self.PopOutWidth or 300,
+					self.MaxPopOutHeight or self.PopOutFloat.Size.Y.Offset
+				)
+			end
+		end
 		function groupbox:RefreshPopOutPlaceholder() end
 		function groupbox:SetCollapsed(state)
 			state = state == true
 			self._collapsed = state
+			self.Collapsed = state
 			-- keep the title row, hide only the contents
 			if self.Holder then
 				self.Holder.Visible = not state
@@ -4034,13 +4358,39 @@ function Library:CreateWindow(config)
 			end
 		end
 		function groupbox:ToggleCollapsed()
+			if self.DisableCollapsing then return end
 			self:SetCollapsed(not (self._collapsed == true))
 		end
 		function groupbox:IsCollapsed()
 			return self._collapsed == true
 		end
 		function groupbox:Resize() end
+		function groupbox:AddTabbox(info)
+			info = info or {}
+			self.Tabboxes = self.Tabboxes or {}
+			local proxy = {
+				AddGroupbox = function(_, gbInfo)
+					if Window._CreateGroupbox then
+						return Window._CreateGroupbox(self.Holder, gbInfo or {})
+					end
+					return self
+				end,
+				Tabboxes = self.Tabboxes,
+			}
+			if addTabboxImpl then
+				return addTabboxImpl(proxy, info)
+			end
+			return nil
+		end
 		function groupbox:Destroy()
+			if self.Destroyed then return end
+			self.Destroyed = true
+			if self._Tooltip then
+				pcall(function() self._Tooltip:Destroy() end)
+				self._Tooltip = nil
+			end
+			if self.PopOutFloat then safeDestroy(self.PopOutFloat) end
+			if self._HolderScroll then safeDestroy(self._HolderScroll) end
 			if self.Container then safeDestroy(self.Container) end
 		end
 	end
@@ -4052,6 +4402,7 @@ function Library:CreateWindow(config)
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = selfLib.Theme.Surface,
 			BorderSizePixel = 0,
+			Visible = info.Visible ~= false,
 			Parent = parent,
 		})
 		addCorner(container, selfLib.Theme.CornerRadius)
@@ -4081,6 +4432,18 @@ function Library:CreateWindow(config)
 			Parent = bodyFrame,
 		})
 
+		if createIconInstance(info.IconName or info.Icon, {
+			Name = "GroupboxIcon",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromOffset(0, 0),
+			Size = UDim2.fromOffset(16, 16),
+			BackgroundTransparency = 1,
+			Parent = title,
+		}) then
+			title.Position = UDim2.fromOffset(20, 0)
+			title.Size = UDim2.new(1, -20, 0, 18)
+		end
+
 		local desc = create("TextLabel", {
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 0),
@@ -4108,12 +4471,29 @@ function Library:CreateWindow(config)
 		})
 
 		local groupbox = {
+			Name = info.Name,
 			Container = container,
 			Holder = elementsHolder,
 			DescriptionLabel = desc,
 			Elements = {},
+			Collapsed = info.Collapsed == true,
+			DisableCollapsing = info.DisableCollapsing == true,
+			PoppedOut = false,
+			PopOutEnabled = info.PopOut ~= false,
+			MaxHeight = tonumber(info.MaxHeight),
+			MaxPopOutHeight = tonumber(info.MaxPopOutHeight),
+			PopOutWidth = tonumber(info.PopOutWidth),
 		}
 		attachGroupboxMethods(groupbox)
+		if groupbox.Collapsed then
+			groupbox:SetCollapsed(true)
+		end
+		if groupbox.MaxHeight then
+			groupbox:SetMaxHeight(groupbox.MaxHeight)
+		end
+		if info.PopOut then
+			groupbox:SetPoppedOut(true)
+		end
 
 		function groupbox:AddDivider()
 			local div = create("Frame", {
@@ -4176,7 +4556,7 @@ function Library:CreateWindow(config)
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundTransparency = 1,
 				Font = selfLib.Theme.Font,
-				TextSize = 14,
+				TextSize = tonumber(info and info.Size) or 14,
 				TextWrapped = doesWrap and true or false,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextYAlignment = Enum.TextYAlignment.Top,
@@ -5099,6 +5479,11 @@ function Library:CreateWindow(config)
 
 			local function resolveSingleDefault(v)
 				if v == nil then
+					-- Obsidian: AllowNull keeps a cleared dropdown empty
+					-- instead of silently snapping back to the first item.
+					if info.AllowNull then
+						return nil
+					end
 					if #values > 0 then
 						return values[1]
 					end
@@ -6221,6 +6606,13 @@ function Library:CreateWindow(config)
 				ScaleType = info.ScaleType or Enum.ScaleType.Fit,
 				Parent = wrapper,
 			})
+			applyIconData(img, info.Image)
+			if typeof(info.RectOffset) == "Vector2" then
+				img.ImageRectOffset = info.RectOffset
+			end
+			if typeof(info.RectSize) == "Vector2" then
+				img.ImageRectSize = info.RectSize
+			end
 			addCorner(img, selfLib.Theme.CornerRadius)
 			local obj = {
 				Instance = wrapper, ImageLabel = img, Height = h, Visible = info.Visible ~= false,
@@ -6237,6 +6629,7 @@ function Library:CreateWindow(config)
 			function obj:SetImage(newImage)
 				local asset = resolveIcon(newImage) or (type(newImage) == "string" and newImage or "")
 				img.Image = asset
+				applyIconData(img, newImage)
 				obj.Image = newImage
 				-- Docs: "Called when the image changes". Fire on actual change
 				-- only, with the resolved asset (matches Obsidian's Image.Image).
@@ -6580,8 +6973,97 @@ function Library:CreateWindow(config)
 
 	Window._CreateGroupbox = createGroupbox
 
+	-- A page whose scroll/columns live under an arbitrary parent (used by
+	-- subtabs and custom-tab children) instead of the Window-level `pages`.
+	local function createEmbeddedPage(parent)
+		local page = create("Frame", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Visible = false,
+			Parent = parent,
+		})
+		local scroll = create("ScrollingFrame", {
+			Size = UDim2.fromScale(1, 1),
+			CanvasSize = UDim2.new(),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			ScrollBarThickness = 3,
+			ScrollBarImageColor3 = selfLib.Theme.Outline,
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Parent = page,
+		})
+		create("UIListLayout", {
+			Padding = UDim.new(0, 10),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = scroll,
+		})
+		addPadding(scroll, 10)
+		local columns = create("Frame", {
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = scroll,
+		})
+		local left = create("Frame", {
+			Size = UDim2.new(0.5, -5, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = columns,
+		})
+		create("UIListLayout", { Padding = UDim.new(0, 10), Parent = left })
+		local right = create("Frame", {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.fromScale(1, 0),
+			Size = UDim2.new(0.5, -5, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = columns,
+		})
+		create("UIListLayout", { Padding = UDim.new(0, 10), Parent = right })
+		return page, left, right, scroll
+	end
+
+	local function createSubTabShell(tab)
+		if tab._SubTabStrip then
+			return
+		end
+		if tab.Scroll then
+			tab.Scroll.Visible = false
+		end
+		if tab.LeftColumn then tab.LeftColumn.Visible = false end
+		if tab.RightColumn then tab.RightColumn.Visible = false end
+		local strip = create("Frame", {
+			Name = "SubTabStrip",
+			Size = UDim2.new(1, -20, 0, 30),
+			Position = UDim2.fromOffset(10, 8),
+			BackgroundTransparency = 1,
+			Parent = tab.Page,
+		})
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = strip,
+		})
+		local holder = create("Frame", {
+			Name = "SubTabPages",
+			Position = UDim2.fromOffset(10, 44),
+			Size = UDim2.new(1, -20, 1, -52),
+			BackgroundTransparency = 1,
+			Parent = tab.Page,
+		})
+		tab._SubTabStrip = strip
+		tab._SubTabHolder = holder
+		tab.SubTabList = tab.SubTabList or {}
+		tab._SubTabsByName = tab._SubTabsByName or {}
+		tab.ActiveSubTab = nil
+	end
+
 	local function attachTabMethods(tab)
 		function tab:UpdateWarningBox(info)
+			if self.SubTabs == true then
+				error("[PESUI] UpdateWarningBox is not available on a tab with SubTabs = true")
+			end
 			info = info or {}
 			if not self.WarningBox then
 				self.WarningBox = create("Frame", {
@@ -6621,6 +7103,14 @@ function Library:CreateWindow(config)
 			self.WarningTitle.Text = tostring(info.Title or "Warning")
 			self.WarningText.Text = tostring(info.Text or "")
 			self.WarningBox.Visible = info.Visible ~= false
+			local normal = info.IsNormal == true
+			self.WarningBox.BackgroundColor3 = normal and selfLib.Theme.Surface or selfLib.Theme.SurfaceAlt
+			self.WarningTitle.TextColor3 = normal and selfLib.Theme.Text or selfLib.Theme.Danger
+			if info.LockSize then
+				self.WarningText.Size = UDim2.new(1, 0, 0, tonumber(info.LockSize) or 48)
+			else
+				self.WarningText.Size = UDim2.new(1, 0, 0, 0)
+			end
 		end
 
 		function tab:SetVisible(state)
@@ -6650,20 +7140,196 @@ function Library:CreateWindow(config)
 		function tab:SetDescription(desc)
 			self.Description = desc
 		end
-		function tab:SetIcon(_) end
-		function tab:SetTooltip(_) end
+		function tab:SetIcon(icon)
+			self.Icon = icon
+			if not self.Button then return end
+			local img = self.Button:FindFirstChild("IconImage")
+			if img then
+				safeDestroy(img)
+			end
+			if createIconInstance(icon, {
+				Name = "IconImage",
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 8, 0.5, 0),
+				Size = UDim2.fromOffset(16, 16),
+				BackgroundTransparency = 1,
+				Parent = self.Button,
+			}) then
+				if self.ButtonLabel then
+					self.ButtonLabel.Position = UDim2.fromOffset(30, 0)
+					self.ButtonLabel.Size = UDim2.new(1, -36, 1, 0)
+				end
+			elseif self.ButtonLabel then
+				self.ButtonLabel.Position = UDim2.fromOffset(10, 0)
+				self.ButtonLabel.Size = UDim2.new(1, -16, 1, 0)
+			end
+		end
+		function tab:SetTooltip(text)
+			if self._Tooltip then
+				pcall(function() self._Tooltip:Destroy() end)
+				self._Tooltip = nil
+			end
+			self.Tooltip = text
+			if text and text ~= "" and self.Button then
+				self._Tooltip = selfLib:AddTooltip(tostring(text), nil, self.Button)
+			end
+		end
 		function tab:Hover(state) end
-		function tab:UpdateTabInfo() end
+		function tab:UpdateTabInfo()
+			if Window.TabInfo then
+				local title = Window.TabInfo:FindFirstChild("Title")
+				if title and self.Name then
+					local active = self.ParentTab and self.ParentTab.ActiveSubTab
+					title.Text = active and (tostring(self.Name) .. " / " .. tostring(active.Name)) or tostring(self.Name)
+				end
+			end
+		end
 		function tab:RefreshSides() end
 		function tab:Resize() end
 		function tab:SetMaxHeight(h) end
-		function tab:AddSubTab(name, icon)
-			if self.AddTab then
-				return self:AddTab(name, icon)
+		function tab:AddSubTab(arg1, arg2, arg3, arg4)
+			if self.SubTabs ~= true then
+				error("[PESUI] AddSubTab requires the parent tab to be created with SubTabs = true")
 			end
-			return nil
+			local name, icon, description, order, tooltip
+			if type(arg1) == "table" then
+				name = arg1.Name or "SubTab"
+				icon = arg1.Icon or arg1.IconName
+				description = arg1.Description or self.Description
+				order = arg1.Order
+				tooltip = arg1.Tooltip
+			else
+				name = arg1 or "SubTab"
+				icon = arg2
+				description = arg3 or self.Description
+				order = arg4
+			end
+
+			createSubTabShell(self)
+
+			local btn = create("TextButton", {
+				Size = UDim2.new(0, 0, 1, 0),
+				AutomaticSize = Enum.AutomaticSize.X,
+				LayoutOrder = tonumber(order) or (#self.SubTabList + 1),
+				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Font = selfLib.Theme.Font,
+				TextSize = 13,
+				TextColor3 = selfLib.Theme.Text,
+				Text = "  " .. tostring(name) .. "  ",
+				Parent = self._SubTabStrip,
+			})
+			addCorner(btn, 4)
+			addStroke(btn, selfLib.Theme.Outline)
+
+			local page, left, right, scroll = createEmbeddedPage(self._SubTabHolder)
+			local subtab = {
+				Name = name,
+				Icon = icon,
+				Description = description,
+				Button = btn,
+				Page = page,
+				Scroll = scroll,
+				LeftColumn = left,
+				RightColumn = right,
+				Groupboxes = {},
+				Tabboxes = {},
+				Window = Window,
+				ParentTab = self,
+				Order = order,
+			}
+			attachTabMethods(subtab)
+
+			function subtab:Show()
+				for _, sibling in ipairs(self.ParentTab.SubTabList) do
+					sibling.Page.Visible = false
+					sibling.Button.BackgroundColor3 = selfLib.Theme.SurfaceAlt
+				end
+				self.Page.Visible = true
+				self.Button.BackgroundColor3 = selfLib.Theme.AccentDark
+				self.ParentTab.ActiveSubTab = self
+				self.ParentTab:UpdateTabInfo()
+				if selfLib.Searching then
+					selfLib:UpdateSearch(selfLib.SearchText)
+				end
+			end
+			function subtab:Hide()
+				self.Page.Visible = false
+			end
+			function subtab:SetVisible(state)
+				self.Button.Visible = state and true or false
+				if state == false and self.ParentTab.ActiveSubTab == self then
+					for _, sibling in ipairs(self.ParentTab.SubTabList) do
+						if sibling ~= self and sibling.Button.Visible then
+							sibling:Show()
+							break
+						end
+					end
+				end
+			end
+			if tooltip then
+				subtab:SetTooltip(tooltip)
+			end
+			if icon then
+				subtab:SetIcon(icon)
+			end
+
+			btn.MouseButton1Click:Connect(subtab.Show)
+			table.insert(self.SubTabList, subtab)
+			self._SubTabsByName[tostring(name)] = subtab
+			if #self.SubTabList == 1 then
+				subtab:Show()
+			end
+			return subtab
 		end
 		function tab:Destroy()
+			if self.Destroyed then return end
+			self.Destroyed = true
+			if self._Tooltip then
+				pcall(function() self._Tooltip:Destroy() end)
+				self._Tooltip = nil
+			end
+			for _, box in ipairs(self.Groupboxes or {}) do
+				if box.Destroy then pcall(box.Destroy, box) end
+			end
+			for _, box in ipairs(self.Tabboxes or {}) do
+				if box.Destroy then pcall(box.Destroy, box) end
+			end
+			for i = #(self.SubTabList or {}), 1, -1 do
+				local sub = self.SubTabList[i]
+				if sub and not sub.Destroyed and sub.Destroy then
+					pcall(sub.Destroy, sub)
+				end
+			end
+			if self.ParentTab then
+				local parent = self.ParentTab
+				for i, sub in ipairs(parent.SubTabList or {}) do
+					if sub == self then
+						table.remove(parent.SubTabList, i)
+						break
+					end
+				end
+				if parent.ActiveSubTab == self then
+					parent.ActiveSubTab = nil
+				end
+			end
+			for i, other in ipairs(Window.Tabs) do
+				if other == self then
+					table.remove(Window.Tabs, i)
+					break
+				end
+			end
+			Window.Tabs[tostring(self.Name)] = nil
+			if Window.ActiveTab == self then
+				Window.ActiveTab = nil
+				for _, other in ipairs(Window.Tabs) do
+					if other.Button and other.Button.Visible and other.Show then
+						other:Show()
+						break
+					end
+				end
+			end
 			if self.Page then safeDestroy(self.Page) end
 			if self.Button then safeDestroy(self.Button) end
 		end
@@ -6746,6 +7412,7 @@ function Library:CreateWindow(config)
 
 			Window.ActiveTab = self
 			selfLib.ActiveTab = self
+			self:UpdateTabInfo()
 			-- Re-apply an active search to the newly selected tab.
 			if selfLib.Searching then
 				selfLib:UpdateSearch(selfLib.SearchText)
@@ -6753,6 +7420,9 @@ function Library:CreateWindow(config)
 		end
 
 		function tab:AddGroupbox(info)
+			if self.SubTabs == true then
+				error("[PESUI] AddGroupbox is not available on a tab with SubTabs = true; use AddSubTab first")
+			end
 			info = info or {}
 			local side = info.Side
 			local target = self.LeftColumn
@@ -6763,14 +7433,29 @@ function Library:CreateWindow(config)
 			end
 			local box = createGroupbox(target, info)
 			table.insert(self.Groupboxes, box)
+			-- SaveManager looks groupboxes up by string name
+			-- (Tab.Groupboxes["Configuration"]).
+			if info.Name ~= nil and info.Name ~= "" then
+				self.Groupboxes[tostring(info.Name)] = box
+			end
 			return box
 		end
 
-		function tab:AddLeftGroupbox(name, iconName)
-			return self:AddGroupbox({ Side = 1, Name = name, IconName = iconName })
+		function tab:AddLeftGroupbox(name, iconName, visible, collapsed, disableCollapsing)
+			return self:AddGroupbox({
+				Side = 1, Name = name, IconName = iconName,
+				Visible = visible ~= false,
+				Collapsed = collapsed == true,
+				DisableCollapsing = disableCollapsing == true,
+			})
 		end
-		function tab:AddRightGroupbox(name, iconName)
-			return self:AddGroupbox({ Side = 2, Name = name, IconName = iconName })
+		function tab:AddRightGroupbox(name, iconName, visible, collapsed, disableCollapsing)
+			return self:AddGroupbox({
+				Side = 2, Name = name, IconName = iconName,
+				Visible = visible ~= false,
+				Collapsed = collapsed == true,
+				DisableCollapsing = disableCollapsing == true,
+			})
 		end
 		function tab:AddLeftTabbox(name)
 			return self:AddTabbox({ Side = 1, Name = name })
@@ -6780,6 +7465,9 @@ function Library:CreateWindow(config)
 		end
 
 		function tab:AddTabbox(info)
+			if self.SubTabs == true then
+				error("[PESUI] AddTabbox is not available on a tab with SubTabs = true; use AddSubTab first")
+			end
 			info = info or {}
 			local host = self:AddGroupbox({
 				Side = info.Side or 1,
@@ -6797,10 +7485,15 @@ function Library:CreateWindow(config)
 				Parent = tabStrip,
 			})
 
-			local container = create("Frame", {
+			local container = create("ScrollingFrame", {
 				Size = UDim2.new(1, 0, 0, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(),
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				ScrollBarThickness = 3,
+				ScrollBarImageColor3 = selfLib.Theme.Outline,
 				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
 				Parent = host.Holder,
 			})
 
@@ -6810,17 +7503,35 @@ function Library:CreateWindow(config)
 				Active = nil,
 				DependencyBoxes = {},
 				Elements = {},
+				MaxHeight = tonumber(info.MaxHeight),
+				MaxPopOutHeight = tonumber(info.MaxPopOutHeight),
+				PopOutWidth = tonumber(info.PopOutWidth),
+				PoppedOut = false,
+				PopOutEnabled = true,
 			}
 			function tabbox:UpdateCorners() end
-			function tabbox:Resize() end
-			function tabbox:SetMaxHeight(h) end
+			function tabbox:Resize()
+				if self.Active and self.Active.Resize then
+					self.Active:Resize()
+				end
+			end
+			function tabbox:SetMaxHeight(h)
+				self.MaxHeight = tonumber(h) or nil
+				self:Resize()
+			end
 			function tabbox:Destroy()
+				if self.Destroyed then return end
+				self.Destroyed = true
+				if self.PopOutFloat then safeDestroy(self.PopOutFloat) end
+				for _, t in ipairs(self.Tabs) do
+					if t.Destroy then pcall(t.Destroy, t) end
+				end
 				if host and host.Destroy then
 					pcall(function() host:Destroy() end)
 				end
 			end
 
-			function tabbox:AddTab(name)
+			function tabbox:AddTab(name, icon, maxHeight)
 				local page = create("Frame", {
 					Size = UDim2.new(1, 0, 0, 0),
 					AutomaticSize = Enum.AutomaticSize.Y,
@@ -6828,7 +7539,7 @@ function Library:CreateWindow(config)
 					Visible = false,
 					Parent = container,
 				})
-				create("UIListLayout", {
+				local list = create("UIListLayout", {
 					Padding = UDim.new(0, 6),
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					Parent = page,
@@ -6849,11 +7560,46 @@ function Library:CreateWindow(config)
 				addCorner(btn, 4)
 				addStroke(btn, selfLib.Theme.Outline)
 
+				if createIconInstance(icon, {
+					Name = "IconImage",
+					AnchorPoint = Vector2.new(0, 0.5),
+					Position = UDim2.fromOffset(4, 0),
+					Size = UDim2.fromOffset(14, 14),
+					BackgroundTransparency = 1,
+					Parent = btn,
+				}) then
+					btn.Text = name == nil and "  " or ("      " .. tostring(name) .. "  ")
+				end
+
 				local nested = {
+					Name = name,
+					Icon = icon,
 					Holder = page,
 					Button = btn,
+					MaxHeight = tonumber(maxHeight),
+					TabboxParent = tabbox,
 				}
 				attachGroupboxMethods(nested)
+				function nested:Resize()
+					local maxH = self.MaxHeight or tabbox.MaxHeight
+					if not self.Page then return end
+					if maxH then
+						self.Page.AutomaticSize = Enum.AutomaticSize.None
+						self.Page.Size = UDim2.new(1, 0, 0, maxH)
+						container.AutomaticSize = Enum.AutomaticSize.None
+						container.Size = UDim2.new(1, 0, 0, maxH + 6)
+						container.CanvasSize = UDim2.new(0, 0, 0, math.max(maxH + 6, list.AbsoluteContentSize.Y + 6))
+					else
+						self.Page.AutomaticSize = Enum.AutomaticSize.Y
+						self.Page.Size = UDim2.new(1, 0, 0, 0)
+						container.AutomaticSize = Enum.AutomaticSize.Y
+						container.Size = UDim2.new(1, 0, 0, 0)
+					end
+				end
+				function nested:SetMaxHeight(h)
+					self.MaxHeight = tonumber(h) or nil
+					self:Resize()
+				end
 
 				function nested:AddDivider()
 					return host.AddDivider({ Holder = page })
@@ -6918,36 +7664,184 @@ function Library:CreateWindow(config)
 					page.Visible = true
 					btn.BackgroundColor3 = selfLib.Theme.AccentDark
 					tabbox.Active = nested
+					nested:Resize()
 				end
 
 				btn.MouseButton1Click:Connect(showThis)
 
 				nested.Page = page
 				nested.Show = showThis
+				nested.Hide = function() page.Visible = false end
+				nested.Destroy = function()
+					safeDestroy(btn)
+					safeDestroy(page)
+				end
+				function nested:SetName(newName)
+					self.Name = newName
+					btn.Text = "  " .. tostring(newName or "Tab") .. "  "
+				end
+				function nested:SetIcon(newIcon)
+					self.Icon = newIcon
+					local existing = btn:FindFirstChild("IconImage")
+					if existing then safeDestroy(existing) end
+					if createIconInstance(newIcon, {
+						Name = "IconImage",
+						AnchorPoint = Vector2.new(0, 0.5),
+						Position = UDim2.fromOffset(4, 0),
+						Size = UDim2.fromOffset(14, 14),
+						BackgroundTransparency = 1,
+						Parent = btn,
+					}) then
+						btn.Text = "      " .. tostring(self.Name or "Tab") .. "  "
+					else
+						btn.Text = "  " .. tostring(self.Name or "Tab") .. "  "
+					end
+				end
+				list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+					if tabbox.Active == nested and not tabbox.Destroyed then
+						nested:Resize()
+					end
+				end)
 				table.insert(tabbox.Tabs, nested)
+				tabbox.Tabs[tostring(name)] = nested
 				if #tabbox.Tabs == 1 then
 					showThis()
 				end
+				nested:Resize()
 				return nested
 			end
 
+			-- Pop-out support mirrors the Obsidian tabbox contract so the
+			-- addons and user code can call the same methods as groupboxes.
+			local function attachPopOut(box, width, maxHeight)
+				box.PoppedOut = false
+				box.PopOutEnabled = info.PopOut ~= false
+				box.PopOutWidth = width
+				box.MaxPopOutHeight = maxHeight
+				function box:SetPoppedOut(v, position)
+					if not self.PopOutEnabled or self.Destroyed then return end
+					local value = v == true
+					if self.PoppedOut == value then
+						if value and position and self.PopOutFloat then
+							self.PopOutFloat.Position = position
+						end
+						return
+					end
+					self.PoppedOut = value
+					if self.PoppedOut then
+						if not self.PopOutFloat or not self.PopOutFloat.Parent then
+							local float = create("Frame", {
+								Name = "TabboxPopOutFloat",
+								Size = UDim2.fromOffset(self.PopOutWidth or 300, self.MaxPopOutHeight or 0),
+								AutomaticSize = self.MaxPopOutHeight and Enum.AutomaticSize.X or Enum.AutomaticSize.Y,
+								BackgroundColor3 = selfLib.Theme.Surface,
+								BorderSizePixel = 0,
+								ZIndex = 6000,
+								Position = position or UDim2.fromOffset(120, 120),
+								Parent = selfLib.OverlayFrame or selfLib.ScreenGui,
+							})
+							addCorner(float, selfLib.Theme.CornerRadius)
+							addStroke(float, selfLib.Theme.Outline)
+							local title = create("TextLabel", {
+								Name = "Title",
+								Size = UDim2.new(1, -32, 0, 24),
+								Position = UDim2.fromOffset(8, 4),
+								BackgroundTransparency = 1,
+								Font = selfLib.Theme.Font,
+								TextSize = 14,
+								TextXAlignment = Enum.TextXAlignment.Left,
+								TextColor3 = selfLib.Theme.Text,
+								Text = tostring(self.Name or "Tabbox"),
+								Parent = float,
+							})
+							local close = create("TextButton", {
+								Name = "Close",
+								AnchorPoint = Vector2.new(1, 0),
+								Position = UDim2.new(1, -4, 0, 4),
+								Size = UDim2.fromOffset(22, 22),
+								BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+								BorderSizePixel = 0,
+								Font = selfLib.Theme.Font,
+								TextSize = 14,
+								TextColor3 = selfLib.Theme.Text,
+								Text = "×",
+								Parent = float,
+							})
+							addCorner(close, 4)
+							addStroke(close, selfLib.Theme.Outline)
+							close.MouseButton1Click:Connect(function()
+								self:SetPoppedOut(false)
+							end)
+							local body = create("Frame", {
+								Name = "Body",
+								Position = UDim2.fromOffset(8, 32),
+								Size = UDim2.new(1, -16, 1, -40),
+								BackgroundTransparency = 1,
+								Parent = float,
+							})
+							self.PopOutTitle = title
+							self.PopOutFloat = float
+							self._PopOutOriginalParent = host.Holder
+							self._PopOutOriginalOrder = container.LayoutOrder
+							tabStrip.Parent = body
+							container.Parent = body
+							makeDraggable(float, float)
+						end
+					elseif self.PopOutFloat then
+						safeDestroy(self.PopOutFloat)
+						self.PopOutFloat = nil
+						tabStrip.Parent = host.Holder
+						container.Parent = host.Holder
+						container.LayoutOrder = self._PopOutOriginalOrder or 0
+					end
+				end
+				function box:TogglePoppedOut()
+					self:SetPoppedOut(not self.PoppedOut)
+				end
+				function box:SetMaxPopOutHeight(h)
+					self.MaxPopOutHeight = tonumber(h) or nil
+					if self.PoppedOut and self.PopOutFloat then
+						self.PopOutFloat.AutomaticSize = self.MaxPopOutHeight and Enum.AutomaticSize.X or Enum.AutomaticSize.Y
+						self.PopOutFloat.Size = UDim2.fromOffset(self.PopOutWidth or 300, self.MaxPopOutHeight or 0)
+					end
+				end
+				function box:SetPopOutWidth(w)
+					self.PopOutWidth = tonumber(w) or nil
+					if self.PopOutFloat then
+						self.PopOutFloat.Size = UDim2.fromOffset(self.PopOutWidth or 300, self.PopOutFloat.Size.Y.Offset)
+					end
+				end
+			end
+			attachPopOut(tabbox, tabbox.PopOutWidth, tabbox.MaxPopOutHeight)
+			if info.PopOut then
+				tabbox:SetPoppedOut(true)
+			end
+
+			if info.Name ~= nil and info.Name ~= "" then
+				self.Tabboxes[tostring(info.Name)] = tabbox
+			end
 			return tabbox
 		end
+		addTabboxImpl = tab.AddTabbox
 	end
 
-	function Window:AddTab(arg1, arg2, arg3)
-		local name, icon, description
+	function Window:AddTab(arg1, arg2, arg3, arg4)
+		local name, icon, description, configOrder, tooltip, useSubTabs
 		if type(arg1) == "table" then
 			name = arg1.Name or "Tab"
-			icon = arg1.Icon
+			icon = arg1.Icon or arg1.IconName
 			description = arg1.Description
+			configOrder = arg1.Order
+			tooltip = arg1.Tooltip
+			useSubTabs = arg1.SubTabs == true
 		else
 			name = arg1 or "Tab"
 			icon = arg2
 			description = arg3
+			configOrder = arg4
 		end
 
-		local order = #self.Tabs + 1
+		local order = tonumber(configOrder) or (#self.Tabs + 1)
 		local button, buttonLabel = createTabButton(name, icon, order)
 		local page, leftColumn, rightColumn = createPageContainer()
 
@@ -6962,10 +7856,17 @@ function Library:CreateWindow(config)
 			LeftColumn = leftColumn,
 			RightColumn = rightColumn,
 			Groupboxes = {},
+			Tabboxes = {},
 			Window = Window,
+			Order = order,
+			Tooltip = tooltip,
+			SubTabs = useSubTabs,
 		}
 
 		attachTabMethods(tab)
+		if tooltip then
+			tab:SetTooltip(tooltip)
+		end
 
 		button.MouseButton1Click:Connect(function()
 			if tab and tab.Show then
@@ -6981,17 +7882,34 @@ function Library:CreateWindow(config)
 		return tab
 	end
 
-	function Window:AddKeyTab(name, icon)
-		local tab = self:AddTab(name, icon)
+	function Window:AddKeyTab(...)
+		local tab = self:AddTab(...)
+		-- Key tabs accept groupbox/tabbox methods directly, so forward the
+		-- element builders to one full-width host groupbox.
+		local host = tab:AddGroupbox({ Side = 1, Name = "KeyTabContent", IconName = "key" })
+		tab.KeyBox = host
+		for _, method in ipairs({
+			"AddDivider", "AddLabel", "AddButton", "AddToggle", "AddSlider",
+			"AddInput", "AddTextbox", "AddDropdown", "AddKeyPicker",
+			"AddColorPicker", "AddCheckbox", "AddViewport", "AddImage",
+			"AddVideo", "AddUIPassthrough", "AddSettings",
+			"AddTabbox", "AddDependencyBox", "AddDependencyGroupbox",
+		}) do
+			tab[method] = function(_, ...)
+				local fn = host[method]
+				if fn then
+					return fn(host, ...)
+				end
+			end
+		end
 		function tab:AddKeyBox(callback)
-			local box = tab:AddLeftGroupbox("Key System")
-			local input = box:AddInput("KeyInput_" .. HttpService:GenerateGUID(false), {
+			local input = host:AddInput("KeyInput_" .. HttpService:GenerateGUID(false), {
 				Text = "Key",
 				Default = "",
 				Placeholder = "Enter key...",
 				Finished = true,
 			})
-			box:AddButton("Submit", function()
+			host:AddButton("Submit", function()
 				selfLib:SafeCallback(callback, input.Value)
 			end)
 			return input
@@ -7041,6 +7959,80 @@ function Library:CreateWindow(config)
 	addCorner(selfLib.KeybindFrame, selfLib.Theme.CornerRadius)
 	addStroke(selfLib.KeybindFrame, selfLib.Theme.Outline)
 
+	-- Obsidian addons (SaveManager) reach the keybind panel through
+	-- Library.KeybindMenu. It exposes SettingsFrame, Collapsed,
+	-- SetCollapsed() and SetSettingsOpen(). The real rows are rebuilt by
+	-- _RefreshKeybindList() below, so collapsed simply toggles their
+	-- visibility instead of destroying anything.
+	if not selfLib.KeybindMenu then
+		local settingsFrame = create("Frame", {
+			Name = "SettingsFrame",
+			Size = UDim2.fromOffset(240, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Position = UDim2.fromOffset(252, 20),
+			BackgroundColor3 = selfLib.Theme.Surface,
+			BorderSizePixel = 0,
+			Visible = false,
+			ZIndex = 4000,
+			Parent = screenGui,
+		})
+		addCorner(settingsFrame, selfLib.Theme.CornerRadius)
+		addStroke(settingsFrame, selfLib.Theme.Outline)
+		addPadding(settingsFrame, 8)
+
+		local keybindMenu = {
+			Frame = selfLib.KeybindFrame,
+			SettingsFrame = settingsFrame,
+			Collapsed = false,
+		}
+		function keybindMenu:SetCollapsed(state)
+			self.Collapsed = state and true or false
+			for _, child in ipairs(selfLib.KeybindFrame:GetChildren()) do
+				if child.Name == "KeybindRow" then
+					child.Visible = not self.Collapsed
+				end
+			end
+		end
+		function keybindMenu:SetSettingsOpen(open)
+			settingsFrame.Visible = open and true or false
+		end
+		function keybindMenu:ToggleSettings()
+			self:SetSettingsOpen(not settingsFrame.Visible)
+		end
+		function keybindMenu:RefreshSettings() end
+		function keybindMenu:SetVisibilityControl(enabled) end
+		function keybindMenu:Update() end
+		function keybindMenu:SetVisible(state)
+			selfLib:SetKeybindListVisible(state)
+		end
+		function keybindMenu:Toggle()
+			selfLib:SetKeybindListVisible(not selfLib.KeybindFrame.Visible)
+		end
+		selfLib.KeybindMenu = keybindMenu
+	end
+
+	-- SaveManager restores this toggle when loading a config; keeping it in
+	-- Options makes the keybind list's open state round-trip automatically.
+	if not selfLib.Options.KeybindMenuOpen then
+		local kmToggle = createOptionObject("Toggle", "KeybindMenuOpen", { Value = false })
+		kmToggle.Type = "Toggle"
+		kmToggle.Text = "Keybind menu"
+		function kmToggle:SetValue(value)
+			self.Value = value and true or false
+			selfLib:SetKeybindListVisible(self.Value)
+			self:RunChanged()
+		end
+		function kmToggle:RunChanged()
+			for _, cb in ipairs(self.ChangedCallbacks or {}) do
+				selfLib:SafeCallback(cb, self.Value)
+			end
+			if type(self.Changed) == "function" then
+				selfLib:SafeCallback(self.Changed, self.Value)
+			end
+		end
+		selfLib.Options.KeybindMenuOpen = kmToggle
+	end
+
 	-- rebuilds the rows of the keybind list from every registered KeyPicker
 	function selfLib:_RefreshKeybindList()
 		local frame = self.KeybindFrame
@@ -7054,7 +8046,7 @@ function Library:CreateWindow(config)
 		end
 		local n = 0
 		for _, kp in ipairs(self.KeyPickers or {}) do
-			if not kp.NoUI and not kp.Destroyed and tostring(kp.Value) ~= "None" and tostring(kp.Value) ~= "" then
+			if not kp.NoUI and kp.MenuVisible ~= false and not kp.Destroyed and tostring(kp.Value) ~= "None" and tostring(kp.Value) ~= "" then
 				n += 1
 				create("TextLabel", {
 					Name = "KeybindRow",
@@ -7067,6 +8059,7 @@ function Library:CreateWindow(config)
 					TextTruncate = Enum.TextTruncate.AtEnd,
 					TextColor3 = kp:GetState() and self.Theme.Accent or self.Theme.SubText,
 					Text = string.format("[%s] %s (%s)", kp:GetDisplayText(), kp.DisplayName or tostring(kp.Idx), tostring(kp.Mode)),
+					Visible = not (self.KeybindMenu and self.KeybindMenu.Collapsed),
 					Parent = frame,
 				})
 			end
@@ -7190,6 +8183,10 @@ function Library:CreateWindow(config)
 	end
 
 	selfLib.ActiveWindow = Window
+	-- Obsidian addons grab the window and the tab registry straight off the
+	-- Library (Library.Window:AddDialog(...), Library.Tabs[tabIdx]).
+	selfLib.Window = Window
+	selfLib.Tabs = Window.Tabs
 	return Window
 end
 
