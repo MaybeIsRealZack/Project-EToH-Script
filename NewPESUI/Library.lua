@@ -643,6 +643,59 @@ function Library:UpdateAddons(parent) end
 function Library:UpdateSearch(text)
 	self.SearchText = text
 	self.Searching = type(text) == "string" and text ~= ""
+	local query = self.Searching and string.lower(text) or nil
+	local activePage = self.ActiveTab and self.ActiveTab.Page or nil
+
+	for id, obj in pairs(self.Options or {}) do
+		if type(obj) == "table" then
+			local inst = obj.Instance
+			if typeof(inst) == "Instance" and inst:IsA("GuiObject") then
+				if obj._SearchOriginalVisible == nil then
+					obj._SearchOriginalVisible = inst.Visible
+				end
+
+				-- GlobalSearch = false only filters the active tab, like Obsidian.
+				local inScope = true
+				if query and not self.GlobalSearch and typeof(activePage) == "Instance" and activePage:IsA("GuiObject") then
+					inScope = inst == activePage or inst:IsDescendantOf(activePage)
+				end
+
+				if not query or not inScope then
+					inst.Visible = obj._SearchOriginalVisible
+					if not query then
+						obj._SearchOriginalVisible = nil
+					end
+				else
+					local haystack = {}
+					local function add(value)
+						if value ~= nil then
+							haystack[#haystack + 1] = tostring(value):lower()
+						end
+					end
+					add(obj.Text)
+					add(obj.DisplayName)
+					add(obj.Title)
+					add(obj.Value)
+					add(id)
+					pcall(function()
+						for _, d in ipairs(inst:GetDescendants()) do
+							if d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox") then
+								add(d.Text)
+							end
+						end
+					end)
+					local matched = false
+					for _, s in ipairs(haystack) do
+						if s:find(query, 1, true) then
+							matched = true
+							break
+						end
+					end
+					inst.Visible = matched
+				end
+			end
+		end
+	end
 end
 
 function Library:GetBetterColor(color, add)
@@ -2899,10 +2952,17 @@ function Library:CreateWindow(config)
 		Parent = topbar,
 	})
 
+	-- global search bar + tab info (Obsidian window props)
+	local disableSearch = config.DisableSearch == true
+	local searchbarSize = typeof(config.SearchbarSize) == "UDim2" and config.SearchbarSize or UDim2.fromScale(1, 1)
+	local isDefaultSearchbarSize = searchbarSize == UDim2.fromScale(1, 1)
+	local searchReserve = disableSearch and 0 or math.max(190, searchbarSize.X.Offset + 8)
+	selfLib.GlobalSearch = config.GlobalSearch == true
+
 	local titleLabel = create("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(14, 0),
-		Size = UDim2.new(1, -120, 1, 0),
+		Size = UDim2.new(1, -(120 + searchReserve), 1, 0),
 		Font = self.Theme.Font,
 		TextSize = 16,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -2943,7 +3003,83 @@ function Library:CreateWindow(config)
 		})
 		local shift = 12 + iconSize.X.Offset + 8
 		titleLabel.Position = UDim2.fromOffset(shift, 0)
-		titleLabel.Size = UDim2.new(1, -(shift + 106), 1, 0)
+		titleLabel.Size = UDim2.new(1, -(shift + 106 + searchReserve), 1, 0)
+	end
+
+	-- right side of the topbar: tab info + global search (Obsidian-style)
+	local rightWrapper = create("Frame", {
+		Name = "RightWrapper",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -46, 0.5, 0),
+		Size = UDim2.new(0, searchReserve, 1, -6),
+		BackgroundTransparency = 1,
+		Parent = topbar,
+	})
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Right,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 8),
+		Parent = rightWrapper,
+	})
+
+	local tabInfoFrame = create("Frame", {
+		Name = "TabInfo",
+		Size = UDim2.fromScale(disableSearch and 1 or 0.5, 1),
+		Visible = false,
+		BackgroundTransparency = 1,
+		Parent = rightWrapper,
+	})
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Vertical,
+		HorizontalAlignment = Enum.HorizontalAlignment.Left,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 1),
+		Parent = tabInfoFrame,
+	})
+	local tabInfoName = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 16),
+		Font = self.Theme.Font,
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = self.Theme.Text,
+		Text = "",
+		Parent = tabInfoFrame,
+	})
+	local tabInfoDesc = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 13),
+		Font = self.Theme.Font,
+		TextSize = 11,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = self.Theme.SubText,
+		TextWrapped = true,
+		Text = "",
+		Visible = false,
+		Parent = tabInfoFrame,
+	})
+
+	local searchBox
+	if not disableSearch then
+		searchBox = create("TextBox", {
+			Name = "SearchBox",
+			BackgroundColor3 = self.Theme.SurfaceAlt,
+			Font = self.Theme.Font,
+			PlaceholderColor3 = self.Theme.SubText,
+			PlaceholderText = "Search",
+			Size = searchbarSize,
+			Text = "",
+			TextColor3 = self.Theme.Text,
+			TextSize = 13,
+			Parent = rightWrapper,
+		})
+		addCorner(searchBox, self.Theme.CornerRadius)
+		addStroke(searchBox, self.Theme.Outline)
+		addPadding(searchBox, 6)
+		searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+			selfLib:UpdateSearch(searchBox.Text)
+		end)
 	end
 
 	-- edge / center snapping while dragging
@@ -3374,15 +3510,19 @@ function Library:CreateWindow(config)
 	end
 
 	function Window:ShowTabInfo(name, description)
-		-- best-effort: update footer
-		if self.FooterLabel then
-			self.FooterLabel.Text = tostring(name or "") .. (description and (" - " .. tostring(description)) or "")
+		tabInfoName.Text = tostring(name or "")
+		tabInfoDesc.Text = tostring(description or "")
+		tabInfoDesc.Visible = type(description) == "string" and description ~= ""
+		if isDefaultSearchbarSize and searchBox then
+			searchBox.Size = UDim2.fromScale(0.5, 1)
 		end
+		tabInfoFrame.Visible = true
 	end
 
 	function Window:HideTabInfo()
-		if self.FooterLabel then
-			self.FooterLabel.Text = ""
+		tabInfoFrame.Visible = false
+		if isDefaultSearchbarSize and searchBox then
+			searchBox.Size = UDim2.fromScale(1, 1)
 		end
 	end
 
@@ -6606,6 +6746,10 @@ function Library:CreateWindow(config)
 
 			Window.ActiveTab = self
 			selfLib.ActiveTab = self
+			-- Re-apply an active search to the newly selected tab.
+			if selfLib.Searching then
+				selfLib:UpdateSearch(selfLib.SearchText)
+			end
 		end
 
 		function tab:AddGroupbox(info)
