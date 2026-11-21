@@ -463,8 +463,11 @@ function ThemeManager:SetDefaultTheme(Theme: any)
         FinalTheme.FontFace = FontFace
     
     else
-        LibraryScheme.Font = Font.fromEnum(Enum.Font.Code)
-        FinalTheme.FontFace = "Code"
+        -- Keep the library's default font (Gotham) when no font is specified.
+        -- "Code" has smaller glyphs and made the whole UI look like the text
+        -- size shrank as soon as ThemeManager initialized.
+        LibraryScheme.Font = Font.fromEnum(Enum.Font.Gotham)
+        FinalTheme.FontFace = "Gotham"
     end
 
     --// Default Scheme Colors
@@ -818,7 +821,7 @@ function ThemeManager:CreateThemeManager(Themesbox: any)
 
     Themesbox:AddDropdown("FontFace", {
         Text = "Font Face",
-        Default = "Code",
+        Default = "Gotham",
         
         Values = { "BuilderSans", "Code", "Fantasy", "Gotham", "Jura", "Roboto", "RobotoMono", "SourceSans" },
         AllowNull = false,
