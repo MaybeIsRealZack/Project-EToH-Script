@@ -9562,6 +9562,21 @@ function Library:CreateWindow(config)
 			}
 			attachTabMethods(subtab)
 
+			-- SubTabs do not get the parent tab's container builders from
+			-- attachTabMethods. Rebind them to the subtab's own embedded page.
+			local parentTab = self
+			for _, method in ipairs({
+				"AddGroupbox", "AddLeftGroupbox", "AddRightGroupbox",
+				"AddTabbox", "AddLeftTabbox", "AddRightTabbox",
+			}) do
+				local fn = parentTab[method]
+				if type(fn) == "function" then
+					subtab[method] = function(_, ...)
+						return fn(subtab, ...)
+					end
+				end
+			end
+
 			function subtab:Show()
 				for _, sibling in ipairs(self.ParentTab.SubTabList) do
 					sibling.Page.Visible = false
@@ -9596,7 +9611,9 @@ function Library:CreateWindow(config)
 				subtab:SetIcon(icon)
 			end
 
-			btn.MouseButton1Click:Connect(subtab.Show)
+			btn.MouseButton1Click:Connect(function()
+				subtab:Show()
+			end)
 			table.insert(self.SubTabList, subtab)
 			self._SubTabsByName[tostring(name)] = subtab
 			if #self.SubTabList == 1 then
