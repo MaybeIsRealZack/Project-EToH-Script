@@ -443,6 +443,28 @@ local function bindHover(button, normal, hover)
 	end)
 end
 
+-- Obsidian-style Tooltip / DisabledTooltip: attach a tooltip to the element's
+-- primary GUI object when the Info table provides either string.
+local function attachInfoTooltip(element, info, hoverInstance)
+	if type(info) ~= "table" or typeof(hoverInstance) ~= "Instance" then
+		return nil
+	end
+	if typeof(info.Tooltip) ~= "string" and typeof(info.DisabledTooltip) ~= "string" then
+		return nil
+	end
+	local ok, tip = pcall(function()
+		return Library:AddTooltip(info.Tooltip, info.DisabledTooltip, hoverInstance)
+	end)
+	if not ok or not tip then
+		return nil
+	end
+	if element then
+		element.TooltipTable = tip
+		tip.Disabled = element.Disabled == true
+	end
+	return tip
+end
+
 local function createOptionObject(kind, id, defaults)
 	local obj = {
 		Type = kind,
@@ -756,11 +778,129 @@ function Library:MakeBoxPopOut(box, opts)
 	return box
 end
 
-function Library:AddTooltip(infoStr, disabledInfoStr, hoverInstance)
-	local t = { Text = infoStr, DisabledText = disabledInfoStr, Instance = hoverInstance, Destroyed = false }
-	function t:Destroy()
-		t.Destroyed = true
+-- Shared tooltip label + hover owner, mirroring Obsidian's single-label design.
+local tooltipLabel = nil
+local tooltipOwner = nil
+local function ensureTooltipLabel(self)
+	if tooltipLabel and tooltipLabel.Parent then
+		return tooltipLabel
 	end
+	local parent = self.OverlayFrame or self.ScreenGui
+	if not parent then
+		return nil
+	end
+	tooltipLabel = create("TextLabel", {
+		Name = "Tooltip",
+		Visible = false,
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 0.1,
+		BackgroundColor3 = self.Theme.Surface,
+		BorderSizePixel = 0,
+		Font = self.Theme.Font,
+		TextSize = 13,
+		TextWrapped = true,
+		TextColor3 = self.Theme.Text,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 100000,
+		Parent = parent,
+	})
+	addCorner(tooltipLabel, self.Theme.CornerRadius)
+	addPadding(tooltipLabel, 6)
+	return tooltipLabel
+end
+
+function Library:AddTooltip(infoStr, disabledInfoStr, hoverInstance)
+	if typeof(hoverInstance) ~= "Instance" then
+		return { Destroy = function() end }
+	end
+	local t = {
+		Text = infoStr,
+		DisabledText = disabledInfoStr,
+		Instance = hoverInstance,
+		Disabled = false,
+		Hovering = false,
+		Destroyed = false,
+		Signals = {},
+	}
+	local function giveSignal(conn)
+		if conn then
+			table.insert(t.Signals, conn)
+		end
+		return conn
+	end
+	local function positionTooltip()
+		local label = ensureTooltipLabel(self)
+		if not label then
+			return
+		end
+		local mouse = getMouseLocation()
+		label.Position = UDim2.fromOffset(mouse.X + 14, mouse.Y + 12)
+	end
+	local function doHover()
+		if t.Destroyed or tooltipOwner == hoverInstance then
+			return
+		end
+		if t.Disabled and typeof(disabledInfoStr) ~= "string" then
+			return
+		end
+		if not t.Disabled and typeof(infoStr) ~= "string" then
+			return
+		end
+		local label = ensureTooltipLabel(self)
+		if not label then
+			return
+		end
+		tooltipOwner = hoverInstance
+		t.Hovering = true
+		label.Text = t.Disabled and disabledInfoStr or infoStr
+		positionTooltip()
+		label.Visible = true
+
+		while not t.Destroyed
+			and tooltipOwner == hoverInstance
+			and Library:MouseIsOverFrame(hoverInstance, getMouseLocation())
+		do
+			positionTooltip()
+			RunService.RenderStepped:Wait()
+		end
+
+		label.Visible = false
+		t.Hovering = false
+		if tooltipOwner == hoverInstance then
+			tooltipOwner = nil
+		end
+	end
+	giveSignal(hoverInstance.MouseEnter:Connect(doHover))
+	giveSignal(hoverInstance.MouseMoved:Connect(doHover))
+	giveSignal(hoverInstance.MouseLeave:Connect(function()
+		if tooltipOwner ~= hoverInstance then
+			return
+		end
+		if tooltipLabel then
+			tooltipLabel.Visible = false
+		end
+		t.Hovering = false
+		tooltipOwner = nil
+	end))
+	function t:Destroy()
+		if t.Destroyed then
+			return
+		end
+		t.Destroyed = true
+		for i = #t.Signals, 1, -1 do
+			local conn = table.remove(t.Signals, i)
+			if conn and conn.Connected then
+				pcall(function() conn:Disconnect() end)
+			end
+		end
+		if tooltipOwner == hoverInstance and tooltipLabel then
+			tooltipLabel.Visible = false
+			tooltipOwner = nil
+		end
+	end
+	self:OnUnload(function()
+		t:Destroy()
+	end)
 	return t
 end
 
@@ -4019,6 +4159,7 @@ function Library:CreateWindow(config)
 				safeDestroy(wrapper)
 			end
 			function obj:SetIcon(_) end
+			attachInfoTooltip(obj, info, button)
 			function obj:AddButton(subInfo)
 				subInfo = subInfo or {}
 				local subText = subInfo.Text or subInfo.Name or "Sub Button"
@@ -4163,6 +4304,9 @@ function Library:CreateWindow(config)
 			end
 			function toggle:SetDisabled(state)
 				toggle.Disabled = state and true or false
+				if toggle.TooltipTable then
+					toggle.TooltipTable.Disabled = toggle.Disabled
+				end
 				render()
 			end
 			function toggle:SetVisible(state)
@@ -4230,6 +4374,7 @@ function Library:CreateWindow(config)
 			end
 
 			render()
+			attachInfoTooltip(toggle, info, button)
 			selfLib.Toggles[id] = toggle
 			selfLib.Flags[id] = toggle.Value
 			return toggle
@@ -4247,6 +4392,7 @@ function Library:CreateWindow(config)
 			slider.Min = minValue
 			slider.Max = maxValue
 			slider.Rounding = rounding
+			slider.Disabled = info.Disabled == true
 			slider.Steps = type(info.Steps) == "table" and info.Steps or nil
 			slider.AllowRightClickInput = info.AllowRightClickInput ~= false
 			local function snapToSteps(value)
@@ -4404,6 +4550,9 @@ function Library:CreateWindow(config)
 			end
 			function slider:SetDisabled(state)
 				slider.Disabled = state and true or false
+				if slider.TooltipTable then
+					slider.TooltipTable.Disabled = slider.Disabled
+				end
 				wrapper.Active = not slider.Disabled
 			end
 			function slider:SetVisible(state)
@@ -4429,6 +4578,7 @@ function Library:CreateWindow(config)
 			end
 
 			slider:SetValue(default)
+			attachInfoTooltip(slider, info, bar)
 			selfLib.Options[id] = slider
 			selfLib.Flags[id] = slider.Value
 			return slider
@@ -4442,6 +4592,7 @@ function Library:CreateWindow(config)
 			end
 			local inputObj = createOptionObject("Input", id, { Value = info.Numeric and tonumber(default) or tostring(default) })
 			inputObj.Callback = info.Callback or info.Changed
+			inputObj.Disabled = info.Disabled == true
 			local wrapper = createBaseElement(self.Holder, 52)
 
 			local label = create("TextLabel", {
@@ -4536,7 +4687,11 @@ function Library:CreateWindow(config)
 				label.Text = tostring(text or "")
 			end
 			function inputObj:SetDisabled(state)
+				inputObj.Disabled = state and true or false
 				box.TextEditable = not state
+				if inputObj.TooltipTable then
+					inputObj.TooltipTable.Disabled = inputObj.Disabled
+				end
 			end
 			function inputObj:SetVisible(state)
 				wrapper.Visible = state and true or false
@@ -4556,6 +4711,7 @@ function Library:CreateWindow(config)
 			inputObj.EmptyReset = emptyReset
 			inputObj.ClearTextOnBlur = info.ClearTextOnBlur == true
 
+			attachInfoTooltip(inputObj, info, box)
 			selfLib.Options[id] = inputObj
 			selfLib.Flags[id] = inputObj.Value
 			return inputObj
