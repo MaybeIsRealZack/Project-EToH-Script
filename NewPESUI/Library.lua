@@ -85,7 +85,18 @@ local Library = {
 	UnloadCallbacks = {},
 	Unloaded = false,
 	ForceCheckbox = false,
+	-- Obsidian default: toggle-mode keybinds get a tap-friendly checkbox in
+	-- the floating Keybind Menu.
+	ShowToggleFrameInKeybinds = true,
 	NotifySide = "Right",
+	NotifyTweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+	Notifications = {},
+	NotifyOrder = {},
+	Dialogues = {},
+	ActiveDialog = nil,
+	Floats = nil,
+	Overlay = nil,
+	DraggableElements = {},
 }
 
 -- Exact colors of ThemeManager's built-in "Default" theme and the palette PESUI
@@ -175,6 +186,17 @@ function Library:Unload()
 	table.clear(self.Flags)
 	table.clear(self.Labels)
 	table.clear(self.Registry)
+	table.clear(self.Dialogues)
+	table.clear(self.Notifications)
+	table.clear(self.NotifyOrder)
+	table.clear(self.DraggableElements)
+	self.Floats = nil
+	self.Overlay = nil
+	if self.DraggableScreenGui then
+		safeDestroy(self.DraggableScreenGui)
+		self.DraggableScreenGui = nil
+	end
+	self.ActiveDialog = nil
 	if self.KeyPickers then
 		table.clear(self.KeyPickers)
 	end
@@ -446,78 +468,388 @@ local function createIconInstance(icon, props, isButton)
 	return Library:CreateIcon(data, props, isButton)
 end
 
-function Library:Notify(message, duration, title)
-	if type(message) == "table" then
-		local info = message
-		message = info.Description or info.Text or info.Message or info.Title or ""
-		duration = info.Time or info.Duration or duration
-		title = info.Title or title
+-- Notification colors accept Color3, hex strings and Obsidian scheme names.
+local function resolveNotifyColor(theme, value, fallback)
+	if typeof(value) == "Color3" then
+		return value
 	end
-	duration = tonumber(duration) or 3
-	title = title or "Notification"
+	if type(value) == "string" then
+		local key = SCHEME_TO_THEME[value] or value
+		if theme and typeof(theme[key]) == "Color3" then
+			return theme[key]
+		end
+		local hex = value:gsub("#", "")
+		local ok, color = pcall(Color3.fromHex, hex)
+		if ok then
+			return color
+		end
+	end
+	return fallback
+end
 
-	if not self.NotificationHolder or not self.NotificationHolder.Parent then
-		return
+function Library:Notify(...)
+	local lib = self
+	local info = select(1, ...)
+	local data = {}
+
+	if type(info) == "table" then
+		data.Title = info.Title ~= nil and tostring(info.Title) or ""
+		data.TitleColor = info.TitleColor
+		data.Description = tostring(info.Description or info.Text or info.Message or "")
+		data.DescriptionColor = info.DescriptionColor
+		data.Time = info.Time or info.Duration or 4
+		data.SoundId = info.SoundId
+		data.Steps = tonumber(info.Steps)
+		data.Persist = info.Persist == true
+		data.Callback = type(info.Callback) == "function" and info.Callback or nil
+		data.Closable = info.Closable == true
+		data.Icon = info.Icon
+		data.BigIcon = info.BigIcon
+		data.IconColor = info.IconColor
+		data.Volume = tonumber(info.Volume) or 3
+	else
+		data.Title = ""
+		data.Description = tostring(info)
+		data.Time = select(2, ...) or 4
+		data.SoundId = select(3, ...)
+		data.Volume = tonumber(select(4, ...)) or 3
 	end
 
-	local card = create("Frame", {
-		Size = UDim2.new(1, 0, 0, 0),
+	if typeof(data.Time) ~= "Instance" then
+		data.Time = tonumber(data.Time) or 4
+	end
+	if data.Steps then
+		data.Steps = math.max(1, math.floor(data.Steps))
+	end
+	data.Destroyed = false
+
+	if not lib.NotificationHolder or not lib.NotificationHolder.Parent then
+		local stub = { Destroyed = true }
+		function stub:ChangeTitle() end
+		function stub:ChangeDescription() end
+		function stub:ChangeStep() end
+		function stub:Destroy() end
+		return stub
+	end
+
+	local holderArea = lib.NotificationHolder
+	local side = tostring(lib.NotifySide or "Right"):lower()
+	local isLeft = side:find("left") ~= nil
+	local slideOffset = isLeft and -14 or 14
+	local tweenInfo = lib.NotifyTweenInfo or TweenInfo.new(0.25)
+	local deletedInstance = false
+	local deleteConnection = nil
+
+	if typeof(data.Time) == "Instance" then
+		deleteConnection = data.Time.Destroying:Connect(function()
+			deletedInstance = true
+			if deleteConnection then
+				deleteConnection:Disconnect()
+				deleteConnection = nil
+			end
+		end)
+	end
+
+	local fake = create("Frame", {
+		Name = "Notification",
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = self.Theme.Surface,
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		Parent = holderArea,
+	})
+	local card = create("Frame", {
+		Name = "NotificationCard",
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = lib.Theme.Surface,
 		BorderSizePixel = 0,
-		Parent = self.NotificationHolder,
+		Position = UDim2.fromOffset(slideOffset, 0),
+		Size = UDim2.new(1, 0, 0, 0),
+		Parent = fake,
+	})
+	addCorner(card, lib.Theme.CornerRadius)
+	addStroke(card, lib.Theme.Outline)
+
+	local content = create("Frame", {
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		Parent = card,
 	}, {
 		create("UIListLayout", {
 			Padding = UDim.new(0, 4),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		}),
 	})
-	addCorner(card, self.Theme.CornerRadius)
-	addStroke(card, self.Theme.Outline)
-	addPadding(card, 10)
-
-	local titleLabel = create("TextLabel", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 16),
-		Font = self.Theme.Font,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = self.Theme.Text,
-		Text = tostring(title),
-		Parent = card,
+	create("UIPadding", {
+		PaddingTop = UDim.new(0, 10),
+		PaddingBottom = UDim.new(0, 10),
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, data.Closable and 26 or 10),
+		Parent = content,
 	})
 
-	local msgLabel = create("TextLabel", {
+	if data.Closable then
+		local closeButton = create("TextButton", {
+			Name = "CloseButton",
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -8, 0, 8),
+			Size = UDim2.fromOffset(16, 16),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Font = lib.Theme.Font,
+			TextSize = 14,
+			TextColor3 = lib.Theme.SubText,
+			Text = "x",
+			ZIndex = 6,
+			Parent = card,
+		})
+		closeButton.MouseButton1Click:Connect(function()
+			data:Destroy("user")
+		end)
+	end
+
+	local contentContainer = create("Frame", {
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		Font = self.Theme.Font,
-		TextSize = 13,
+		Size = UDim2.fromOffset(0, 0),
+		Parent = content,
+	})
+	if data.BigIcon then
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 8),
+			Parent = contentContainer,
+		})
+	end
+
+	local bigIconLabel
+	if data.BigIcon then
+		bigIconLabel = createIconInstance(data.BigIcon, {
+			Size = UDim2.fromOffset(24, 24),
+			ImageColor3 = resolveNotifyColor(lib.Theme, data.IconColor, lib.Theme.Accent),
+			Parent = contentContainer,
+		})
+	end
+
+	local textContainer = create("Frame", {
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(0, 0),
+		Parent = contentContainer,
+	}, {
+		create("UIListLayout", {
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+
+	local titleContainer = create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(0, 0),
+		Parent = textContainer,
+	})
+	local iconLabel
+	if data.Icon then
+		iconLabel = createIconInstance(data.Icon, {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 0, 0.5, 0),
+			Size = UDim2.fromOffset(15, 15),
+			ImageColor3 = resolveNotifyColor(lib.Theme, data.IconColor, lib.Theme.Text),
+			Parent = titleContainer,
+		})
+	end
+	local titleLabel = create("TextLabel", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, iconLabel and 21 or 0, 0.5, 0),
+		BackgroundTransparency = 1,
+		Font = lib.Theme.Font,
+		TextSize = 15,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+		TextColor3 = resolveNotifyColor(lib.Theme, data.TitleColor, lib.Theme.Text),
+		Text = data.Title,
+		Visible = data.Title ~= "",
+		Parent = titleContainer,
+	})
+	local descLabel = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = lib.Theme.Font,
+		TextSize = 14,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
-		TextColor3 = self.Theme.SubText,
-		Text = tostring(message),
-		Parent = card,
+		TextColor3 = resolveNotifyColor(lib.Theme, data.DescriptionColor, lib.Theme.Text),
+		Text = data.Description,
+		Visible = data.Description ~= "",
+		Parent = textContainer,
 	})
+
+	local titleWidth, descWidth = 0, 0
+	function data:Resize()
+		local areaWidth = tonumber(holderArea.AbsoluteSize.X) or 260
+		if areaWidth <= 0 then
+			areaWidth = 260
+		end
+		local extraWidth = (bigIconLabel and 32 or 0) + (data.Closable and 20 or 0)
+		local maxWidth = math.max(80, areaWidth - 24 - extraWidth)
+		if titleLabel.Visible then
+			local bounds = lib:GetTextBounds(titleLabel.Text, lib.Theme.Font, titleLabel.TextSize,
+				math.max(40, maxWidth - (iconLabel and 21 or 0)))
+			titleLabel.Size = UDim2.fromOffset(bounds.X, bounds.Y)
+			titleWidth = bounds.X + (iconLabel and 21 or 0)
+			titleContainer.Size = UDim2.fromOffset(titleWidth, math.max(bounds.Y, iconLabel and 16 or 0))
+		else
+			titleWidth = 0
+			titleContainer.Size = UDim2.fromOffset(0, 0)
+		end
+		if descLabel.Visible then
+			local bounds = lib:GetTextBounds(descLabel.Text, lib.Theme.Font, descLabel.TextSize, maxWidth)
+			descLabel.Size = UDim2.fromOffset(bounds.X, bounds.Y)
+			descWidth = bounds.X
+		else
+			descWidth = 0
+			descLabel.Size = UDim2.fromOffset(0, 0)
+		end
+		fake.Size = UDim2.fromOffset(math.max(120, math.max(titleWidth, descWidth) + 24 + extraWidth), 0)
+		task.defer(function()
+			if not data.Destroyed and fake.Parent then
+				lib:UpdateNotificationPositions(true)
+			end
+		end)
+	end
+
+	function data:ChangeTitle(text)
+		data.Title = tostring(text or "")
+		titleLabel.Text = data.Title
+		titleLabel.Visible = data.Title ~= ""
+		self:Resize()
+	end
+
+	function data:ChangeDescription(text)
+		data.Description = tostring(text or "")
+		descLabel.Text = data.Description
+		descLabel.Visible = data.Description ~= ""
+		self:Resize()
+	end
+
+	local timerHolder = create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 7),
+		Visible = (not data.Persist and typeof(data.Time) == "number") or data.Steps ~= nil,
+		Parent = content,
+	})
+	local timerBar = create("Frame", {
+		BackgroundColor3 = lib.Theme.Background,
+		BorderColor3 = lib.Theme.Outline,
+		BorderSizePixel = 1,
+		Position = UDim2.fromOffset(0, 3),
+		Size = UDim2.new(1, 0, 0, 2),
+		Parent = timerHolder,
+	})
+	local timerFill = create("Frame", {
+		BackgroundColor3 = lib.Theme.Accent,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(typeof(data.Time) == "Instance" and 0 or 1, 1),
+		Parent = timerBar,
+	})
+
+	function data:ChangeStep(step)
+		if not data.Steps then
+			return
+		end
+		local current = math.clamp(tonumber(step) or 0, 0, data.Steps)
+		timerFill.Size = UDim2.fromScale(current / data.Steps, 1)
+	end
+
+	function data:Destroy(reason)
+		if data.Destroyed then
+			return
+		end
+		data.Destroyed = true
+		if data.Callback then
+			pcall(data.Callback, reason or "script")
+		end
+		if deleteConnection then
+			deleteConnection:Disconnect()
+			deleteConnection = nil
+		end
+		if typeof(data.Time) == "Instance" then
+			pcall(function() data.Time:Destroy() end)
+		end
+		local orderIndex = table.find(lib.NotifyOrder or {}, fake)
+		if orderIndex then
+			table.remove(lib.NotifyOrder, orderIndex)
+		end
+		if lib.Notifications then
+			lib.Notifications[fake] = nil
+		end
+		if lib.UpdateNotificationPositions then
+			lib:UpdateNotificationPositions()
+		end
+		tween(card, tweenInfo, {
+			Position = UDim2.fromOffset(slideOffset, -2),
+			BackgroundTransparency = 1,
+		})
+		tween(titleLabel, tweenInfo, { TextTransparency = 1 })
+		tween(descLabel, tweenInfo, { TextTransparency = 1 })
+		task.delay(tweenInfo.Time + 0.02, function()
+			safeDestroy(fake)
+		end)
+	end
+
+	data.Holder = card
+	lib.NotifyOrder = lib.NotifyOrder or {}
+	lib.Notifications = lib.Notifications or {}
+	table.insert(lib.NotifyOrder, fake)
+	lib.Notifications[fake] = data
+	data:Resize()
 
 	card.BackgroundTransparency = 1
 	titleLabel.TextTransparency = 1
-	msgLabel.TextTransparency = 1
-	tween(card, TweenInfo.new(0.2), { BackgroundTransparency = 0 })
-	tween(titleLabel, TweenInfo.new(0.2), { TextTransparency = 0 })
-	tween(msgLabel, TweenInfo.new(0.2), { TextTransparency = 0 })
+	descLabel.TextTransparency = 1
+	tween(card, tweenInfo, { BackgroundTransparency = 0, Position = UDim2.fromOffset(0, 0) })
+	tween(titleLabel, tweenInfo, { TextTransparency = 0 })
+	tween(descLabel, tweenInfo, { TextTransparency = 0 })
 
-	task.delay(duration, function()
-		if not card or not card.Parent then
-			return
+	if data.SoundId then
+		local soundId = data.SoundId
+		if typeof(soundId) == "number" then
+			soundId = string.format("rbxassetid://%d", soundId)
 		end
-		tween(card, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
-		tween(titleLabel, TweenInfo.new(0.2), { TextTransparency = 1 })
-		tween(msgLabel, TweenInfo.new(0.2), { TextTransparency = 1 })
-		task.wait(0.22)
-		safeDestroy(card)
+		pcall(function()
+			local sound = create("Sound", {
+				SoundId = soundId,
+				Volume = data.Volume,
+				PlayOnRemove = true,
+				Parent = game:GetService("SoundService"),
+			})
+			task.defer(function()
+				if sound then
+					sound:Destroy()
+				end
+			end)
+		end)
+	end
+
+	task.delay(tweenInfo.Time, function()
+		if data.Persist then
+			return
+		elseif typeof(data.Time) == "Instance" then
+			repeat
+				task.wait()
+			until deletedInstance or data.Destroyed
+		else
+			tween(timerFill, TweenInfo.new(data.Time, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+				Size = UDim2.fromScale(0, 1),
+			})
+			task.wait(data.Time)
+		end
+		data:Destroy("timer")
 	end)
+
+	return data
 end
 
 local function createBaseElement(container, height)
@@ -661,11 +993,46 @@ function Library:SetBackgroundImage(image)
 	end
 end
 
-function Library:SetNotifySide(side)
-	self.NotifySide = side
+local function getNotifySide(side)
+	local value = tostring(side or "Right"):lower()
+	return value:find("left") ~= nil, value:find("top") ~= nil
 end
 
-function Library:UpdateNotificationPositions(snap) end
+function Library:UpdateNotificationPositions(snap)
+	local holder = self.NotificationHolder
+	if not holder or not holder.Parent then
+		return
+	end
+	local layout = holder:FindFirstChildOfClass("UIListLayout")
+	if layout then
+		local isLeft, isTop = getNotifySide(self.NotifySide)
+		layout.HorizontalAlignment = isLeft and Enum.HorizontalAlignment.Left or Enum.HorizontalAlignment.Right
+		layout.VerticalAlignment = isTop and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
+	end
+	for _, fake in ipairs(self.NotifyOrder or {}) do
+		local data = self.Notifications and self.Notifications[fake]
+		if data and data.Holder and fake.Parent and not data.Destroyed then
+			local target = UDim2.fromOffset(0, 0)
+			if snap then
+				data.Holder.Position = target
+			elseif data.Holder.Position ~= target then
+				tween(data.Holder, self.NotifyTweenInfo or TweenInfo.new(0.25), { Position = target })
+			end
+		end
+	end
+end
+
+function Library:SetNotifySide(side)
+	self.NotifySide = side or "Right"
+	local isLeft, isTop = getNotifySide(self.NotifySide)
+	local holder = self.NotificationHolder
+	if holder then
+		local anchor = Vector2.new(isLeft and 0 or 1, isTop and 0 or 1)
+		holder.AnchorPoint = anchor
+		holder.Position = UDim2.new(anchor.X, isLeft and 20 or -20, anchor.Y, isTop and 20 or -20)
+	end
+	self:UpdateNotificationPositions(true)
+end
 
 function Library:DropdownDivider(title)
 	return { DropdownDivider = true, Title = title }
@@ -1225,37 +1592,596 @@ function Library:AddContextMenu(...)
 	return menu
 end
 
-function Library:AddDraggableLabel(...)
-	local obj = { Text = "", Icon = nil, Visible = true }
-	function obj:SetText(text)
-		obj.Text = tostring(text or "")
+-- Floating overlays live in their own layer. Obsidian calls it Floats and
+-- keeps it below the popup overlay; PESUI's OverlayFrame is the latter, so the
+-- two stay separate and draggables never cover dropdowns or color pickers.
+local function getFloatsParent(self)
+	if self.Floats and self.Floats.Parent then
+		return self.Floats
 	end
-	function obj:SetIcon(icon) obj.Icon = icon end
-	function obj:SetIconPosition(pos) end
-	function obj:SetVisible(state) obj.Visible = state ~= false end
-	function obj:Destroy() end
-	return obj
+	if not self.ScreenGui then
+		local screenGui = create("ScreenGui", {
+			Name = "PESUI_Draggables",
+			ResetOnSpawn = false,
+			IgnoreGuiInset = true,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		})
+		protectGui(screenGui)
+		self.DraggableScreenGui = screenGui
+	end
+	self.Floats = create("Frame", {
+		Name = "Floats",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ZIndex = 10,
+		Active = false,
+		Parent = self.ScreenGui,
+	})
+	return self.Floats
+end
+
+local function addFloatScale(self, instance, excluded)
+	if excluded then
+		return nil
+	end
+	self.Scales = self.Scales or {}
+	local scale = create("UIScale", {
+		Scale = self.DPIScale or 1,
+		Parent = instance,
+	})
+	table.insert(self.Scales, scale)
+	return scale
+end
+
+local function normalizeIconPosition(value)
+	local side = tostring(value or "left"):lower()
+	return side == "right" and "right" or "left"
+end
+
+local function viewportSize()
+	local camera = workspace and workspace.CurrentCamera
+	return camera and camera.ViewportSize or Vector2.new(1920, 1080)
+end
+
+local function rectanglesOverlap(aPos, aSize, bPos, bSize)
+	return aPos.X < bPos.X + bSize.X
+		and aPos.X + aSize.X > bPos.X
+		and aPos.Y < bPos.Y + bSize.Y
+		and aPos.Y + aSize.Y > bPos.Y
+end
+
+-- New draggables stack next to existing ones instead of covering them. This
+-- is the small-screen-safe subset of Obsidian's PositionDraggable.
+local function positionDraggableElement(self, instance, startPos, fallbackSize)
+	local start = startPos or UDim2.fromOffset(6, 6)
+	local x, y = start.X.Offset, start.Y.Offset
+	local size = instance.AbsoluteSize
+	if size.X <= 0 or size.Y <= 0 then
+		size = fallbackSize or Vector2.new(150, 28)
+	end
+	local limit = viewportSize() - Vector2.new(100, 100)
+	local padding = 6
+	local maxColumnWidth = size.X
+
+	for _ = 1, 64 do
+		local obstacle
+		for _, other in ipairs(self.DraggableElements or {}) do
+			if other ~= instance and other.Parent and other.Visible then
+				local otherPos, otherSize = other.AbsolutePosition, other.AbsoluteSize
+				if otherSize.X > 0 and otherSize.Y > 0
+					and rectanglesOverlap(Vector2.new(x, y), size, otherPos, otherSize) then
+					obstacle = other
+					break
+				end
+			end
+		end
+		if not obstacle then
+			break
+		end
+		local otherPos, otherSize = obstacle.AbsolutePosition, obstacle.AbsoluteSize
+		maxColumnWidth = math.max(maxColumnWidth, otherSize.X)
+		local nextY = otherPos.Y + otherSize.Y + padding
+		if nextY + size.Y > limit.Y then
+			local nextX = x + maxColumnWidth + padding
+			if nextX + size.X > limit.X then
+				break
+			end
+			y = start.Y.Offset
+			x = nextX
+			maxColumnWidth = size.X
+		else
+			y = nextY
+		end
+	end
+	instance.Position = UDim2.fromOffset(x, y)
+end
+
+local function attachDragging(self, handle, target, connections)
+	local dragging = false
+	local dragStart
+	local startPos
+
+	table.insert(connections, handle.InputBegan:Connect(function(input)
+		if self.DragLocked then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = target.Position
+			table.insert(connections, input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end))
+		end
+	end))
+
+	table.insert(connections, UserInputService.InputChanged:Connect(function(input)
+		if not dragging then
+			return
+		end
+		if input.UserInputType ~= Enum.UserInputType.MouseMovement
+			and input.UserInputType ~= Enum.UserInputType.Touch then
+			return
+		end
+		local delta = input.Position - dragStart
+		target.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+	end))
+
+	table.insert(connections, UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end))
+end
+
+local function trackDraggable(self, instance, state, fallbackSize)
+	state.Connections = state.Connections or {}
+	self.DraggableElements = self.DraggableElements or {}
+	if not table.find(self.DraggableElements, instance) then
+		table.insert(self.DraggableElements, instance)
+	end
+	positionDraggableElement(self, instance, UDim2.fromOffset(6, 6), fallbackSize)
+
+	if not state.Destroyed then
+		function state:Destroy()
+			if self.Destroyed then
+				return
+			end
+			self.Destroyed = true
+			if self.Connections then
+				for _, connection in ipairs(self.Connections) do
+					pcall(function()
+						connection:Disconnect()
+					end)
+				end
+				table.clear(self.Connections)
+			end
+			local index = table.find(Library.DraggableElements, instance)
+			if index then
+				table.remove(Library.DraggableElements, index)
+			end
+			safeDestroy(instance)
+		end
+	end
+	return state
+end
+
+local function applyFloatIconLayout(icon, side, hasIcon)
+	if not icon then
+		return
+	end
+	if side == "left" then
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.new(0, -22, 0.5, 0)
+	else
+		icon.AnchorPoint = Vector2.new(1, 0.5)
+		icon.Position = UDim2.new(1, 22, 0.5, 0)
+	end
+	icon.Visible = hasIcon
+end
+
+function Library:AddDraggableLabel(...)
+	local lib = self
+	local first = select(1, ...)
+	local text, icon, iconPosition
+	if type(first) == "table" then
+		text = first.Text
+		icon = first.Icon
+		iconPosition = first.IconPosition or first.Position
+	else
+		text = first
+		icon = select(2, ...)
+		iconPosition = select(3, ...)
+	end
+	iconPosition = normalizeIconPosition(iconPosition)
+
+	local parent = getFloatsParent(self)
+	local label = create("TextLabel", {
+		Name = "DraggableLabel",
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundColor3 = self.Theme.Background,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.fromOffset(0, 0),
+		Font = self.Theme.Font,
+		TextSize = 15,
+		TextColor3 = self.Theme.Text,
+		Text = tostring(text or ""),
+		ZIndex = 10,
+		Parent = parent,
+	})
+	addCorner(label, self.Theme.CornerRadius)
+	addStroke(label, self.Theme.Outline)
+	local padding = addPadding(label, 6)
+	addFloatScale(self, label, false)
+
+	local obj = { Destroyed = false, Label = label }
+	local iconImage
+
+	function obj:SetText(value)
+		label.Text = tostring(value or "")
+	end
+
+	function obj:SetIcon(value)
+		icon = value
+		local hasIcon = icon ~= nil and tostring(icon) ~= ""
+		if not hasIcon then
+			if iconImage then
+				iconImage.Visible = false
+			end
+		else
+			local data = lib:GetCustomIcon(icon)
+			if data then
+				local props = {
+					Size = UDim2.fromOffset(16, 16),
+					ImageColor3 = lib.Theme.Text,
+					ZIndex = 11,
+					Parent = label,
+				}
+				iconImage = iconImage and lib:ApplyIcon(iconImage, data)
+					or createIconInstance(icon, props)
+			end
+		end
+		padding.PaddingLeft = UDim.new(0, hasIcon and iconPosition == "left" and 34 or 12)
+		padding.PaddingRight = UDim.new(0, hasIcon and iconPosition == "right" and 34 or 12)
+		applyFloatIconLayout(iconImage, iconPosition, hasIcon)
+		lib:UpdateDraggablePositions()
+	end
+
+	function obj:SetIconPosition(value)
+		iconPosition = normalizeIconPosition(value)
+		self:SetIcon(icon)
+	end
+
+	function obj:SetVisible(visible)
+		label.Visible = visible ~= false
+	end
+
+	obj.Connections = obj.Connections or {}
+	attachDragging(self, label, label, obj.Connections)
+	obj:SetIcon(icon)
+	task.defer(function()
+		if label.Parent then
+			positionDraggableElement(self, label, UDim2.fromOffset(6, 6), label.AbsoluteSize)
+		end
+	end)
+	return trackDraggable(self, label, obj, Vector2.new(150, 28))
 end
 
 function Library:AddDraggableButton(...)
-	local obj = { Text = "" }
-	function obj:SetText(text) obj.Text = tostring(text or "") end
-	function obj:Destroy() end
-	return obj
+	local lib = self
+	local first = select(1, ...)
+	local text, callback, excludeScaling, icon, iconPosition, excludeDragging
+	if type(first) == "table" then
+		text = first.Text
+		callback = first.Callback or first.Func
+		excludeScaling = first.ExcludeScaling
+		excludeDragging = first.ExcludeDragging
+		icon = first.Icon
+		iconPosition = first.IconPosition or first.Position
+	else
+		text = first
+		callback = select(2, ...)
+		excludeScaling = select(3, ...)
+		local fourth = select(4, ...)
+		local fifth = select(5, ...)
+		if typeof(fourth) == "boolean" then
+			-- Older Obsidian builds used the fourth argument for dragging.
+			excludeDragging = fourth
+			icon = fifth
+			iconPosition = select(6, ...)
+		else
+			icon = fourth
+			iconPosition = fifth
+			excludeDragging = select(6, ...)
+		end
+	end
+	iconPosition = normalizeIconPosition(iconPosition)
+
+	local parent = getFloatsParent(self)
+	local button = create("TextButton", {
+		Name = "DraggableButton",
+		BackgroundColor3 = self.Theme.Background,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.fromOffset(80, 28),
+		Font = self.Theme.Font,
+		TextSize = 16,
+		TextColor3 = self.Theme.Text,
+		Text = "",
+		AutoButtonColor = false,
+		ZIndex = 10,
+		Parent = parent,
+	})
+	addCorner(button, self.Theme.CornerRadius)
+	addStroke(button, self.Theme.Outline)
+	addFloatScale(self, button, excludeScaling)
+
+	local obj = { Destroyed = false, Button = button }
+	local iconImage
+	local pressPosition
+
+	function obj:SetText(value)
+		button.Text = tostring(value or "")
+		local bounds = lib:GetTextBounds(button.Text, lib.Theme.Font, button.TextSize, 400)
+		local width = math.max(24, bounds.X + (iconImage and iconImage.Visible and 46 or 24))
+		local height = math.max(28, bounds.Y + 12)
+		button.Size = UDim2.fromOffset(width, height)
+		button.TextXAlignment = iconImage and iconImage.Visible and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
+	end
+
+	function obj:SetIcon(value)
+		icon = value
+		local hasIcon = icon ~= nil and tostring(icon) ~= ""
+		if hasIcon then
+			local data = lib:GetCustomIcon(icon)
+			if data then
+				local props = {
+					Size = UDim2.fromOffset(16, 16),
+					ImageColor3 = lib.Theme.Text,
+					ZIndex = 11,
+					Parent = button,
+				}
+				iconImage = iconImage and lib:ApplyIcon(iconImage, data)
+					or createIconInstance(icon, props)
+			end
+		end
+		if iconImage then
+			applyFloatIconLayout(iconImage, iconPosition, hasIcon)
+		end
+		self:SetText(button.Text)
+	end
+
+	function obj:SetIconPosition(value)
+		iconPosition = normalizeIconPosition(value)
+		self:SetIcon(icon)
+	end
+
+	function obj:SetVisible(visible)
+		button.Visible = visible ~= false
+	end
+
+	obj.Connections = obj.Connections or {}
+	table.insert(obj.Connections, button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			pressPosition = button.AbsolutePosition
+		end
+	end))
+	table.insert(obj.Connections, button.Activated:Connect(function()
+		if pressPosition and (button.AbsolutePosition - pressPosition).Magnitude > 10 then
+			return
+		end
+		lib:SafeCallback(callback, obj)
+	end))
+
+	if not excludeDragging then
+		attachDragging(self, button, button, obj.Connections)
+	end
+	obj:SetIcon(icon)
+	obj:SetText(text)
+	task.defer(function()
+		if button.Parent then
+			positionDraggableElement(lib, button, UDim2.fromOffset(6, 6), button.AbsoluteSize)
+		end
+	end)
+	return trackDraggable(self, button, obj, Vector2.new(80, 28))
 end
 
 function Library:AddDraggableMenu(name)
-	local obj = { Name = name, Destroyed = false }
-	function obj:Destroy() obj.Destroyed = true end
-	return obj
+	local parent = getFloatsParent(self)
+	local holder = create("Frame", {
+		Name = "DraggableMenu",
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundColor3 = self.Theme.Background,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.fromOffset(0, 0),
+		ZIndex = 10,
+		Parent = parent,
+	})
+	addCorner(holder, self.Theme.CornerRadius)
+	addStroke(holder, self.Theme.Outline)
+	addFloatScale(self, holder, false)
+
+	local divider = create("Frame", {
+		Name = "Divider",
+		BackgroundColor3 = self.Theme.Outline,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(0, 34),
+		Size = UDim2.new(1, 0, 0, 1),
+		ZIndex = 11,
+		Parent = holder,
+	})
+	local label = create("TextLabel", {
+		Name = "Title",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 34),
+		Font = self.Theme.Font,
+		TextSize = 15,
+		TextColor3 = self.Theme.Text,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Text = tostring(name or ""),
+		ZIndex = 11,
+		Parent = holder,
+	})
+	local labelPadding = create("UIPadding", {
+		PaddingLeft = UDim.new(0, 12),
+		PaddingRight = UDim.new(0, 12),
+		Parent = label,
+	})
+	local container = create("Frame", {
+		Name = "Container",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(0, 35),
+		Size = UDim2.new(1, 0, 1, -35),
+		ZIndex = 11,
+		Parent = holder,
+	})
+	create("UIListLayout", {
+		Padding = UDim.new(0, 7),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Parent = container,
+	})
+	addPadding(container, 7)
+
+	local connections = {}
+	attachDragging(self, label, holder, connections)
+	table.insert(connections, holder.Destroying:Connect(function()
+		local index = table.find(self.DraggableElements or {}, holder)
+		if index then
+			table.remove(self.DraggableElements, index)
+		end
+		for _, connection in ipairs(connections) do
+			pcall(function()
+				connection:Disconnect()
+			end)
+		end
+	end))
+	self.DraggableElements = self.DraggableElements or {}
+	table.insert(self.DraggableElements, holder)
+	task.defer(function()
+		if holder.Parent then
+			positionDraggableElement(self, holder, UDim2.fromOffset(6, 6), holder.AbsoluteSize)
+		end
+	end)
+	return holder, container, label, divider, labelPadding
 end
 
 function Library:AddDraggableImageButton(...)
-	local obj = { Icon = nil, IconSize = 24 }
-	function obj:SetIcon(icon) obj.Icon = icon end
-	function obj:SetIconSize(size) obj.IconSize = size end
-	function obj:Destroy() end
-	return obj
+	local lib = self
+	local first = select(1, ...)
+	local icon, iconSize, callback, excludeScaling, excludeDragging
+	if type(first) == "table" then
+		icon = first.Icon
+		iconSize = first.IconSize or 24
+		callback = first.Callback or first.Func
+		excludeScaling = first.ExcludeScaling
+		excludeDragging = first.ExcludeDragging
+	else
+		icon = first
+		iconSize = select(2, ...)
+		callback = select(3, ...)
+		excludeScaling = select(4, ...)
+		excludeDragging = select(5, ...)
+	end
+	iconSize = tonumber(iconSize) or 24
+
+	local parent = getFloatsParent(self)
+	local button = create("TextButton", {
+		Name = "DraggableImageButton",
+		BackgroundColor3 = self.Theme.Background,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(6, 6),
+		Size = UDim2.fromOffset(iconSize + 12, iconSize + 12),
+		Text = "",
+		AutoButtonColor = false,
+		ZIndex = 10,
+		Parent = parent,
+	})
+	addCorner(button, self.Theme.CornerRadius)
+	addStroke(button, self.Theme.Outline)
+	addFloatScale(self, button, excludeScaling)
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 6),
+		PaddingRight = UDim.new(0, 6),
+		PaddingTop = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 6),
+		Parent = button,
+	})
+
+	local obj = { Destroyed = false, Button = button, IconSize = iconSize }
+	local iconImage = createIconInstance(icon, {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(iconSize, iconSize),
+		ImageColor3 = self.Theme.Text,
+		ZIndex = 11,
+		Parent = button,
+	}) or create("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(iconSize, iconSize),
+		Parent = button,
+	})
+
+	function obj:SetIcon(value)
+		icon = value
+		local data = lib:GetCustomIcon(icon)
+		if data then
+			iconImage = lib:ApplyIcon(iconImage, data) or iconImage
+		end
+	end
+
+	function obj:SetIconSize(value)
+		iconSize = tonumber(value) or 24
+		obj.IconSize = iconSize
+		iconImage.Size = UDim2.fromOffset(iconSize, iconSize)
+		button.Size = UDim2.fromOffset(iconSize + 12, iconSize + 12)
+	end
+
+	function obj:SetVisible(visible)
+		button.Visible = visible ~= false
+	end
+
+	obj.Connections = obj.Connections or {}
+	local pressPosition
+	table.insert(obj.Connections, button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			pressPosition = button.AbsolutePosition
+		end
+	end))
+	table.insert(obj.Connections, button.Activated:Connect(function()
+		if pressPosition and (button.AbsolutePosition - pressPosition).Magnitude > 10 then
+			return
+		end
+		lib:SafeCallback(callback, obj)
+	end))
+	if not excludeDragging then
+		attachDragging(self, button, button, obj.Connections)
+	end
+	task.defer(function()
+		if button.Parent then
+			positionDraggableElement(lib, button, UDim2.fromOffset(6, 6), button.AbsoluteSize)
+		end
+	end)
+	return trackDraggable(self, button, obj, Vector2.new(iconSize + 12, iconSize + 12))
+end
+
+-- Kept for older scripts that reposition a float after changing its size.
+function Library:UpdateDraggablePositions()
+	for _, instance in ipairs(self.DraggableElements or {}) do
+		if instance.Parent and instance.Visible and instance.Position.X.Offset >= 0 then
+			positionDraggableElement(self, instance, instance.Position, instance.AbsoluteSize)
+		end
+	end
 end
 
 Library.Cursor = {
@@ -1380,37 +2306,43 @@ for libName, cursorName in pairs(cursorAlias) do
 	end
 end
 
--- Watermark
+-- Watermark is deprecated upstream. Keep the old PESUI entry points, but back
+-- them with the same draggable label Obsidian uses so the two libraries behave
+-- identically when a script mixes old and new calls.
 local watermarkLabel = nil
 local watermarkVisible = true
+
+local function ensureWatermarkLabel()
+	if not watermarkLabel or watermarkLabel.Destroyed
+		or not watermarkLabel.Label or not watermarkLabel.Label.Parent then
+		watermarkLabel = Library:AddDraggableLabel("")
+	end
+	return watermarkLabel
+end
+
 function Library:SetWatermark(text)
-	if not self.ScreenGui then
-		return
-	end
-	if not watermarkLabel or not watermarkLabel.Parent then
-		watermarkLabel = create("TextLabel", {
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 12),
-			AutomaticSize = Enum.AutomaticSize.XY,
-			BackgroundTransparency = 1,
-			Font = self.Theme.Font,
-			TextSize = 13,
-			TextColor3 = self.Theme.Text,
-			TextStrokeTransparency = 0.5,
-			ZIndex = 9000,
-			Parent = self.ScreenGui,
-		})
-	end
-	watermarkLabel.Text = tostring(text or "")
-	watermarkLabel.Visible = watermarkVisible
+	local label = ensureWatermarkLabel()
+	label:SetText(text)
+	label:SetVisible(watermarkVisible)
 end
 
 function Library:SetWatermarkVisibility(visible)
 	watermarkVisible = visible ~= false
-	if watermarkLabel then
-		watermarkLabel.Visible = watermarkVisible
-	end
+	local label = ensureWatermarkLabel()
+	label:SetVisible(watermarkVisible)
 end
+
+Library.Watermark = {
+	SetText = function(_, text)
+		Library:SetWatermark(text)
+	end,
+	SetVisibility = function(_, visible)
+		Library:SetWatermarkVisibility(visible)
+	end,
+	SetWatermark = function(_, text)
+		Library:SetWatermark(text)
+	end,
+}
 
 -- CreateLoading. Obsidian gives the loader its own ScreenGui so it can be
 -- shown before CreateWindow and can restore the main window on Continue.
@@ -2171,6 +3103,15 @@ function Library:CreateWindow(config)
 	})
 	protectGui(screenGui)
 	self.ScreenGui = screenGui
+	-- Floating overlays created before the main window keep their instances;
+	-- move the shared layer into the real ScreenGui once it exists.
+	if selfLib.Floats and selfLib.Floats.Parent ~= screenGui then
+		selfLib.Floats.Parent = screenGui
+	end
+	if selfLib.DraggableScreenGui and selfLib.DraggableScreenGui ~= screenGui then
+		safeDestroy(selfLib.DraggableScreenGui)
+		selfLib.DraggableScreenGui = nil
+	end
 	selfLib.NotifySide = config.NotifySide or selfLib.NotifySide
 
 	local overlay = create("Frame", {
@@ -2182,6 +3123,8 @@ function Library:CreateWindow(config)
 	})
 	self.OverlayFrame = overlay
 	selfLib.OverlayFrame = overlay
+	self.Overlay = overlay
+	selfLib.Overlay = overlay
 
 	local notifyHolder = create("Frame", {
 		Name = "Notifications",
@@ -2200,6 +3143,7 @@ function Library:CreateWindow(config)
 		}),
 	})
 	self.NotificationHolder = notifyHolder
+	selfLib:SetNotifySide(selfLib.NotifySide)
 
 	local function getOverlayParent()
 		local overlayFrame = selfLib.OverlayFrame
@@ -2769,7 +3713,13 @@ function Library:CreateWindow(config)
 			end)
 		end
 
-		function picker:Update() end
+		function picker:Update()
+			refreshList()
+			local menu = selfLib.KeybindMenu
+			if menu and menu.SettingsOpen then
+				menu:RefreshSettings()
+			end
+		end
 		function picker:Display(text)
 			if text ~= nil then
 				picker:SetText(text)
@@ -2777,10 +3727,14 @@ function Library:CreateWindow(config)
 		end
 		function picker:SetMenuVisibility(visible)
 			picker.MenuVisible = visible ~= false
-			if selfLib and selfLib._RefreshKeybindList then
+			if selfLib then
 				task.defer(function()
-					if selfLib and selfLib._RefreshKeybindList then
+					if selfLib._RefreshKeybindList then
 						pcall(selfLib._RefreshKeybindList, selfLib)
+					end
+					local menu = selfLib.KeybindMenu
+					if menu and menu.SettingsOpen and menu.RefreshSettings then
+						pcall(menu.RefreshSettings, menu)
 					end
 				end)
 			end
@@ -4378,12 +5332,14 @@ function Library:CreateWindow(config)
 		info = info or {}
 		local windowRef = self
 		local screenGui = Library.ScreenGui
-		local overlay = create("Frame", {
+		local overlay = create("TextButton", {
 			Name = "Dialog_" .. tostring(idx or ""),
 			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.4,
 			BorderSizePixel = 0,
+			Text = "",
+			AutoButtonColor = false,
 			Active = true, -- swallow clicks so the window underneath is not usable
 			ZIndex = 4000, -- below the popup overlay (5000) so dropdowns inside dialogs work
 			Parent = screenGui,
@@ -4407,16 +5363,38 @@ function Library:CreateWindow(config)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = dlg,
 		})
-		local titleLbl = create("TextLabel", {
+		local titleRow = create("Frame", {
 			LayoutOrder = 1,
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 22),
+			Parent = dlg,
+		})
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = titleRow,
+		})
+		if info.Icon then
+			createIconInstance(info.Icon, {
+				LayoutOrder = 1,
+				Size = UDim2.fromOffset(16, 16),
+				ImageColor3 = resolveNotifyColor(Library.Theme, info.TitleColor, Library.Theme.Text),
+				Parent = titleRow,
+			})
+		end
+		local titleLbl = create("TextLabel", {
+			LayoutOrder = 2,
+			BackgroundTransparency = 1,
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Size = UDim2.new(1, 0, 0, 18),
 			Font = Library.Theme.Font,
 			TextSize = 16,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			TextColor3 = Library.Theme.Text,
+			TextColor3 = resolveNotifyColor(Library.Theme, info.TitleColor, Library.Theme.Text),
 			Text = tostring(info.Title or "Dialog"),
-			Parent = dlg,
+			Parent = titleRow,
 		})
 		local descLbl = create("TextLabel", {
 			LayoutOrder = 2,
@@ -4428,7 +5406,7 @@ function Library:CreateWindow(config)
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
-			TextColor3 = Library.Theme.SubText,
+			TextColor3 = resolveNotifyColor(Library.Theme, info.DescriptionColor, Library.Theme.SubText),
 			Text = tostring(info.Description or ""),
 			Visible = info.Description ~= nil and info.Description ~= "",
 			Parent = dlg,
@@ -4476,111 +5454,213 @@ function Library:CreateWindow(config)
 		dialog.DescriptionLabel = descLbl
 		dialog.Footer = footer
 		dialog.Buttons = {}
+		dialog.ButtonData = {}
+		dialog.OutsideClickDismiss = info.OutsideClickDismiss ~= false
 		dialog.Destroyed = false
 
 		local nextOrder = 0
-		local waiting, disabled = {}, {}
+		local buttons = dialog.ButtonData
+
+		local function refreshButtonState(state)
+			if not state or state.Destroyed then
+				return
+			end
+			local active = not state.Waiting and not state.Disabled
+			state.Button.BackgroundTransparency = active and state.BackgroundTransparency or 0.5
+			state.Label.TextTransparency = active and 0 or 0.5
+		end
+
+		function dialog:Resize()
+			local total, count = 0, 0
+			for _, state in pairs(buttons) do
+				if state.Container and state.Container.Parent then
+					count += 1
+					total += state.Container.Size.X.Offset
+				end
+			end
+			local target = tonumber(info.Width) or 360
+			if count > 0 then
+				local viewportWidth = tonumber(screenGui.AbsoluteSize.X) or 0
+				if viewportWidth <= 0 then
+					viewportWidth = 800
+				end
+				target = math.max(target, math.min(total + (count - 1) * 6 + 28, viewportWidth * 0.8))
+			end
+			dlg.Size = UDim2.fromOffset(target, 0)
+			if descLbl.Visible then
+				local bounds = Library:GetTextBounds(descLbl.Text, Library.Theme.Font, descLbl.TextSize,
+					math.max(40, target - 28))
+				descLbl.Size = UDim2.new(1, 0, 0, bounds.Y)
+			end
+			footer.Visible = count > 0
+		end
 
 		function dialog:SetTitle(t)
 			titleLbl.Text = tostring(t or "")
+			self:Resize()
 		end
+
 		function dialog:SetDescription(t)
 			descLbl.Text = tostring(t or "")
 			descLbl.Visible = t ~= nil and t ~= ""
+			self:Resize()
 		end
+
 		function dialog:Dismiss()
 			if dialog.Destroyed then
 				return
 			end
 			dialog.Destroyed = true
+			if Library.ActiveDialog == dialog then
+				Library.ActiveDialog = nil
+			end
+			if Library.Dialogues and idx ~= nil then
+				Library.Dialogues[idx] = nil
+			end
 			if windowRef.Dialogs then
 				windowRef.Dialogs[idx] = nil
+			end
+			-- The dialog body is a real groupbox. Destroy it through its own
+			-- method so tooltips, pop-outs and registered children are cleaned.
+			if type(dialog.Destroy) == "function" then
+				pcall(function()
+					dialog:Destroy()
+				end)
 			end
 			safeDestroy(overlay)
 			safeDestroy(dlg)
 		end
+
 		function dialog:RemoveFooterButton(key)
-			local b = dialog.Buttons[key]
-			if b then
-				safeDestroy(b)
-				dialog.Buttons[key] = nil
+			if key == nil then
+				return
 			end
+			local state = buttons[key]
+			if not state then
+				return
+			end
+			state.Destroyed = true
+			if state.Tween then
+				pcall(function() state.Tween:Cancel() end)
+			end
+			safeDestroy(state.Container)
+			buttons[key] = nil
+			dialog.Buttons[key] = nil
+			self:Resize()
 		end
+
 		function dialog:SetButtonDisabled(key, state)
-			local b = dialog.Buttons[key]
-			if b then
-				disabled[key] = state and true or false
-				b.TextTransparency = state and 0.5 or 0
+			local button = buttons[key]
+			if button then
+				button.Disabled = state and true or false
+				refreshButtonState(button)
 			end
 		end
+
 		function dialog:SetButtonOrder(key, order)
-			local b = dialog.Buttons[key]
-			if b then
-				b.LayoutOrder = tonumber(order) or 0
+			local state = buttons[key]
+			if state and state.Container then
+				state.Container.LayoutOrder = tonumber(order) or 0
 			end
 		end
+
 		function dialog:AddFooterButton(key, btnInfo)
+			self:RemoveFooterButton(key)
 			btnInfo = btnInfo or {}
 			nextOrder += 1
-			local variant = string.lower(tostring(btnInfo.Variant or "Secondary"))
-			local bg, fg, transparent = Library.Theme.SurfaceAlt, Library.Theme.Text, false
-			if variant == "primary" then
-				bg, fg = Library.Theme.Accent, Color3.fromRGB(20, 20, 24)
-			elseif variant == "destructive" then
-				bg, fg = Library.Theme.Danger, Color3.new(1, 1, 1)
-			elseif variant == "ghost" then
-				transparent = true
+			if key == nil then
+				key = nextOrder
 			end
-			local b = create("TextButton", {
+			-- Obsidian's four documented variants: Primary / Secondary /
+			-- Destructive / Ghost. Keep the exact background/font mapping so
+			-- themes and callbacks behave the same as the upstream library.
+			local variant = string.lower(tostring(btnInfo.Variant or "Primary"))
+			local bg, fg, outline = Library.Theme.Surface, Library.Theme.Text, Library.Theme.Outline
+			if variant == "primary" then
+				bg, fg, outline = Library.Theme.Text, Library.Theme.Background, Library.Theme.Text
+			elseif variant == "destructive" then
+				bg, fg, outline = Library.Theme.Danger, Color3.new(1, 1, 1), Library.Theme.Danger
+			elseif variant == "ghost" then
+				bg, fg, outline = Library.Theme.Background, Library.Theme.Text, Library.Theme.Background
+			end
+
+			local container = create("Frame", {
+				Name = "Button_" .. tostring(key),
 				LayoutOrder = tonumber(btnInfo.Order) or nextOrder,
-				Size = UDim2.new(0, 0, 1, 0),
-				AutomaticSize = Enum.AutomaticSize.X,
-				BackgroundColor3 = bg,
-				BackgroundTransparency = transparent and 1 or 0,
-				BorderSizePixel = 0,
-				AutoButtonColor = false,
-				Font = Library.Theme.Font,
-				TextSize = 13,
-				TextColor3 = fg,
-				Text = tostring(btnInfo.Title or btnInfo.Text or key or "Button"),
-				ClipsDescendants = true,
+				Size = UDim2.fromOffset(0, 26),
+				BackgroundTransparency = 1,
 				Parent = footer,
 			})
-			create("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14), Parent = b })
+			local b = create("TextButton", {
+				Size = UDim2.fromOffset(0, 26),
+				BackgroundColor3 = bg,
+				BackgroundTransparency = 0,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				ClipsDescendants = true,
+				Parent = container,
+			})
+			create("UIPadding", { PaddingLeft = UDim.new(0, 15), PaddingRight = UDim.new(0, 15), Parent = b })
 			addCorner(b, Library.Theme.CornerRadius)
-			addStroke(b, Library.Theme.Outline)
+			addStroke(b, outline)
+			local label = create("TextLabel", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				Font = Library.Theme.Font,
+				TextSize = 14,
+				TextColor3 = fg,
+				Text = tostring(btnInfo.Title or btnInfo.Text or key or "Button"),
+				Parent = b,
+			})
+			local bounds = Library:GetTextBounds(label.Text, Library.Theme.Font, label.TextSize, 250)
+			local buttonWidth = bounds.X + 30
+			container.Size = UDim2.fromOffset(buttonWidth, 26)
+			b.Size = UDim2.fromOffset(buttonWidth, 26)
 
-			-- WaitTime: locked until an animated progress bar fills up
-			local waitTime = tonumber(btnInfo.WaitTime)
-			if waitTime and waitTime > 0 then
-				waiting[key] = true
-				b.TextTransparency = 0.5
+			local state = {
+				Container = container,
+				Button = b,
+				Label = label,
+				BackgroundTransparency = 0,
+				Disabled = false,
+				Waiting = false,
+				Destroyed = false,
+			}
+			buttons[key] = state
+			dialog.Buttons[key] = b
+			refreshButtonState(state)
+
+			local waitTime = tonumber(btnInfo.WaitTime) or 0
+			if waitTime > 0 then
+				state.Waiting = true
+				refreshButtonState(state)
 				local bar = create("Frame", {
 					AnchorPoint = Vector2.new(0, 1),
 					Position = UDim2.fromScale(0, 1),
-					Size = UDim2.new(0, 0, 0, 3),
+					Size = UDim2.new(0, 0, 0, 2),
 					BackgroundColor3 = Library.Theme.Accent,
 					BorderSizePixel = 0,
 					ZIndex = 2,
 					Parent = b,
 				})
-				local tw = TweenService:Create(bar, TweenInfo.new(waitTime, Enum.EasingStyle.Linear), { Size = UDim2.new(1, 0, 0, 3) })
-				tw.Completed:Connect(function()
-					waiting[key] = nil
-					if not disabled[key] then
-						b.TextTransparency = 0
-					end
+				addCorner(bar, Library.Theme.CornerRadius / 2)
+				state.Tween = TweenService:Create(bar, TweenInfo.new(waitTime, Enum.EasingStyle.Linear), {
+					Size = UDim2.new(1, 0, 0, 2),
+				})
+				state.Tween.Completed:Connect(function()
+					state.Waiting = false
+					refreshButtonState(state)
 					safeDestroy(bar)
 				end)
-				tw:Play()
+				state.Tween:Play()
 			end
 
 			b.MouseButton1Click:Connect(function()
-				if waiting[key] or disabled[key] then
+				if state.Destroyed or state.Waiting or state.Disabled then
 					return
 				end
 				if type(btnInfo.Callback) == "function" then
-					Library:SafeCallback(btnInfo.Callback)
+					Library:SafeCallback(btnInfo.Callback, dialog)
 				end
 				local auto = info.AutoDismiss ~= false
 				if btnInfo.AutoDismiss ~= nil then
@@ -4593,26 +5673,25 @@ function Library:CreateWindow(config)
 					dialog:Dismiss()
 				end
 			end)
-			dialog.Buttons[key or nextOrder] = b
+
+			self:Resize()
 			return b
 		end
 
-		-- click on the dim area (not on the dialog) dismisses it
-		if info.OutsideClickDismiss ~= false then
-			-- the dialog is a sibling of the dim layer, so a click that reaches the dim layer is outside
-			overlay.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dialog:Dismiss()
-				end
-			end)
-		end
+		overlay.MouseButton1Click:Connect(function()
+			if dialog.OutsideClickDismiss then
+				dialog:Dismiss()
+			end
+		end)
 
-		-- FooterButtons is a dictionary { Name = { Title, Variant, Order, Callback, WaitTime } };
-		-- a plain array of such tables is accepted too
 		if type(info.FooterButtons) == "table" then
 			local entries = {}
 			for key, fb in pairs(info.FooterButtons) do
 				if type(fb) == "table" then
+					-- Obsidian lets an array entry carry its own Id.
+					if type(key) == "number" and fb.Id ~= nil then
+						key = fb.Id
+					end
 					table.insert(entries, { key = key, info = fb })
 				end
 			end
@@ -4630,7 +5709,13 @@ function Library:CreateWindow(config)
 		end
 
 		self.Dialogs = self.Dialogs or {}
-		self.Dialogs[idx] = dialog
+		if idx ~= nil then
+			self.Dialogs[idx] = dialog
+			Library.Dialogues = Library.Dialogues or {}
+			Library.Dialogues[idx] = dialog
+		end
+		Library.ActiveDialog = dialog
+		dialog:Resize()
 		return dialog
 	end
 
@@ -8648,16 +9733,81 @@ function Library:CreateWindow(config)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = selfLib.KeybindFrame,
 		})
-		create("TextLabel", {
-			Name = "KeybindTitle",
+
+		-- Header mirrors Obsidian: title on the left, settings + collapse on
+		-- the right. Keeping the header separate makes collapsing as simple as
+		-- hiding the container below it.
+		local header = create("Frame", {
+			Name = "KeybindHeader",
 			LayoutOrder = 0,
-			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 18),
+			BackgroundTransparency = 1,
+			Parent = selfLib.KeybindFrame,
+		})
+		selfLib.KeybindTitle = create("TextLabel", {
+			Name = "KeybindTitle",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -44, 1, 0),
+			Font = selfLib.Theme.Font,
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = selfLib.Theme.SubText,
+			Text = "Keybinds",
+			Parent = header,
+		})
+		local headerButtons = create("Frame", {
+			Name = "HeaderButtons",
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, 0, 0.5, 0),
+			Size = UDim2.fromOffset(40, 18),
+			BackgroundTransparency = 1,
+			Parent = header,
+		})
+		create("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = headerButtons,
+		})
+		selfLib.KeybindSettingsButton = create("TextButton", {
+			Name = "SettingsButton",
+			LayoutOrder = 1,
+			Size = UDim2.fromOffset(18, 18),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
 			Font = selfLib.Theme.Font,
 			TextSize = 14,
 			TextColor3 = selfLib.Theme.SubText,
-			Text = "Keybinds",
+			Text = "⚙",
+			Visible = false,
+			Parent = headerButtons,
+		})
+		selfLib.KeybindCollapseButton = create("TextButton", {
+			Name = "CollapseButton",
+			LayoutOrder = 2,
+			Size = UDim2.fromOffset(18, 18),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Font = selfLib.Theme.Font,
+			TextSize = 14,
+			TextColor3 = selfLib.Theme.SubText,
+			Text = "v",
+			Parent = headerButtons,
+		})
+		selfLib.KeybindContainer = create("Frame", {
+			Name = "KeybindContainer",
+			LayoutOrder = 1,
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Size = UDim2.new(1, 0, 0, 0),
+			BackgroundTransparency = 1,
 			Parent = selfLib.KeybindFrame,
+		})
+		create("UIListLayout", {
+			Padding = UDim.new(0, 2),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = selfLib.KeybindContainer,
 		})
 	end
 	addCorner(selfLib.KeybindFrame, selfLib.Theme.CornerRadius)
@@ -8683,35 +9833,215 @@ function Library:CreateWindow(config)
 		addCorner(settingsFrame, selfLib.Theme.CornerRadius)
 		addStroke(settingsFrame, selfLib.Theme.Outline)
 		addPadding(settingsFrame, 8)
+		create("UIListLayout", {
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = settingsFrame,
+		})
 
+		local settingsHeader = create("Frame", {
+			Name = "SettingsHeader",
+			LayoutOrder = 0,
+			Size = UDim2.new(1, 0, 0, 18),
+			BackgroundTransparency = 1,
+			Parent = settingsFrame,
+		})
+		create("TextLabel", {
+			Name = "SettingsTitle",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -22, 1, 0),
+			Font = selfLib.Theme.Font,
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = selfLib.Theme.SubText,
+			Text = "Visible Keybinds",
+			Parent = settingsHeader,
+		})
+		local closeSettingsButton = create("TextButton", {
+			Name = "CloseSettingsButton",
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, 0, 0.5, 0),
+			Size = UDim2.fromOffset(18, 18),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Font = selfLib.Theme.Font,
+			TextSize = 14,
+			TextColor3 = selfLib.Theme.SubText,
+			Text = "x",
+			Parent = settingsHeader,
+		})
+		local settingsContainer = create("Frame", {
+			Name = "SettingsContainer",
+			LayoutOrder = 1,
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Size = UDim2.new(1, 0, 0, 0),
+			BackgroundTransparency = 1,
+			Parent = settingsFrame,
+		})
+		create("UIListLayout", {
+			Padding = UDim.new(0, 2),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = settingsContainer,
+		})
+
+		local settingsRefreshing = false
 		local keybindMenu = {
-			Frame = selfLib.KeybindFrame,
-			SettingsFrame = settingsFrame,
+			VisibilityControl = false,
+			SettingsOpen = false,
 			Collapsed = false,
+			Frame = selfLib.KeybindFrame,
+			Container = selfLib.KeybindContainer,
+			SettingsFrame = settingsFrame,
+			SettingsContainer = settingsContainer,
 		}
-		function keybindMenu:SetCollapsed(state)
-			self.Collapsed = state and true or false
-			for _, child in ipairs(selfLib.KeybindFrame:GetChildren()) do
-				if child.Name == "KeybindRow" then
-					child.Visible = not self.Collapsed
+
+		function keybindMenu:RefreshSettings()
+			if settingsRefreshing then
+				return
+			end
+			settingsRefreshing = true
+			for _, child in ipairs(settingsContainer:GetChildren()) do
+				if child:IsA("GuiObject") then
+					child:Destroy()
 				end
 			end
+			for _, kp in ipairs(selfLib.KeyPickers or {}) do
+				if kp.Type == "KeyPicker" and not kp.NoUI then
+					local visible = kp.MenuVisible ~= false
+					local holder = create("TextButton", {
+						Name = "KeybindSettingRow",
+						Size = UDim2.new(1, 0, 0, 18),
+						BackgroundTransparency = 1,
+						AutoButtonColor = false,
+						Text = "",
+						Parent = settingsContainer,
+					})
+					local box = create("Frame", {
+						AnchorPoint = Vector2.new(0, 0.5),
+						Position = UDim2.new(0, 0, 0.5, 0),
+						Size = UDim2.fromOffset(14, 14),
+						BackgroundColor3 = visible and selfLib.Theme.AccentDark or selfLib.Theme.SurfaceAlt,
+						BorderSizePixel = 0,
+						Parent = holder,
+					})
+					addCorner(box, selfLib.Theme.CornerRadius / 2)
+					addStroke(box, selfLib.Theme.Outline)
+					create("TextLabel", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+						Font = selfLib.Theme.Font,
+						TextSize = 11,
+						TextColor3 = selfLib.Theme.Text,
+						Text = visible and "✓" or "",
+						Parent = box,
+					})
+					create("TextLabel", {
+						Position = UDim2.fromOffset(20, 0),
+						Size = UDim2.new(1, -20, 1, 0),
+						BackgroundTransparency = 1,
+						Font = selfLib.Theme.Font,
+						TextSize = 13,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextColor3 = visible and selfLib.Theme.Text or selfLib.Theme.SubText,
+						TextTransparency = visible and 0 or 0.3,
+						Text = string.format("[%s] %s (%s)", kp:GetDisplayText(), kp.DisplayName or tostring(kp.Idx), kp.Mode or "Toggle"),
+						Parent = holder,
+					})
+					holder.MouseButton1Click:Connect(function()
+						kp:SetMenuVisibility(kp.MenuVisible == false)
+					end)
+				end
+			end
+			settingsRefreshing = false
 		end
+
+		function keybindMenu:SetCollapsed(state)
+			self.Collapsed = state == true
+			if selfLib.KeybindContainer then
+				selfLib.KeybindContainer.Visible = not self.Collapsed
+			end
+			if selfLib.KeybindCollapseButton then
+				selfLib.KeybindCollapseButton.Text = self.Collapsed and ">" or "v"
+			end
+		end
+
+		function keybindMenu:ToggleCollapsed()
+			self:SetCollapsed(not self.Collapsed)
+		end
+
 		function keybindMenu:SetSettingsOpen(open)
-			settingsFrame.Visible = open and true or false
+			open = open == true
+			if open and not self.VisibilityControl then
+				return
+			end
+			self.SettingsOpen = open
+			settingsFrame.Visible = open
+			if open then
+				self:RefreshSettings()
+				local bounds = screenGui.AbsoluteSize
+				local pos = selfLib.KeybindFrame.AbsolutePosition - screenGui.AbsolutePosition
+				local size = selfLib.KeybindFrame.AbsoluteSize
+				local settingsSize = settingsFrame.AbsoluteSize
+				local x = pos.X + size.X + 8
+				if x + settingsSize.X > bounds.X then
+					x = pos.X - settingsSize.X - 8
+				end
+				settingsFrame.Position = UDim2.fromOffset(
+					math.clamp(x, 0, math.max(0, bounds.X - settingsSize.X)),
+					math.clamp(pos.Y, 0, math.max(0, bounds.Y - settingsSize.Y))
+				)
+			end
 		end
+
 		function keybindMenu:ToggleSettings()
-			self:SetSettingsOpen(not settingsFrame.Visible)
+			self:SetSettingsOpen(not self.SettingsOpen)
 		end
-		function keybindMenu:RefreshSettings() end
-		function keybindMenu:SetVisibilityControl(enabled) end
-		function keybindMenu:Update() end
+
+		function keybindMenu:SetVisibilityControl(enabled)
+			self.VisibilityControl = enabled == true
+			if selfLib.KeybindSettingsButton then
+				selfLib.KeybindSettingsButton.Visible = self.VisibilityControl
+			end
+			if selfLib.KeybindTitle then
+				selfLib.KeybindTitle.Size = UDim2.new(1, self.VisibilityControl and -44 or -24, 1, 0)
+			end
+			if not self.VisibilityControl then
+				self:SetSettingsOpen(false)
+			end
+		end
+
+		function keybindMenu:Update()
+			if self.SettingsOpen then
+				self:RefreshSettings()
+			end
+		end
 		function keybindMenu:SetVisible(state)
 			selfLib:SetKeybindListVisible(state)
 		end
 		function keybindMenu:Toggle()
 			selfLib:SetKeybindListVisible(not selfLib.KeybindFrame.Visible)
 		end
+		function keybindMenu:Destroy()
+			safeDestroy(settingsFrame)
+			self.SettingsFrame = nil
+			self.SettingsContainer = nil
+			self.SettingsOpen = false
+			selfLib.KeybindMenu = nil
+		end
+
+		if selfLib.KeybindSettingsButton then
+			selfLib.KeybindSettingsButton.MouseButton1Click:Connect(function()
+				keybindMenu:ToggleSettings()
+			end)
+		end
+		if selfLib.KeybindCollapseButton then
+			selfLib.KeybindCollapseButton.MouseButton1Click:Connect(function()
+				keybindMenu:ToggleCollapsed()
+			end)
+		end
+		closeSettingsButton.MouseButton1Click:Connect(function()
+			keybindMenu:SetSettingsOpen(false)
+		end)
 		selfLib.KeybindMenu = keybindMenu
 	end
 
@@ -8739,33 +10069,79 @@ function Library:CreateWindow(config)
 
 	-- rebuilds the rows of the keybind list from every registered KeyPicker
 	function selfLib:_RefreshKeybindList()
-		local frame = self.KeybindFrame
-		if not frame or not frame.Parent then
+		local container = self.KeybindContainer
+		if not container or not container.Parent then
 			return
 		end
-		for _, child in ipairs(frame:GetChildren()) do
-			if child.Name == "KeybindRow" then
+		for _, child in ipairs(container:GetChildren()) do
+			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
 		end
 		local n = 0
 		for _, kp in ipairs(self.KeyPickers or {}) do
-			if not kp.NoUI and kp.MenuVisible ~= false and not kp.Destroyed and tostring(kp.Value) ~= "None" and tostring(kp.Value) ~= "" then
+			if kp.Type == "KeyPicker" and not kp.NoUI and kp.MenuVisible ~= false and not kp.Destroyed
+				and tostring(kp.Value) ~= "None" and tostring(kp.Value) ~= "" then
 				n += 1
-				create("TextLabel", {
+				local state = kp:GetState()
+				local showToggle = self.ShowToggleFrameInKeybinds ~= false and kp.Mode == "Toggle"
+				local text = string.format("[%s] %s (%s)", kp:GetDisplayText(), kp.DisplayName or tostring(kp.Idx), tostring(kp.Mode))
+				local row = create("TextButton", {
 					Name = "KeybindRow",
 					LayoutOrder = n,
-					BackgroundTransparency = 1,
-					Size = UDim2.new(1, 0, 0, 16),
+					Size = UDim2.new(1, 0, 0, showToggle and 22 or 20),
+					BackgroundColor3 = state and self.Theme.AccentDark or self.Theme.SurfaceAlt,
+					BackgroundTransparency = showToggle and 1 or (state and 0.15 or 0.45),
+					BorderSizePixel = 0,
+					AutoButtonColor = false,
 					Font = self.Theme.Font,
 					TextSize = 13,
 					TextXAlignment = Enum.TextXAlignment.Left,
 					TextTruncate = Enum.TextTruncate.AtEnd,
-					TextColor3 = kp:GetState() and self.Theme.Accent or self.Theme.SubText,
-					Text = string.format("[%s] %s (%s)", kp:GetDisplayText(), kp.DisplayName or tostring(kp.Idx), tostring(kp.Mode)),
-					Visible = not (self.KeybindMenu and self.KeybindMenu.Collapsed),
-					Parent = frame,
+					TextColor3 = state and self.Theme.Text or self.Theme.SubText,
+					Text = showToggle and "" or (" " .. text),
+					Parent = container,
 				})
+				addCorner(row, self.Theme.CornerRadius / 2)
+				addStroke(row, self.Theme.Outline)
+				if showToggle then
+					local box = create("Frame", {
+						AnchorPoint = Vector2.new(0, 0.5),
+						Position = UDim2.fromOffset(3, 0),
+						Size = UDim2.fromOffset(16, 16),
+						BackgroundColor3 = state and self.Theme.AccentDark or self.Theme.SurfaceAlt,
+						BorderSizePixel = 0,
+						Parent = row,
+					})
+					addCorner(box, self.Theme.CornerRadius / 2)
+					addStroke(box, self.Theme.Outline)
+					create("TextLabel", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+						Font = self.Theme.Font,
+						TextSize = 12,
+						TextColor3 = self.Theme.Text,
+						Text = state and "✓" or "",
+						Parent = box,
+					})
+					create("TextLabel", {
+						Position = UDim2.fromOffset(24, 0),
+						Size = UDim2.new(1, -24, 1, 0),
+						BackgroundTransparency = 1,
+						Font = self.Theme.Font,
+						TextSize = 13,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextTruncate = Enum.TextTruncate.AtEnd,
+						TextColor3 = state and self.Theme.Text or self.Theme.SubText,
+						Text = text,
+						Parent = row,
+					})
+				end
+				row.MouseButton1Click:Connect(function()
+					if type(kp.DoClick) == "function" then
+						kp:DoClick()
+					end
+				end)
 			end
 		end
 	end
@@ -8813,6 +10189,23 @@ function Library:CreateWindow(config)
 	self:Connect(UserInputService.InputBegan, function(input, gpe)
 		-- a keybind is being (re)bound right now: don't treat that key as the menu key
 		if selfLib._ListeningKey then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.Escape then
+			-- Matches Obsidian: unfocus first, dismiss the topmost dialog next,
+			-- and do not toggle the window on the same Escape press.
+			local focused = UserInputService:GetFocusedTextBox()
+			if focused then
+				focused:ReleaseFocus()
+				return
+			end
+			local activeDialog = Library.ActiveDialog
+			if activeDialog and not activeDialog.Destroyed and activeDialog.OutsideClickDismiss ~= false then
+				if type(activeDialog.Dismiss) == "function" then
+					activeDialog:Dismiss()
+				end
+				return
+			end
 			return
 		end
 		local tk = getToggleKey()
