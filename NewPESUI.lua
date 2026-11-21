@@ -460,8 +460,11 @@ local function attachInfoTooltip(element, info, hoverInstance)
 	end
 	if element then
 		element.TooltipTable = tip
-		tip.Disabled = element.Disabled == true
 	end
+	-- Use Info.Disabled as the source of truth: many elements (e.g. Button)
+	-- don't initialize .Disabled themselves, and a disabled-only tooltip must
+	-- still be selectable when the element starts disabled.
+	tip.Disabled = (info.Disabled == true) or (element and element.Disabled == true) or false
 	return tip
 end
 
@@ -4143,11 +4146,20 @@ function Library:CreateWindow(config)
 			addStroke(button, selfLib.Theme.Outline)
 			bindHover(button, selfLib.Theme.SurfaceAlt, selfLib.Theme.Outline)
 
-			local obj = { Instance = wrapper, Button = button, Text = text }
+			local obj = { Instance = wrapper, Button = button, Text = text, Disabled = info.Disabled == true }
 			button.MouseButton1Click:Connect(function()
+				if obj.Disabled then
+					return
+				end
 				selfLib:SafeCallback(func)
 			end)
 
+			function obj:SetDisabled(state)
+				obj.Disabled = state and true or false
+				if obj.TooltipTable then
+					obj.TooltipTable.Disabled = obj.Disabled
+				end
+			end
 			function obj:SetText(newText)
 				obj.Text = tostring(newText or "")
 				button.Text = obj.Text
