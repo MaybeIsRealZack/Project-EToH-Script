@@ -77,6 +77,9 @@ local Library = {
 	-- original PESUI look when that exact palette is applied; picking any other
 	-- theme still recolors normally through the registry.
 	LegacyDefaultTheme = true,
+	-- Obsidian exposes the corner radius at Library.CornerRadius; PESUI kept it
+	-- under Theme. Keep both in sync for scripts that read/write either one.
+	CornerRadius = 6,
 	Registry = {},
 	Connections = {},
 	UnloadCallbacks = {},
@@ -2131,6 +2134,7 @@ function Library:CreateWindow(config)
 	end
 	if tonumber(config.CornerRadius) then
 		selfLib.Theme.CornerRadius = tonumber(config.CornerRadius)
+		selfLib.CornerRadius = selfLib.Theme.CornerRadius
 	end
 
 	-- opt-in animations (all off unless enabled, like Obsidian)
@@ -4343,6 +4347,7 @@ function Library:CreateWindow(config)
 		end
 		local old = Library.Theme.CornerRadius
 		Library.Theme.CornerRadius = radius
+		Library.CornerRadius = radius
 		if Library.ScreenGui then
 			for _, d in ipairs(Library.ScreenGui:GetDescendants()) do
 				if d:IsA("UICorner") and d.CornerRadius.Scale == 0 and d.CornerRadius.Offset == old then
