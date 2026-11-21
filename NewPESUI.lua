@@ -2309,6 +2309,25 @@ function Library:CreateWindow(config)
 				end
 
 				calibrateMouse(input, target)
+				if Library.DebugColorPicker then
+					local m = UserInputService:GetMouseLocation()
+					local g = selfLib.ScreenGui
+					local cam = workspace.CurrentCamera
+					local ip = input.Position
+					warn(string.format(
+						"[PESUI color debug] mouse=(%.1f, %.1f) input.Position=(%.1f, %.1f) used=(%.1f, %.1f) DY=%s\n"
+							.. "  target pos=(%.1f, %.1f) size=(%.1f, %.1f)  rel=(%.1f, %.1f)\n"
+							.. "  screenGui size=(%.1f, %.1f) viewport=(%.1f, %.1f) guiInset=(%.1f, %.1f) touch=%s",
+						m.X, m.Y, ip.X, ip.Y,
+						getInputPosition(input).X, getInputPosition(input).Y, tostring(Library._MouseDY),
+						target.AbsolutePosition.X, target.AbsolutePosition.Y, target.AbsoluteSize.X, target.AbsoluteSize.Y,
+						getInputPosition(input).X - target.AbsolutePosition.X, getInputPosition(input).Y - target.AbsolutePosition.Y,
+						g and g.AbsoluteSize.X or 0, g and g.AbsoluteSize.Y or 0,
+						cam and cam.ViewportSize.X or 0, cam and cam.ViewportSize.Y or 0,
+						GuiService:GetGuiInset().X, GuiService:GetGuiInset().Y,
+						tostring(UserInputService.TouchEnabled)
+					))
+				end
 				applyAt(getInputPosition(input))
 
 				local moveConn, endConn
