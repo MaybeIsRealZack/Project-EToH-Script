@@ -1364,7 +1364,10 @@ function Library:CreateWindow(config)
 			table.insert(picker.Modes, picker.Mode)
 		end
 		picker.Callback = info.Callback
+		picker.Clicked = info.Clicked or info.Callback
 		picker.ChangedCallback = info.ChangedCallback
+		picker.Changed = info.Changed
+		picker.WaitForCallback = info.WaitForCallback == true
 		picker.Modifiers = {}
 		if type(info.DefaultModifiers) == "table" then
 			for _, m in ipairs(info.DefaultModifiers) do
@@ -1375,10 +1378,14 @@ function Library:CreateWindow(config)
 				table.insert(picker.Modifiers, m)
 			end
 		end
+		-- Obsidian source uses Blacklisted*; the docs spell them Blacklist*.
+		-- Accept both so either style works.
+		local blacklisted = info.Blacklisted or info.Blacklist
+		local blacklistedModifiers = info.BlacklistedModifiers or info.BlacklistModifiers
 		picker.Whitelisted = type(info.Whitelisted) == "table" and info.Whitelisted or nil
-		picker.Blacklisted = type(info.Blacklisted) == "table" and info.Blacklisted or nil
+		picker.Blacklisted = type(blacklisted) == "table" and blacklisted or nil
 		picker.WhitelistedModifiers = type(info.WhitelistedModifiers) == "table" and info.WhitelistedModifiers or nil
-		picker.BlacklistedModifiers = type(info.BlacklistedModifiers) == "table" and info.BlacklistedModifiers or nil
+		picker.BlacklistedModifiers = type(blacklistedModifiers) == "table" and blacklistedModifiers or nil
 		local function isKeyAllowed(keyStr)
 			if picker.Blacklisted and table.find(picker.Blacklisted, keyStr) then
 				return false
@@ -1509,6 +1516,7 @@ function Library:CreateWindow(config)
 
 		local function fireClick(state)
 			selfLib:SafeCallback(picker.Callback, state)
+			selfLib:SafeCallback(picker.Clicked, state)
 			for _, cb in ipairs(picker.ClickCallbacks) do
 				selfLib:SafeCallback(cb, state)
 			end
@@ -1516,6 +1524,7 @@ function Library:CreateWindow(config)
 
 		local function fireChanged()
 			selfLib:SafeCallback(picker.ChangedCallback, picker.Value, picker.Modifiers)
+			selfLib:SafeCallback(picker.Changed, picker.Value, picker.Modifiers)
 			for _, fn in ipairs(picker.ChangedCallbacks) do
 				selfLib:SafeCallback(fn, picker.Value, picker.Modifiers)
 			end
@@ -1541,6 +1550,12 @@ function Library:CreateWindow(config)
 				picker.Toggled = true
 				fireClick(true)
 			elseif picker.Mode == "Press" then
+				-- Obsidian: with WaitForCallback, stay latched until the
+				-- consumer resets Toggled; otherwise re-press fires again.
+				if picker.Toggled and picker.WaitForCallback then
+					return
+				end
+				picker.Toggled = true
 				fireClick(true)
 			end
 			refreshList()
@@ -1934,6 +1949,7 @@ function Library:CreateWindow(config)
 		picker.Changed = info.Changed
 		picker.Transparency = defaultTransparency
 		picker.HasTransparency = hasTransparency
+		picker.Resizable = info.Resizable == true
 		picker.Hue, picker.Sat, picker.Vib = defaultColor:ToHSV()
 		picker.Open = false
 		picker.Destroyed = false
@@ -4238,32 +4254,62 @@ function Library:CreateWindow(config)
 				Parent = wrapper,
 			})
 
-			local box = create("Frame", {
-				AnchorPoint = Vector2.new(0, 0.5),
-				Position = UDim2.new(0, 0, 0.5, 0),
-				Size = UDim2.fromOffset(18, 18),
-				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
-				BorderSizePixel = 0,
-				Parent = button,
-			})
-			addCorner(box, 4)
-			addStroke(box, selfLib.Theme.Outline)
+			local asCheckbox = selfLib.ForceCheckbox == true or info.Variant == "Checkbox" or info.Checkbox == true
+			local box, fill, switch, switchStroke, ball
 
-			local fill = create("Frame", {
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromOffset(10, 10),
-				BackgroundColor3 = selfLib.Theme.Accent,
-				BorderSizePixel = 0,
-				Visible = toggle.Value,
-				Parent = box,
-			})
-			addCorner(fill, 3)
+			if asCheckbox then
+				box = create("Frame", {
+					AnchorPoint = Vector2.new(0, 0.5),
+					Position = UDim2.new(0, 0, 0.5, 0),
+					Size = UDim2.fromOffset(18, 18),
+					BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+					BorderSizePixel = 0,
+					Parent = button,
+				})
+				addCorner(box, 4)
+				addStroke(box, selfLib.Theme.Outline)
 
+				fill = create("Frame", {
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Position = UDim2.fromScale(0.5, 0.5),
+					Size = UDim2.fromOffset(10, 10),
+					BackgroundColor3 = selfLib.Theme.Accent,
+					BorderSizePixel = 0,
+					Visible = toggle.Value,
+					Parent = box,
+				})
+				addCorner(fill, 3)
+			else
+				-- Obsidian-style pill switch: 32x18 capsule with a sliding ball.
+				switch = create("Frame", {
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.new(1, 0, 0.5, 0),
+					Size = UDim2.fromOffset(32, 18),
+					BackgroundColor3 = toggle.Value and selfLib.Theme.Accent or selfLib.Theme.SurfaceAlt,
+					BorderSizePixel = 0,
+					Parent = button,
+				})
+				create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = switch })
+				addPadding(switch, 2)
+				switchStroke = addStroke(switch, toggle.Value and selfLib.Theme.Accent or selfLib.Theme.Outline)
+
+				ball = create("Frame", {
+					AnchorPoint = Vector2.new(toggle.Value and 1 or 0, 0),
+					Position = UDim2.fromScale(toggle.Value and 1 or 0, 0),
+					Size = UDim2.fromScale(1, 1),
+					SizeConstraint = Enum.SizeConstraint.RelativeYY,
+					BackgroundColor3 = selfLib.Theme.Text,
+					BorderSizePixel = 0,
+					Parent = switch,
+				})
+				create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ball })
+			end
+
+			local labelPad = asCheckbox and 26 or 38
 			local label = create("TextLabel", {
 				BackgroundTransparency = 1,
-				Position = UDim2.fromOffset(26, 0),
-				Size = UDim2.new(1, -26, 1, 0),
+				Position = UDim2.fromOffset(asCheckbox and 26 or 6, 0),
+				Size = UDim2.new(1, -labelPad, 1, 0),
 				Font = selfLib.Theme.Font,
 				TextSize = 14,
 				TextXAlignment = Enum.TextXAlignment.Left,
@@ -4274,12 +4320,13 @@ function Library:CreateWindow(config)
 
 			-- right-aligned container for key/color pickers (like Obsidian/Linoria)
 			local addons = create("Frame", {
-				AnchorPoint = Vector2.new(1, 0),
-				Position = UDim2.fromScale(1, 0),
+				AnchorPoint = Vector2.new(1, 0.5),
+				-- In switch mode, sit to the left of the 32px switch (4px gap).
+				Position = UDim2.new(1, asCheckbox and 0 or -36, 0.5, 0),
 				AutomaticSize = Enum.AutomaticSize.X,
 				Size = UDim2.new(0, 0, 1, 0),
 				BackgroundTransparency = 1,
-				Parent = wrapper,
+				Parent = button,
 			})
 			local addonsLayout = create("UIListLayout", {
 				FillDirection = Enum.FillDirection.Horizontal,
@@ -4294,16 +4341,35 @@ function Library:CreateWindow(config)
 				if pad > 0 then
 					pad += 6
 				end
-				label.Size = UDim2.new(1, -(26 + pad), 1, 0)
+				label.Size = UDim2.new(1, -(labelPad + pad), 1, 0)
 			end)
 
 			local function render()
-				fill.Visible = toggle.Value and true or false
-				box.BackgroundColor3 = toggle.Value and selfLib.Theme.AccentDark or selfLib.Theme.SurfaceAlt
-				label.TextColor3 = toggle.Disabled and selfLib.Theme.SubText or selfLib.Theme.Text
+				if asCheckbox then
+					fill.Visible = toggle.Value and true or false
+					box.BackgroundColor3 = toggle.Value and selfLib.Theme.AccentDark or selfLib.Theme.SurfaceAlt
+					label.TextColor3 = toggle.Disabled and selfLib.Theme.SubText or selfLib.Theme.Text
+					return
+				end
+
+				local offset = toggle.Value and 1 or 0
+				switch.BackgroundColor3 = toggle.Value and selfLib.Theme.Accent or selfLib.Theme.SurfaceAlt
+				switchStroke.Color = toggle.Value and selfLib.Theme.Accent or selfLib.Theme.Outline
+				switch.BackgroundTransparency = toggle.Disabled and 0.75 or 0
+				switchStroke.Transparency = toggle.Disabled and 0.75 or 0
+				ball.BackgroundColor3 = toggle.Disabled and selfLib.Theme.SubText or selfLib.Theme.Text
+				label.TextColor3 = selfLib.Theme.Text
+				label.TextTransparency = toggle.Disabled and 0.8 or (toggle.Value and 0 or 0.4)
+				pcall(function()
+					tween(ball, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+						AnchorPoint = Vector2.new(offset, 0),
+						Position = UDim2.fromScale(offset, 0),
+					})
+				end)
 			end
 
 			toggle.Instance = wrapper
+			toggle.Variant = asCheckbox and "Checkbox" or "Switch"
 			toggle.Disabled = info.Disabled == true
 			toggle._setter = function(value)
 				if toggle.Disabled then
@@ -5761,6 +5827,7 @@ function Library:CreateWindow(config)
 		function groupbox:AddCheckbox(id, info)
 			info = info or {}
 			info.Text = info.Text or info.Title or info.Name or id
+			info.Variant = "Checkbox"
 			return groupbox.AddToggle(self, id, info)
 		end
 
@@ -5780,8 +5847,71 @@ function Library:CreateWindow(config)
 			local cam = Instance.new("Camera")
 			viewportFrame.CurrentCamera = cam
 			cam.Parent = viewportFrame
-			local obj = { Instance = wrapper, ViewportFrame = viewportFrame, Camera = cam, Object = info.Object, Height = h, Visible = info.Visible ~= false }
+			local obj = {
+				Instance = wrapper, ViewportFrame = viewportFrame, Camera = cam,
+				Object = info.Object, Height = h, Visible = info.Visible ~= false,
+				Interactive = info.Interactive == true, AutoFocus = info.AutoFocus == true,
+				Callback = info.Callback,
+			}
 			wrapper.Visible = obj.Visible
+			viewportFrame.Active = obj.Interactive
+
+			local function getPivotPosition()
+				if not obj.Object then
+					return Vector3.zero
+				end
+				local ok, pivot = pcall(function()
+					return obj.Object:GetPivot().Position
+				end)
+				return ok and pivot or Vector3.zero
+			end
+			local function getModelSize()
+				if not obj.Object then
+					return Vector3.one
+				end
+				local ok, size = pcall(function()
+					if obj.Object:IsA("BasePart") then
+						return obj.Object.Size
+					end
+					return select(2, obj.Object:GetBoundingBox())
+				end)
+				return ok and size or Vector3.one
+			end
+			local function focusCamera()
+				if not obj.Object or not obj.Camera then
+					return
+				end
+				local size = getModelSize()
+				local maxExtent = math.max(size.X, size.Y, size.Z)
+				local distance = maxExtent * 2
+				local pivot = getPivotPosition()
+				pcall(function()
+					obj.Camera.CFrame = CFrame.new(pivot + Vector3.new(0, maxExtent / 2, distance), pivot)
+				end)
+			end
+			local function orbitCamera(yaw, pitch)
+				if not obj.Object or not obj.Camera then
+					return
+				end
+				local pivot = getPivotPosition()
+				pcall(function()
+					local rotY = CFrame.fromAxisAngle(Vector3.new(0, 1, 0), yaw)
+					obj.Camera.CFrame = CFrame.new(pivot) * rotY * CFrame.new(-pivot) * obj.Camera.CFrame
+					local rotX = CFrame.fromAxisAngle(obj.Camera.CFrame.RightVector, pitch)
+					local pitched = CFrame.new(pivot) * rotX * CFrame.new(-pivot) * obj.Camera.CFrame
+					if pitched.UpVector.Y > 0.1 then
+						obj.Camera.CFrame = pitched
+					end
+				end)
+			end
+			local function zoomCamera(amount)
+				if not obj.Camera then
+					return
+				end
+				pcall(function()
+					obj.Camera.CFrame = obj.Camera.CFrame + obj.Camera.CFrame.LookVector * amount
+				end)
+			end
 			function obj:SetObject(object, clone)
 				obj.Object = object
 				if object and viewportFrame then
@@ -5797,6 +5927,12 @@ function Library:CreateWindow(config)
 					if target then
 						target.Parent = viewportFrame
 					end
+					if obj.AutoFocus then
+						focusCamera()
+					end
+					if obj.Callback then
+						selfLib:SafeCallback(obj.Callback, obj.Object)
+					end
 				end
 			end
 			function obj:SetHeight(height)
@@ -5804,7 +5940,9 @@ function Library:CreateWindow(config)
 				viewportFrame.Size = UDim2.new(1, 0, 0, obj.Height)
 				wrapper.Size = UDim2.new(1, 0, 0, obj.Height + 20)
 			end
-			function obj:Focus() end
+			function obj:Focus()
+				focusCamera()
+			end
 			function obj:SetCamera(camera)
 				if camera then
 					obj.Camera = camera
@@ -5823,30 +5961,105 @@ function Library:CreateWindow(config)
 				end
 				return CFrame.new()
 			end
-			function obj:Rotate(yaw, pitch) end
-			function obj:Zoom(amount) end
-			function obj:LookAt(target) end
-			function obj:SetDistance(d) end
-			function obj:GetDistance() return 0 end
+			function obj:Rotate(yaw, pitch)
+				orbitCamera(math.rad(tonumber(yaw) or 0), math.rad(tonumber(pitch) or 0))
+			end
+			function obj:Zoom(amount)
+				zoomCamera(tonumber(amount) or 0)
+			end
+			function obj:LookAt(target)
+				if not obj.Object and target == nil then
+					return
+				end
+				pcall(function()
+					obj.Camera.CFrame = CFrame.lookAt(obj.Camera.CFrame.Position, target or getPivotPosition())
+				end)
+			end
+			function obj:SetDistance(d)
+				d = tonumber(d) or 0
+				if d <= 0 or not obj.Object then
+					return
+				end
+				pcall(function()
+					local pivot = getPivotPosition()
+					local offset = obj.Camera.CFrame.Position - pivot
+					local direction = offset.Magnitude > 0 and offset.Unit or -obj.Camera.CFrame.LookVector
+					obj.Camera.CFrame = CFrame.lookAt(pivot + direction * d, pivot)
+				end)
+			end
+			function obj:GetDistance()
+				if not obj.Object or not obj.Camera then
+					return 0
+				end
+				local ok, dist = pcall(function()
+					return (obj.Camera.CFrame.Position - getPivotPosition()).Magnitude
+				end)
+				return ok and dist or 0
+			end
 			function obj:SetFieldOfView(fov)
 				if obj.Camera then
-					pcall(function() obj.Camera.FieldOfView = fov end)
+					pcall(function() obj.Camera.FieldOfView = math.clamp(tonumber(fov) or 70, 1, 120) end)
 				end
 			end
-			function obj:SetInteractive(state) end
+			function obj:SetInteractive(state)
+				obj.Interactive = state == true
+				viewportFrame.Active = obj.Interactive
+			end
 			function obj:SetVisible(state)
 				obj.Visible = state ~= false
 				wrapper.Visible = obj.Visible
 			end
 			function obj:Destroy()
+				for _, conn in ipairs(obj.Connections or {}) do
+					pcall(function() conn:Disconnect() end)
+				end
 				safeDestroy(viewportFrame)
 				safeDestroy(wrapper)
 			end
+
+			-- Obsidian-style interactive orbit (right-drag) + wheel zoom.
+			obj.Connections = {}
+			local dragging = false
+			local lastMouse = Vector2.zero
+			table.insert(obj.Connections, viewportFrame.InputBegan:Connect(function(input)
+				if not obj.Interactive then
+					return
+				end
+				if input.UserInputType == Enum.UserInputType.MouseButton2 then
+					dragging = true
+					lastMouse = getInputPosition(input)
+				end
+			end))
+			table.insert(obj.Connections, selfLib:Connect(UserInputService.InputEnded, function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton2 then
+					dragging = false
+				end
+			end))
+			table.insert(obj.Connections, selfLib:Connect(UserInputService.InputChanged, function(input)
+				if not obj.Interactive or not dragging then
+					return
+				end
+				if input.UserInputType == Enum.UserInputType.MouseMovement then
+					local pos = getInputPosition(input)
+					local delta = pos - lastMouse
+					lastMouse = pos
+					orbitCamera(-delta.X * 0.01, -delta.Y * 0.01)
+				end
+			end))
+			table.insert(obj.Connections, viewportFrame.InputChanged:Connect(function(input)
+				if obj.Interactive and input.UserInputType == Enum.UserInputType.MouseWheel then
+					zoomCamera(input.Position.Z * 2)
+				end
+			end))
+
 			if info.Object then
 				pcall(function() obj:SetObject(info.Object, info.Clone) end)
 			end
 			if info.Camera then
 				pcall(function() obj:SetCamera(info.Camera) end)
+			end
+			if obj.AutoFocus then
+				focusCamera()
 			end
 			selfLib.Options[id] = obj
 			return obj
@@ -5869,7 +6082,12 @@ function Library:CreateWindow(config)
 				Parent = wrapper,
 			})
 			addCorner(img, selfLib.Theme.CornerRadius)
-			local obj = { Instance = wrapper, ImageLabel = img, Height = h, Visible = info.Visible ~= false }
+			local obj = {
+				Instance = wrapper, ImageLabel = img, Height = h, Visible = info.Visible ~= false,
+				Callback = info.Callback, Changed = info.Changed,
+			}
+			local previousAsset = img.Image
+			obj.Image = info.Image
 			wrapper.Visible = obj.Visible
 			function obj:SetHeight(height)
 				obj.Height = tonumber(height) or obj.Height
@@ -5877,7 +6095,16 @@ function Library:CreateWindow(config)
 				wrapper.Size = UDim2.new(1, 0, 0, obj.Height)
 			end
 			function obj:SetImage(newImage)
-				img.Image = resolveIcon(newImage) or (type(newImage) == "string" and newImage or "")
+				local asset = resolveIcon(newImage) or (type(newImage) == "string" and newImage or "")
+				img.Image = asset
+				obj.Image = newImage
+				-- Docs: "Called when the image changes". Fire on actual change
+				-- only, with the resolved asset (matches Obsidian's Image.Image).
+				if asset ~= previousAsset then
+					previousAsset = asset
+					selfLib:SafeCallback(obj.Callback, asset)
+					selfLib:SafeCallback(obj.Changed, asset)
+				end
 			end
 			function obj:SetColor(color)
 				if typeof(color) == "Color3" then img.ImageColor3 = color end
