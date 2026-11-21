@@ -4476,54 +4476,61 @@ function Library:CreateWindow(config)
 			addPadding(box, 6)
 
 			local maxLength = tonumber(info.MaxLength) or 0
-			local function commit(text)
-				local value = text
+			local emptyReset = info.EmptyReset or "---"
+			-- Mirrors Obsidian's Input:SetValue: validation lives here and both
+			-- the UI events and programmatic SetValue funnel through it.
+			local function applyValue(text)
+				local value = tostring(text == nil and "" or text)
 				if maxLength > 0 and #value > maxLength then
 					value = value:sub(1, maxLength)
-					box.Text = value
 				end
-				if info.AllowEmpty == false and tostring(value):gsub("%s", "") == "" then
-					value = info.EmptyReset or "---"
-					box.Text = tostring(value)
+				if info.AllowEmpty == false and value:gsub("%s", "") == "" then
+					value = emptyReset
 				end
 				if info.Numeric then
 					local n = tonumber(value)
-					if n == nil then
-						box.Text = tostring(inputObj.Value or "")
-						return
+					if #value > 0 and n == nil then
+						value = tostring(inputObj.Value or "")
+					else
+						value = n or ""
 					end
-					value = n
 				end
-				if type(info.VerifyValue) == "function" then
+				if type(info.VerifyValue) == "function" and value ~= emptyReset then
 					local ok, verified = pcall(info.VerifyValue, value)
-					if ok and verified ~= nil then
-						value = verified
+					if not ok or verified ~= true then
+						value = emptyReset
 					end
+				end
+				if box.Text ~= tostring(value) then
+					box.Text = tostring(value)
 				end
 				inputObj:Fire(value)
 			end
 
 			box.FocusLost:Connect(function(enterPressed)
-				if info.Finished and not enterPressed then
-					return
-				end
-				commit(box.Text)
-				if info.ClearTextOnBlur then
-					box.Text = ""
+				if info.Finished then
+					if not enterPressed then
+						if info.ClearTextOnBlur then
+							box.Text = tostring(inputObj.Value or "")
+						end
+						return
+					end
+					applyValue(box.Text)
 				end
 			end)
 
 			if not info.Finished then
 				box:GetPropertyChangedSignal("Text"):Connect(function()
-					commit(box.Text)
+					if box.Text == tostring(inputObj.Value) then
+						return
+					end
+					applyValue(box.Text)
 				end)
 			end
 
 			inputObj.Instance = wrapper
 			inputObj._setter = function(value)
-				local text = tostring(value == nil and "" or value)
-				box.Text = text
-				inputObj:Fire(info.Numeric and tonumber(text) or text)
+				applyValue(value)
 			end
 			function inputObj:SetText(text)
 				label.Text = tostring(text or "")
@@ -4546,7 +4553,7 @@ function Library:CreateWindow(config)
 			end
 			inputObj.VerifyValue = info.VerifyValue
 			inputObj.AllowEmpty = info.AllowEmpty ~= false
-			inputObj.EmptyReset = info.EmptyReset or "---"
+			inputObj.EmptyReset = emptyReset
 			inputObj.ClearTextOnBlur = info.ClearTextOnBlur == true
 
 			selfLib.Options[id] = inputObj
