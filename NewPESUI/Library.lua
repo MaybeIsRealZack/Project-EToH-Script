@@ -856,16 +856,19 @@ end
 -- (`Url`/`ImageRectOffset`/`ImageRectSize`) or a font descriptor
 -- (`FontFace`/`Text`). Failures are silent so the UI still builds offline.
 local function loadIconModule()
+	if env and env.PESUI_NO_ICON_FETCH == true then
+		return
+	end
 	if typeof(loadstring) ~= "function" or not game or typeof(game.HttpGet) ~= "function" then
 		return
 	end
 	local sources = {
 		{
-			url = "https://raw.githubusercontent.com/notpoiu/Molto/refs/heads/main/source.lua",
+			url = "https://raw.githubusercontent.com/notpoiu/Molto/main/source.lua",
 			provider = "lucide",
 		},
 		{
-			url = "https://raw.githubusercontent.com/notpoiu/lucide-roblox-direct/refs/heads/main/source.lua",
+			url = "https://raw.githubusercontent.com/notpoiu/lucide-roblox-direct/main/source.lua",
 		},
 	}
 	for _, source in ipairs(sources) do
