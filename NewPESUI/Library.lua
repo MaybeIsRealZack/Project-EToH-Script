@@ -6724,17 +6724,6 @@ function Library:CreateWindow(config)
 				Type = "Divider",
 				Parent = groupboxRef,
 			}
-			-- Keep the old PESUI behaviour where the return value was the Frame
-			-- itself: unknown properties fall through to the holder.
-			setmetatable(divider, {
-				__index = function(_, key)
-					return holder[key]
-				end,
-				__newindex = function(_, key, value)
-					holder[key] = value
-				end,
-			})
-
 			function divider:SetVisible(state)
 				if self.Destroyed then
 					return
@@ -6761,6 +6750,19 @@ function Library:CreateWindow(config)
 				end
 				resizeParent()
 			end
+
+			-- Keep the old PESUI behaviour where the return value was the Frame
+			-- itself: unknown properties fall through to the holder. This must
+			-- be installed after the methods above, otherwise defining
+			-- divider:SetVisible would try to assign a function onto the Frame.
+			setmetatable(divider, {
+				__index = function(_, key)
+					return holder[key]
+				end,
+				__newindex = function(_, key, value)
+					holder[key] = value
+				end,
+			})
 
 			groupboxRef.Elements = groupboxRef.Elements or {}
 			table.insert(groupboxRef.Elements, divider)
@@ -7011,19 +7013,12 @@ function Library:CreateWindow(config)
 				sub.MouseButton1Click:Connect(function()
 					selfLib:SafeCallback(subFunc)
 				end)
-				local subObj = setmetatable({
+				local subObj = {
 					Type = "SubButton",
 					Instance = sub,
 					Button = sub,
 					Disabled = false,
-				}, {
-					__index = function(_, key)
-						return sub[key]
-					end,
-					__newindex = function(_, key, value)
-						sub[key] = value
-					end,
-				})
+				}
 				function subObj:SetText(value)
 					sub.Text = tostring(value or "")
 				end
@@ -7037,6 +7032,16 @@ function Library:CreateWindow(config)
 				function subObj:AddSettings(settingsInfo)
 					return createSettingsObject(self, settingsInfo)
 				end
+				-- Forward unknown properties to the Roblox button, but only after
+				-- the methods above exist as raw table keys.
+				setmetatable(subObj, {
+					__index = function(_, key)
+						return sub[key]
+					end,
+					__newindex = function(_, key, value)
+						sub[key] = value
+					end,
+				})
 				return subObj
 			end
 			function obj:AddKeyPicker(idOrConfig, keyConfig)
