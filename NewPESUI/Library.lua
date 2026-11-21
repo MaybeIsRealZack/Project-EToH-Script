@@ -73,12 +73,46 @@ local Library = {
 		Font = Enum.Font.Gotham,
 		CornerRadius = 6,
 	},
+	-- ThemeManager's built-in "Default" is Obsidian's purple palette. Keep the
+	-- original PESUI look when that exact palette is applied; picking any other
+	-- theme still recolors normally through the registry.
+	LegacyDefaultTheme = true,
 	Registry = {},
 	Connections = {},
 	UnloadCallbacks = {},
 	Unloaded = false,
 	ForceCheckbox = false,
 	NotifySide = "Right",
+}
+
+-- Exact colors of ThemeManager's built-in "Default" theme and the palette PESUI
+-- used before the addons were wired in. When the former is applied we keep the
+-- latter so the UI does not silently change appearance on startup.
+local SCHEME_TO_THEME = {
+	BackgroundColor = "Background",
+	MainColor = "Surface",
+	AccentColor = "Accent",
+	OutlineColor = "Outline",
+	FontColor = "Text",
+	Font = "Font",
+	RedColor = "Danger",
+	DarkColor = "SurfaceAlt",
+}
+local OBSIDIAN_DEFAULT_HEX = {
+	FontColor = "ffffff",
+	MainColor = "191919",
+	AccentColor = "7d55ff",
+	BackgroundColor = "0f0f0f",
+	OutlineColor = "282828",
+}
+local LEGACY_PALETTE = {
+	BackgroundColor = Color3.fromRGB(20, 20, 24),
+	MainColor = Color3.fromRGB(28, 28, 34),
+	AccentColor = Color3.fromRGB(120, 160, 255),
+	OutlineColor = Color3.fromRGB(52, 52, 64),
+	FontColor = Color3.fromRGB(235, 235, 240),
+	RedColor = Color3.fromRGB(220, 90, 90),
+	DarkColor = Color3.fromRGB(34, 34, 42),
 }
 
 local env = (getgenv and getgenv()) or _G
@@ -493,11 +527,20 @@ local function createBaseElement(container, height)
 end
 
 local function bindHover(button, normal, hover)
+	-- Resolve from the live palette on every hover so a ThemeManager switch
+	-- is not undone by colors captured when the button was first created.
+	local function resolve(value)
+		local key = themeKeyForColor(value)
+		if key and typeof(Library.Theme[key]) == "Color3" then
+			return Library.Theme[key]
+		end
+		return value
+	end
 	button.MouseEnter:Connect(function()
-		tween(button, TweenInfo.new(0.12), { BackgroundColor3 = hover })
+		tween(button, TweenInfo.new(0.12), { BackgroundColor3 = resolve(hover) })
 	end)
 	button.MouseLeave:Connect(function()
-		tween(button, TweenInfo.new(0.12), { BackgroundColor3 = normal })
+		tween(button, TweenInfo.new(0.12), { BackgroundColor3 = resolve(normal) })
 	end)
 end
 
@@ -667,19 +710,28 @@ function Library:UpdateColorsUsingRegistry()
 	-- individual keys. Mirror the Obsidian palette names back into PESUI's
 	-- live Theme first, otherwise the registry would keep applying the old
 	-- colors.
-	if self.Scheme ~= nil and self.Theme ~= nil then
-		local schemeToTheme = {
-			BackgroundColor = "Background",
-			MainColor = "Surface",
-			AccentColor = "Accent",
-			OutlineColor = "Outline",
-			FontColor = "Text",
-			Font = "Font",
-			RedColor = "Danger",
-			DarkColor = "SurfaceAlt",
-		}
-		for schemeKey, themeKey in pairs(schemeToTheme) do
-			local value = self.Scheme[schemeKey]
+	local scheme = self.Scheme
+	if scheme ~= nil and self.Theme ~= nil then
+		-- ThemeManager's built-in Default is Obsidian's palette. When that exact
+		-- set of colors is applied, keep the original PESUI look instead.
+		local usingLegacy = false
+		if self.LegacyDefaultTheme ~= false then
+			local isObsidianDefault = true
+			for key, hex in pairs(OBSIDIAN_DEFAULT_HEX) do
+				local value = scheme[key]
+				if typeof(value) ~= "Color3" or value ~= Color3.fromHex(hex) then
+					isObsidianDefault = false
+					break
+				end
+			end
+			if isObsidianDefault then
+				scheme = LEGACY_PALETTE
+				usingLegacy = true
+			end
+		end
+
+		for schemeKey, themeKey in pairs(SCHEME_TO_THEME) do
+			local value = scheme[schemeKey]
 			if value ~= nil then
 				-- ThemeManager stores Font.fromEnum(...) (a Font object) in
 				-- Scheme.Font. TextLabel.Font needs an Enum.Font, so ignore
@@ -689,6 +741,12 @@ function Library:UpdateColorsUsingRegistry()
 					continue
 				end
 				self.Theme[themeKey] = value
+				-- Obsidian drives both panels and buttons from MainColor. PESUI
+				-- split those into Surface / SurfaceAlt, so keep SurfaceAlt in
+				-- sync or buttons would keep the old color after a theme change.
+				if schemeKey == "MainColor" and not usingLegacy then
+					self.Theme.SurfaceAlt = value
+				end
 			end
 		end
 	end
@@ -702,8 +760,13 @@ function Library:UpdateColorsUsingRegistry()
 					if ok then
 						val = res
 					end
-				elseif self.Theme and self.Theme[idx] ~= nil then
-					val = self.Theme[idx]
+				elseif type(idx) == "string" then
+					-- ThemeManager writes Obsidian scheme keys straight into the
+					-- registry; translate them to PESUI's Theme keys.
+					local themeKey = SCHEME_TO_THEME[idx] or idx
+					if self.Theme and self.Theme[themeKey] ~= nil then
+						val = self.Theme[themeKey]
+					end
 				end
 				if val ~= nil then
 					pcall(function()
@@ -920,7 +983,11 @@ local IconSharedProperties = {
 }
 
 local function isFontIcon(icon)
-	return type(icon) == "table" and icon.FontFace ~= nil
+	-- Molto returns both a sprite sheet (Url + ImageRect*) and an optional
+	-- ligature FontFace. The custom ligature font does not shape in every
+	-- executor, which makes the raw icon name show up as text. Prefer the
+	-- sprite sheet whenever one is available.
+	return type(icon) == "table" and icon.FontFace ~= nil and not icon.Url
 end
 
 local function mapIconProperties(className, props)
