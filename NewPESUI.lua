@@ -229,20 +229,20 @@ end
 -- the difference.
 Library.MouseOffset = Vector2.new(0, 0) -- manual fine-tune (pixels), added last
 
-local function getGuiOrigin()
-	local gui = Library.ScreenGui
-	local cam = workspace.CurrentCamera
-	if gui and gui.Parent and cam then
-		local diffY = cam.ViewportSize.Y - gui.AbsoluteSize.Y
-		if diffY > 0 and diffY < 200 then
-			return Vector2.new(0, diffY)
-		end
+-- Screen -> GUI space. The conversion depends on how the executor container treats
+-- IgnoreGuiInset, so instead of guessing we start from "GUI origin = below the top
+-- bar" and correct it from real hit-tests (see calibrateMouse).
+Library._MouseDY = nil -- learned vertical offset between screen space and GUI space
+
+local function getScreenToGui()
+	if Library._MouseDY ~= nil then
+		return Vector2.new(0, Library._MouseDY)
 	end
-	return Vector2.new(0, 0)
+	return Vector2.new(0, GuiService:GetGuiInset().Y)
 end
 
 local function getMouseLocation()
-	return UserInputService:GetMouseLocation() - getGuiOrigin() + Library.MouseOffset
+	return UserInputService:GetMouseLocation() - getScreenToGui() + Library.MouseOffset
 end
 
 local function getInputPosition(input)
@@ -253,7 +253,33 @@ local function getInputPosition(input)
 	else
 		screenPos = UserInputService:GetMouseLocation()
 	end
-	return screenPos - getGuiOrigin() + Library.MouseOffset
+	return screenPos - getScreenToGui() + Library.MouseOffset
+end
+
+-- Call this from an InputBegan that the ENGINE delivered to guiObj (so the cursor is
+-- certainly inside it). If only one candidate offset puts the cursor inside, remember it.
+local function calibrateMouse(input, guiObj)
+	if not input or not guiObj or not guiObj.Parent then
+		return
+	end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.MouseMovement then
+		return
+	end
+	local m = UserInputService:GetMouseLocation()
+	local ap, as = guiObj.AbsolutePosition, guiObj.AbsoluteSize
+	if as.X <= 0 or as.Y <= 0 or m.X < ap.X or m.X > ap.X + as.X then
+		return
+	end
+	local fits = {}
+	for _, dy in ipairs({ 0, GuiService:GetGuiInset().Y }) do
+		local y = m.Y - dy
+		if y >= ap.Y and y <= ap.Y + as.Y then
+			table.insert(fits, dy)
+		end
+	end
+	if #fits == 1 then
+		Library._MouseDY = fits[1]
+	end
 end
 
 local function makeDraggable(handle, target, adjust)
@@ -296,6 +322,17 @@ local function makeDraggable(handle, target, adjust)
 		end
 		target.Position = newPos
 	end)
+end
+
+-- true when the instance and every GuiObject ancestor up to the ScreenGui is visible
+local function isGuiVisible(inst)
+	while inst and not inst:IsA("LayerCollector") do
+		if inst:IsA("GuiObject") and not inst.Visible then
+			return false
+		end
+		inst = inst.Parent
+	end
+	return inst ~= nil
 end
 
 local function resolveIcon(icon)
@@ -454,15 +491,24 @@ end
 -- ====================================================================
 
 function Library:SetFont(font)
+	local newFont
 	if typeof(font) == "EnumItem" then
-		self.Theme.Font = font
+		newFont = font
 	elseif type(font) == "string" and Enum.Font[font] then
-		self.Theme.Font = Enum.Font[font]
-	elseif typeof(font) == "Font" then
-		self.Theme.Font = font
+		newFont = Enum.Font[font]
 	end
-	if self.ActiveWindow and self.ActiveWindow.TitleLabel then
-		self.ActiveWindow.TitleLabel.Font = self.Theme.Font
+	if not newFont then
+		warn("[PESUI] SetFont expects an Enum.Font (or its name); got " .. typeof(font))
+		return
+	end
+	local oldFont = self.Theme.Font
+	self.Theme.Font = newFont
+	if self.ScreenGui then
+		for _, d in ipairs(self.ScreenGui:GetDescendants()) do
+			if (d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox")) and d.Font == oldFont then
+				d.Font = newFont
+			end
+		end
 	end
 end
 
@@ -511,19 +557,28 @@ function Library:SetDPIScale(scale)
 end
 
 function Library:UpdateColorsUsingRegistry()
-	for inst, props in pairs(self.Registry or {}) do
-		for prop, idx in pairs(props) do
-			local val
-			if type(idx) == "function" then
-				val = idx()
-			elseif self.Theme and self.Theme[idx] ~= nil then
-				val = self.Theme[idx]
+	for key, entry in pairs(self.Registry or {}) do
+		if typeof(key) == "Instance" and type(entry) == "table" then
+			-- { [instance] = { Property = ThemeKey | function } }
+			for prop, idx in pairs(entry) do
+				local val
+				if type(idx) == "function" then
+					local ok, res = pcall(idx)
+					if ok then
+						val = res
+					end
+				elseif self.Theme and self.Theme[idx] ~= nil then
+					val = self.Theme[idx]
+				end
+				if val ~= nil then
+					pcall(function()
+						key[prop] = val
+					end)
+				end
 			end
-			if val ~= nil then
-				pcall(function()
-					inst[prop] = val
-				end)
-			end
+		elseif type(entry) == "table" and type(entry.UpdateColors) == "function" then
+			-- element objects (labels etc.) registered by Idx
+			pcall(entry.UpdateColors, entry)
 		end
 	end
 end
@@ -766,18 +821,34 @@ function Library:SetWatermarkVisibility(visible)
 	end
 end
 
--- CreateLoading
+-- CreateLoading (usable before CreateWindow: owns a ScreenGui when there is none yet)
 function Library:CreateLoading(info)
 	info = info or {}
-	local screenGui = self.ScreenGui
+	local ownGui
+	local parent = self.ScreenGui
+	if not parent then
+		ownGui = create("ScreenGui", {
+			Name = "PESUILoading",
+			ResetOnSpawn = false,
+			IgnoreGuiInset = true,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			DisplayOrder = 1000000,
+		})
+		protectGui(ownGui)
+		parent = ownGui
+		table.insert(self.UnloadCallbacks, function()
+			safeDestroy(ownGui)
+		end)
+	end
 	local frame = create("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(tonumber(info.WindowWidth) or 450, tonumber(info.WindowHeight) or 275),
 		BackgroundColor3 = self.Theme.Surface,
 		BorderSizePixel = 0,
+		Active = true,
 		ZIndex = 10000,
-		Parent = screenGui,
+		Parent = parent,
 	})
 	addCorner(frame, self.Theme.CornerRadius)
 	addStroke(frame, self.Theme.Outline)
@@ -811,15 +882,44 @@ function Library:CreateLoading(info)
 		TextSize = 13,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
 		TextColor3 = self.Theme.SubText,
 		Text = "",
 		Parent = frame,
 	})
+	local track = create("Frame", {
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 12, 1, -14),
+		Size = UDim2.new(1, -24, 0, 6),
+		BackgroundColor3 = self.Theme.SurfaceAlt,
+		BorderSizePixel = 0,
+		ZIndex = 10001,
+		Parent = frame,
+	})
+	addCorner(track, 3)
+	local fill = create("Frame", {
+		Size = UDim2.fromScale(0, 1),
+		BackgroundColor3 = self.Theme.Accent,
+		BorderSizePixel = 0,
+		ZIndex = 10002,
+		Parent = track,
+	})
+	addCorner(fill, 3)
 	local obj = { Instance = frame, Title = title, Message = msg, Description = desc, CurrentStep = info.CurrentStep or 0, TotalSteps = info.TotalSteps or 10 }
 	function obj:SetMessage(text) msg.Text = tostring(text or "") end
 	function obj:SetDescription(text) desc.Text = tostring(text or "") end
-	function obj:SetCurrentStep(step) obj.CurrentStep = tonumber(step) or obj.CurrentStep end
-	function obj:SetTotalSteps(steps) obj.TotalSteps = tonumber(steps) or obj.TotalSteps end
+	local function updateProgress()
+		local total = math.max(1, tonumber(obj.TotalSteps) or 1)
+		fill.Size = UDim2.fromScale(math.clamp((tonumber(obj.CurrentStep) or 0) / total, 0, 1), 1)
+	end
+	function obj:SetCurrentStep(step)
+		obj.CurrentStep = tonumber(step) or obj.CurrentStep
+		updateProgress()
+	end
+	function obj:SetTotalSteps(steps)
+		obj.TotalSteps = tonumber(steps) or obj.TotalSteps
+		updateProgress()
+	end
 	function obj:SetLoadingIcon(icon) end
 	function obj:SetLoadingIconTweenTime(t) end
 	function obj:SetLoadingIconColor(c) end
@@ -834,8 +934,9 @@ function Library:CreateLoading(info)
 	function obj:RecalculateLoadingHeight() end
 	function obj:UpdateLayout() end
 	function obj:Destroy()
-		safeDestroy(frame)
+		safeDestroy(ownGui or frame)
 	end
+	updateProgress()
 	return obj
 end
 
@@ -888,7 +989,7 @@ function Library:CreateWindow(config)
 	end
 
 	local screenGui = create("ScreenGui", {
-		Name = "ObsidianCompat",
+		Name = "PESUI",
 		ResetOnSpawn = false,
 		IgnoreGuiInset = true,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -1021,7 +1122,7 @@ function Library:CreateWindow(config)
 		local hovering = false
 		local pending = {}
 		local keyConns = {}
-		local modeMenu, modeHover, skipReopen = nil, false, false
+		local modeMenu, modeBackdrop, modeHover, skipReopen = nil, nil, false, false
 
 		local function refreshList()
 			if selfLib._RefreshKeybindList then
@@ -1152,6 +1253,10 @@ function Library:CreateWindow(config)
 				safeDestroy(modeMenu)
 				modeMenu = nil
 			end
+			if modeBackdrop then
+				safeDestroy(modeBackdrop)
+				modeBackdrop = nil
+			end
 			modeHover = false
 			if selfLib._CloseKeyModeMenu == closeModeMenu then
 				selfLib._CloseKeyModeMenu = nil
@@ -1164,6 +1269,21 @@ function Library:CreateWindow(config)
 			end
 			closeModeMenu()
 			local overlayParent = getOverlayParent()
+			modeBackdrop = create("TextButton", {
+				Name = "KeyModeBackdrop",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				Text = "",
+				AutoButtonColor = false,
+				ZIndex = 6009,
+				Parent = overlayParent,
+			})
+			modeBackdrop.InputBegan:Connect(function(input)
+				local t = input.UserInputType
+				if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.Touch then
+					closeModeMenu()
+				end
+			end)
 			local ap, as = button.AbsolutePosition, button.AbsoluteSize
 			local width = math.max(as.X, 80)
 			local rowH = 22
@@ -1271,14 +1391,6 @@ function Library:CreateWindow(config)
 
 		table.insert(keyConns, selfLib:Connect(UserInputService.InputBegan, function(input, gpe)
 			local t = input.UserInputType
-			-- click outside the open mode menu closes it
-			if modeMenu and not modeHover and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.Touch) then
-				closeModeMenu()
-				if hovering and t == Enum.UserInputType.MouseButton2 then
-					skipReopen = true
-				end
-			end
-
 			if listening then
 				-- presses on our own button are handled by its Click events
 				if hovering and (t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2) then
@@ -1873,6 +1985,39 @@ function Library:CreateWindow(config)
 			end)
 		end
 
+		local backdrop
+		local function setBackdrop(state)
+			if state then
+				if not backdrop or not backdrop.Parent then
+					backdrop = create("TextButton", {
+						Name = "ColorPickerBackdrop",
+						Size = UDim2.fromScale(1, 1),
+						BackgroundTransparency = 1,
+						Text = "",
+						AutoButtonColor = false,
+						ZIndex = 6004,
+						Visible = false,
+						Parent = menu.Parent,
+					})
+					backdrop.InputBegan:Connect(function(input)
+						local t = input.UserInputType
+						if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.Touch then
+							if selfLib._OpenColorPickerCloser then
+								pcall(selfLib._OpenColorPickerCloser)
+							end
+						end
+					end)
+					menu.Destroying:Connect(function()
+						safeDestroy(backdrop)
+					end)
+				end
+				backdrop.Parent = menu.Parent
+				backdrop.Visible = true
+			elseif backdrop then
+				backdrop.Visible = false
+			end
+		end
+
 		local function setMenuOpen(state)
 			state = state and true or false
 			if picker.Destroyed then
@@ -1889,6 +2034,7 @@ function Library:CreateWindow(config)
 					menu.Parent = overlayGui
 				end
 				menu.Visible = true
+				setBackdrop(true)
 				picker.Open = true
 
 				local closer
@@ -1897,6 +2043,7 @@ function Library:CreateWindow(config)
 						return
 					end
 					menu.Visible = false
+					setBackdrop(false)
 					picker.Open = false
 					stopMenuTracking()
 					if selfLib._OpenColorPickerCloser == closer then
@@ -1917,6 +2064,7 @@ function Library:CreateWindow(config)
 				end)
 			else
 				menu.Visible = false
+				setBackdrop(false)
 				picker.Open = false
 				stopMenuTracking()
 				if selfLib._OpenColorPickerOwner == picker then
@@ -2159,6 +2307,7 @@ function Library:CreateWindow(config)
 					callback(x, y)
 				end
 
+				calibrateMouse(input, target)
 				applyAt(getInputPosition(input))
 
 				local moveConn, endConn
@@ -2253,30 +2402,7 @@ function Library:CreateWindow(config)
 			picker:Update(true)
 		end))
 
-		table.insert(picker.Connections, selfLib:Connect(UserInputService.InputBegan, function(input)
-			if not menu.Visible then
-				return
-			end
-			if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
-				return
-			end
-			local clickPos = getInputPosition(input)
-			local mx, my = clickPos.X, clickPos.Y
-			local function inside(guiObj)
-				if not guiObj or not guiObj.Parent then
-					return false
-				end
-				if guiObj:IsA("GuiObject") and not guiObj.Visible then
-					return false
-				end
-				local ap = guiObj.AbsolutePosition
-				local as = guiObj.AbsoluteSize
-				return mx >= ap.X and mx <= ap.X + as.X and my >= ap.Y and my <= ap.Y + as.Y
-			end
-			if not inside(menu) and not inside(swatch) then
-				setMenuOpen(false)
-			end
-		end))
+		-- (clicking outside the menu is handled by the backdrop in setMenuOpen)
 
 		table.insert(picker.Connections, menu:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 			if menu.Visible then
@@ -2463,36 +2589,42 @@ function Library:CreateWindow(config)
 	end
 
 	-- edge / center snapping while dragging
-	local snapAdjust
-	if config.Snapping then
-		local dist = tonumber(config.SnapDistance) or 12
-		local margin = tonumber(config.SnapMargin) or 8
-		local function snapAxis(c, h, total, loMargin, hiMargin)
-			if math.abs((c - h) - loMargin) <= dist then
-				return loMargin + h
-			elseif math.abs((c + h) - (total - hiMargin)) <= dist then
-				return total - hiMargin - h
-			elseif math.abs(c - total / 2) <= dist then
-				return total / 2
-			end
-			return c
+	local snapState = {
+		Enabled = config.Snapping == true,
+		Distance = tonumber(config.SnapDistance) or 12,
+		Margin = tonumber(config.SnapMargin) or 8,
+		AvoidCoreGui = config.SnapAvoidCoreGui == true,
+	}
+	local function snapAxis(c, h, total, loMargin, hiMargin)
+		local dist = snapState.Distance
+		if math.abs((c - h) - loMargin) <= dist then
+			return loMargin + h
+		elseif math.abs((c + h) - (total - hiMargin)) <= dist then
+			return total - hiMargin - h
+		elseif math.abs(c - total / 2) <= dist then
+			return total / 2
 		end
-		snapAdjust = function(pos)
-			local gui = screenGui.AbsoluteSize
-			if gui.X <= 0 or gui.Y <= 0 then
-				return pos
-			end
-			local half = main.AbsoluteSize / 2
-			local topMargin = margin
-			if config.SnapAvoidCoreGui then
-				topMargin += GuiService:GetGuiInset().Y
-			end
-			local cx = pos.X.Scale * gui.X + pos.X.Offset
-			local cy = pos.Y.Scale * gui.Y + pos.Y.Offset
-			cx = snapAxis(cx, half.X, gui.X, margin, margin)
-			cy = snapAxis(cy, half.Y, gui.Y, topMargin, margin)
-			return UDim2.new(pos.X.Scale, cx - pos.X.Scale * gui.X, pos.Y.Scale, cy - pos.Y.Scale * gui.Y)
+		return c
+	end
+	local function snapAdjust(pos)
+		if not snapState.Enabled then
+			return pos
 		end
+		local gui = screenGui.AbsoluteSize
+		if gui.X <= 0 or gui.Y <= 0 then
+			return pos
+		end
+		local half = main.AbsoluteSize / 2
+		local margin = snapState.Margin
+		local topMargin = margin
+		if snapState.AvoidCoreGui then
+			topMargin += GuiService:GetGuiInset().Y
+		end
+		local cx = pos.X.Scale * gui.X + pos.X.Offset
+		local cy = pos.Y.Scale * gui.Y + pos.Y.Offset
+		cx = snapAxis(cx, half.X, gui.X, margin, margin)
+		cy = snapAxis(cy, half.Y, gui.Y, topMargin, margin)
+		return UDim2.new(pos.X.Scale, cx - pos.X.Scale * gui.X, pos.Y.Scale, cy - pos.Y.Scale * gui.Y)
 	end
 
 	makeDraggable(topbar, main, snapAdjust)
@@ -2854,16 +2986,31 @@ function Library:CreateWindow(config)
 	end
 
 	function Window:SetSnapping(enabled, distance, margin, avoidCoreGui)
-		self.Snapping = enabled and true or false
+		snapState.Enabled = enabled and true or false
+		if tonumber(distance) then
+			snapState.Distance = tonumber(distance)
+		end
+		if tonumber(margin) then
+			snapState.Margin = tonumber(margin)
+		end
+		if avoidCoreGui ~= nil then
+			snapState.AvoidCoreGui = avoidCoreGui and true or false
+		end
+		self.Snapping = snapState.Enabled
 	end
 
 	function Window:SetCornerRadius(radius)
-		radius = tonumber(radius) or Library.Theme.CornerRadius
+		radius = tonumber(radius)
+		if not radius then
+			return
+		end
+		local old = Library.Theme.CornerRadius
 		Library.Theme.CornerRadius = radius
-		if self.Main then
-			local c = self.Main:FindFirstChildOfClass("UICorner")
-			if c then
-				c.CornerRadius = UDim.new(0, radius)
+		if Library.ScreenGui then
+			for _, d in ipairs(Library.ScreenGui:GetDescendants()) do
+				if d:IsA("UICorner") and d.CornerRadius.Scale == 0 and d.CornerRadius.Offset == old then
+					d.CornerRadius = UDim.new(0, radius)
+				end
 			end
 		end
 	end
@@ -2883,29 +3030,41 @@ function Library:CreateWindow(config)
 
 	function Window:AddDialog(idx, info)
 		info = info or {}
+		local windowRef = self
 		local screenGui = Library.ScreenGui
 		local overlay = create("Frame", {
+			Name = "Dialog_" .. tostring(idx or ""),
 			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.4,
-			ZIndex = 9000,
+			BorderSizePixel = 0,
+			Active = true, -- swallow clicks so the window underneath is not usable
+			ZIndex = 4000, -- below the popup overlay (5000) so dropdowns inside dialogs work
 			Parent = screenGui,
 		})
 		local dlg = create("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.fromOffset(360, 180),
+			Size = UDim2.fromOffset(tonumber(info.Width) or 360, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = Library.Theme.Surface,
 			BorderSizePixel = 0,
-			ZIndex = 9001,
-			Parent = overlay,
+			Active = true,
+			ZIndex = 4001,
+			Parent = screenGui,
 		})
 		addCorner(dlg, Library.Theme.CornerRadius)
 		addStroke(dlg, Library.Theme.Outline)
+		addPadding(dlg, 14)
+		create("UIListLayout", {
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = dlg,
+		})
 		local titleLbl = create("TextLabel", {
+			LayoutOrder = 1,
 			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(12, 10),
-			Size = UDim2.new(1, -24, 0, 22),
+			Size = UDim2.new(1, 0, 0, 22),
 			Font = Library.Theme.Font,
 			TextSize = 16,
 			TextXAlignment = Enum.TextXAlignment.Left,
@@ -2914,9 +3073,10 @@ function Library:CreateWindow(config)
 			Parent = dlg,
 		})
 		local descLbl = create("TextLabel", {
+			LayoutOrder = 2,
 			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(12, 38),
-			Size = UDim2.new(1, -24, 1, -90),
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			Font = Library.Theme.Font,
 			TextSize = 13,
 			TextWrapped = true,
@@ -2924,100 +3084,207 @@ function Library:CreateWindow(config)
 			TextYAlignment = Enum.TextYAlignment.Top,
 			TextColor3 = Library.Theme.SubText,
 			Text = tostring(info.Description or ""),
+			Visible = info.Description ~= nil and info.Description ~= "",
+			Parent = dlg,
+		})
+		local holder = create("Frame", {
+			LayoutOrder = 3,
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
 			Parent = dlg,
 		})
 		local footer = create("Frame", {
-			AnchorPoint = Vector2.new(0, 1),
-			Position = UDim2.new(0, 0, 1, -8),
-			Size = UDim2.new(1, 0, 0, 36),
+			LayoutOrder = 4,
+			Size = UDim2.new(1, 0, 0, 32),
 			BackgroundTransparency = 1,
 			Parent = dlg,
 		})
 		create("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
 			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
 			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = footer,
 		})
-		addPadding(footer, 8)
 
-		local dialog = {
-			Instance = dlg,
-			Overlay = overlay,
-			TitleLabel = titleLbl,
-			DescriptionLabel = descLbl,
-			Footer = footer,
-			Buttons = {},
-		}
-		function dialog:SetTitle(t) titleLbl.Text = tostring(t or "") end
-		function dialog:SetDescription(t) descLbl.Text = tostring(t or "") end
+		-- a Dialog inherits every Groupbox method: build a real groupbox and
+		-- move its element holder into the dialog body
+		local dialog
+		if self._CreateGroupbox then
+			dialog = self._CreateGroupbox(overlay, { Name = "" })
+			create("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = holder })
+			dialog.Holder.Parent = holder
+			if dialog.Container then
+				safeDestroy(dialog.Container)
+			end
+			dialog.Container = nil
+		else
+			dialog = {}
+			dialog.Holder = holder
+		end
+		dialog.Instance = dlg
+		dialog.Overlay = overlay
+		dialog.TitleLabel = titleLbl
+		dialog.DescriptionLabel = descLbl
+		dialog.Footer = footer
+		dialog.Buttons = {}
+		dialog.Destroyed = false
+
+		local nextOrder = 0
+		local waiting, disabled = {}, {}
+
+		function dialog:SetTitle(t)
+			titleLbl.Text = tostring(t or "")
+		end
+		function dialog:SetDescription(t)
+			descLbl.Text = tostring(t or "")
+			descLbl.Visible = t ~= nil and t ~= ""
+		end
 		function dialog:Dismiss()
+			if dialog.Destroyed then
+				return
+			end
+			dialog.Destroyed = true
+			if windowRef.Dialogs then
+				windowRef.Dialogs[idx] = nil
+			end
 			safeDestroy(overlay)
+			safeDestroy(dlg)
 		end
-		function dialog:RemoveFooterButton(btnIdx)
-			if self.Buttons[btnIdx] then
-				safeDestroy(self.Buttons[btnIdx])
-				self.Buttons[btnIdx] = nil
-			end
-		end
-		function dialog:SetButtonDisabled(btnIdx, state)
-			local b = self.Buttons[btnIdx]
+		function dialog:RemoveFooterButton(key)
+			local b = dialog.Buttons[key]
 			if b then
-				b.Active = not state
+				safeDestroy(b)
+				dialog.Buttons[key] = nil
 			end
 		end
-		function dialog:SetButtonOrder(btnIdx, order)
-			local b = self.Buttons[btnIdx]
+		function dialog:SetButtonDisabled(key, state)
+			local b = dialog.Buttons[key]
+			if b then
+				disabled[key] = state and true or false
+				b.TextTransparency = state and 0.5 or 0
+			end
+		end
+		function dialog:SetButtonOrder(key, order)
+			local b = dialog.Buttons[key]
 			if b then
 				b.LayoutOrder = tonumber(order) or 0
 			end
 		end
-		function dialog:AddFooterButton(btnIdx, btnInfo)
+		function dialog:AddFooterButton(key, btnInfo)
 			btnInfo = btnInfo or {}
+			nextOrder += 1
+			local variant = string.lower(tostring(btnInfo.Variant or "Secondary"))
+			local bg, fg, transparent = Library.Theme.SurfaceAlt, Library.Theme.Text, false
+			if variant == "primary" then
+				bg, fg = Library.Theme.Accent, Color3.fromRGB(20, 20, 24)
+			elseif variant == "destructive" then
+				bg, fg = Library.Theme.Danger, Color3.new(1, 1, 1)
+			elseif variant == "ghost" then
+				transparent = true
+			end
 			local b = create("TextButton", {
-				LayoutOrder = tonumber(btnIdx) or (#self.Buttons + 1),
-				Size = UDim2.fromOffset(80, 26),
-				BackgroundColor3 = Library.Theme.SurfaceAlt,
+				LayoutOrder = tonumber(btnInfo.Order) or nextOrder,
+				Size = UDim2.new(0, 0, 1, 0),
+				AutomaticSize = Enum.AutomaticSize.X,
+				BackgroundColor3 = bg,
+				BackgroundTransparency = transparent and 1 or 0,
 				BorderSizePixel = 0,
 				AutoButtonColor = false,
 				Font = Library.Theme.Font,
 				TextSize = 13,
-				TextColor3 = Library.Theme.Text,
-				Text = tostring(btnInfo.Title or btnInfo.Text or "Button"),
+				TextColor3 = fg,
+				Text = tostring(btnInfo.Title or btnInfo.Text or key or "Button"),
+				ClipsDescendants = true,
 				Parent = footer,
 			})
+			create("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14), Parent = b })
 			addCorner(b, Library.Theme.CornerRadius)
 			addStroke(b, Library.Theme.Outline)
+
+			-- WaitTime: locked until an animated progress bar fills up
+			local waitTime = tonumber(btnInfo.WaitTime)
+			if waitTime and waitTime > 0 then
+				waiting[key] = true
+				b.TextTransparency = 0.5
+				local bar = create("Frame", {
+					AnchorPoint = Vector2.new(0, 1),
+					Position = UDim2.fromScale(0, 1),
+					Size = UDim2.new(0, 0, 0, 3),
+					BackgroundColor3 = Library.Theme.Accent,
+					BorderSizePixel = 0,
+					ZIndex = 2,
+					Parent = b,
+				})
+				local tw = TweenService:Create(bar, TweenInfo.new(waitTime, Enum.EasingStyle.Linear), { Size = UDim2.new(1, 0, 0, 3) })
+				tw.Completed:Connect(function()
+					waiting[key] = nil
+					if not disabled[key] then
+						b.TextTransparency = 0
+					end
+					safeDestroy(bar)
+				end)
+				tw:Play()
+			end
+
 			b.MouseButton1Click:Connect(function()
+				if waiting[key] or disabled[key] then
+					return
+				end
 				if type(btnInfo.Callback) == "function" then
 					Library:SafeCallback(btnInfo.Callback)
 				end
-				if btnInfo.CloseOnClick ~= false then
+				local auto = info.AutoDismiss ~= false
+				if btnInfo.AutoDismiss ~= nil then
+					auto = btnInfo.AutoDismiss and true or false
+				end
+				if btnInfo.CloseOnClick == false then
+					auto = false
+				end
+				if auto then
 					dialog:Dismiss()
 				end
 			end)
-			self.Buttons[btnIdx or (#self.Buttons + 1)] = b
+			dialog.Buttons[key or nextOrder] = b
 			return b
 		end
-		-- auto-dismiss on outside click if requested
+
+		-- click on the dim area (not on the dialog) dismisses it
 		if info.OutsideClickDismiss ~= false then
+			-- the dialog is a sibling of the dim layer, so a click that reaches the dim layer is outside
 			overlay.InputBegan:Connect(function(input)
 				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					local pos = getInputPosition(input)
-					local ap = dlg.AbsolutePosition
-					local as = dlg.AbsoluteSize
-					if not (pos.X >= ap.X and pos.X <= ap.X + as.X and pos.Y >= ap.Y and pos.Y <= ap.Y + as.Y) then
-						dialog:Dismiss()
-					end
+					dialog:Dismiss()
 				end
 			end)
 		end
-		-- footer buttons from info
+
+		-- FooterButtons is a dictionary { Name = { Title, Variant, Order, Callback, WaitTime } };
+		-- a plain array of such tables is accepted too
 		if type(info.FooterButtons) == "table" then
-			for i, fb in ipairs(info.FooterButtons) do
-				dialog:AddFooterButton(i, fb)
+			local entries = {}
+			for key, fb in pairs(info.FooterButtons) do
+				if type(fb) == "table" then
+					table.insert(entries, { key = key, info = fb })
+				end
+			end
+			table.sort(entries, function(a, b)
+				local oa = tonumber(a.info.Order) or math.huge
+				local ob = tonumber(b.info.Order) or math.huge
+				if oa ~= ob then
+					return oa < ob
+				end
+				return tostring(a.key) < tostring(b.key)
+			end)
+			for _, e in ipairs(entries) do
+				dialog:AddFooterButton(e.key, e.info)
 			end
 		end
+
+		self.Dialogs = self.Dialogs or {}
+		self.Dialogs[idx] = dialog
 		return dialog
 	end
 
@@ -3080,6 +3347,18 @@ function Library:CreateWindow(config)
 			state = not self.Visible
 		end
 		self.Visible = state
+		if not state then
+			-- popups live in the overlay: close them so they don't float over the game
+			if selfLib._OpenDropdownCloser then
+				pcall(selfLib._OpenDropdownCloser)
+			end
+			if selfLib._OpenColorPickerCloser then
+				pcall(selfLib._OpenColorPickerCloser)
+			end
+			if selfLib._CloseKeyModeMenu then
+				pcall(selfLib._CloseKeyModeMenu)
+			end
+		end
 		if selfLib.Animations.ToggleWindow then
 			self._toggleToken = (self._toggleToken or 0) + 1
 			local token = self._toggleToken
@@ -3250,13 +3529,21 @@ function Library:CreateWindow(config)
 		function groupbox:SetMaxPopOutHeight(h) end
 		function groupbox:SetPopOutWidth(w) end
 		function groupbox:SetCollapsed(state)
-			if self.Container then
-				self.Container.Visible = not (state == true)
+			state = state == true
+			self._collapsed = state
+			-- keep the title row, hide only the contents
+			if self.Holder then
+				self.Holder.Visible = not state
+			end
+			if self.DescriptionLabel then
+				self.DescriptionLabel.Visible = not state and (self.DescriptionLabel.Text or "") ~= ""
 			end
 		end
 		function groupbox:ToggleCollapsed()
 			self:SetCollapsed(not (self._collapsed == true))
-			self._collapsed = not (self._collapsed == true)
+		end
+		function groupbox:IsCollapsed()
+			return self._collapsed == true
 		end
 		function groupbox:Resize() end
 		function groupbox:Destroy()
@@ -4048,7 +4335,7 @@ function Library:CreateWindow(config)
 		end
 
 		function groupbox:AddTextbox(id, info)
-			return self:AddInput(id, info)
+			return groupbox.AddInput(self, id, info)
 		end
 
 		function groupbox:AddDropdown(id, info)
@@ -4279,7 +4566,8 @@ function Library:CreateWindow(config)
 			dropdown._normalizeMultiDefault = resolveMultiDefault
 			dropdown.Open = false
 
-			local wrapperHeight = (info.Text or info.Title or id) and 52 or 30
+			local hasLabel = (info.Text or info.Title) ~= nil and tostring(info.Text or info.Title) ~= ""
+			local wrapperHeight = hasLabel and 52 or 30
 			local wrapper = createBaseElement(self.Holder, wrapperHeight)
 			wrapper.Visible = dropdown.Visible
 
@@ -4290,13 +4578,14 @@ function Library:CreateWindow(config)
 				TextSize = 14,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				TextColor3 = selfLib.Theme.Text,
-				Text = tostring(info.Text or info.Title or id),
+				Text = tostring(info.Text or info.Title or ""),
+				Visible = hasLabel,
 				Parent = wrapper,
 			})
 
 			local button = create("TextButton", {
-				AnchorPoint = (info.Text or info.Title or id) and Vector2.new(0, 1) or Vector2.new(0, 0),
-				Position = (info.Text or info.Title or id) and UDim2.new(0, 0, 1, 0) or UDim2.new(0, 0, 0, 0),
+				AnchorPoint = hasLabel and Vector2.new(0, 1) or Vector2.new(0, 0),
+				Position = hasLabel and UDim2.new(0, 0, 1, 0) or UDim2.new(0, 0, 0, 0),
 				Size = UDim2.new(1, 0, 0, 28),
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
@@ -4340,6 +4629,19 @@ function Library:CreateWindow(config)
 			})
 			addCorner(menu, selfLib.Theme.CornerRadius)
 			addStroke(menu, selfLib.Theme.Outline)
+
+			-- transparent click-catcher behind the menu: any click outside closes the list
+			-- (no cursor-coordinate maths, so it works whatever the GUI inset is)
+			local backdrop = create("TextButton", {
+				Name = "DropdownBackdrop",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				Text = "",
+				AutoButtonColor = false,
+				Visible = false,
+				ZIndex = 5001,
+				Parent = overlay or wrapper,
+			})
 
 			local menuList = create("UIListLayout", {
 				Padding = UDim.new(0, 4),
@@ -4396,6 +4698,7 @@ function Library:CreateWindow(config)
 
 			local closeList -- forward declarations (defined below)
 			local updateMenuPosition
+			local outsideConn
 			local positionConn
 			local function stopPositionTracking()
 				if positionConn then
@@ -4430,15 +4733,30 @@ function Library:CreateWindow(config)
 				dropdown.Destroyed = true
 				stopPositionTracking()
 				closeList()
+				if outsideConn then
+					pcall(function()
+						outsideConn:Disconnect()
+					end)
+					outsideConn = nil
+				end
 				if dropdown.Instance then
 					safeDestroy(dropdown.Instance)
 				end
 				if menu then
 					safeDestroy(menu)
 				end
+				safeDestroy(backdrop)
 			end
 
+			backdrop.InputBegan:Connect(function(input)
+				local t = input.UserInputType
+				if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.Touch then
+					closeList()
+				end
+			end)
+
 			function closeList()
+				backdrop.Visible = false
 				if menu.Visible then
 					menu.Visible = false
 					dropdown.Open = false
@@ -4454,6 +4772,11 @@ function Library:CreateWindow(config)
 					return
 				end
 				if not button or not button.Parent then
+					return
+				end
+				-- the button got hidden (tab switch, dependency box, window hidden...)
+				if not isGuiVisible(button) then
+					closeList()
 					return
 				end
 
@@ -4571,6 +4894,8 @@ function Library:CreateWindow(config)
 					syncSpecialValues()
 				end
 				menu.Parent = overlay or (selfLib.OverlayFrame or menu.Parent)
+				backdrop.Parent = menu.Parent
+				backdrop.Visible = true
 				menu.Visible = true
 				popIn(menu)
 				dropdown.Open = true
@@ -4583,27 +4908,7 @@ function Library:CreateWindow(config)
 				task.defer(updateMenuPosition)
 			end
 
-			selfLib:Connect(UserInputService.InputBegan, function(input)
-				if not menu.Visible then
-					return
-				end
-				if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
-					return
-				end
-				local clickPos = getInputPosition(input)
-				local mx, my = clickPos.X, clickPos.Y
-				local function inside(guiObj)
-					if not guiObj or not guiObj.Visible then
-						return false
-					end
-					local ap = guiObj.AbsolutePosition
-					local as = guiObj.AbsoluteSize
-					return mx >= ap.X and mx <= ap.X + as.X and my >= ap.Y and my <= ap.Y + as.Y
-				end
-				if not inside(menu) and not inside(button) then
-					closeList()
-				end
-			end)
+			-- (clicking outside the menu is handled by the backdrop behind it)
 
 			local function isSelected(value)
 				if multi then
@@ -4656,6 +4961,15 @@ function Library:CreateWindow(config)
 					dropdown:Refresh()
 					task.defer(updateMenuPosition)
 				else
+					if dropdown.Value == value then
+						-- clicking the current value: only AllowNull clears it
+						if info.AllowNull then
+							setSingleValue(nil)
+							dropdown:Refresh()
+						end
+						closeList()
+						return
+					end
 					setSingleValue(value)
 					closeList()
 					dropdown:Refresh()
@@ -5005,7 +5319,7 @@ function Library:CreateWindow(config)
 		function groupbox:AddCheckbox(id, info)
 			info = info or {}
 			info.Text = info.Text or info.Title or info.Name or id
-			return self:AddToggle(id, info)
+			return groupbox.AddToggle(self, id, info)
 		end
 
 		-- Viewport shell
@@ -5412,6 +5726,8 @@ function Library:CreateWindow(config)
 		return groupbox
 	end
 
+	Window._CreateGroupbox = createGroupbox
+
 	local function attachTabMethods(tab)
 		function tab:UpdateWarningBox(info)
 			info = info or {}
@@ -5710,6 +6026,9 @@ function Library:CreateWindow(config)
 				function nested:AddColorPicker(...)
 					return host.AddColorPicker({ Holder = page }, ...)
 				end
+				function nested:AddTextbox(...)
+					return host.AddTextbox({ Holder = page }, ...)
+				end
 				function nested:AddCheckbox(...)
 					return host.AddCheckbox({ Holder = page }, ...)
 				end
@@ -5729,10 +6048,10 @@ function Library:CreateWindow(config)
 					return host.AddSettings({ Holder = page }, ...)
 				end
 				function nested:AddDependencyBox()
-					return nested
+					return host.AddDependencyBox({ Holder = page })
 				end
 				function nested:AddDependencyGroupbox()
-					return nested
+					return host.AddDependencyGroupbox({ Holder = page })
 				end
 
 				local function showThis()
