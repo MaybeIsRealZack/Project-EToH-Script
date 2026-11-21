@@ -197,6 +197,7 @@ function Library:Unload()
 		self.DraggableScreenGui = nil
 	end
 	self.ActiveDialog = nil
+	self._CreateSettings = nil
 	if self.KeyPickers then
 		table.clear(self.KeyPickers)
 	end
@@ -953,6 +954,12 @@ local function createOptionObject(kind, id, defaults)
 			self:Fire(value)
 		end
 		return self
+	end
+	function obj:AddSettings(info)
+		if type(Library._CreateSettings) == "function" then
+			return Library._CreateSettings(self, info)
+		end
+		return nil
 	end
 	function obj:Destroy()
 		if self.Instance then
@@ -6167,6 +6174,340 @@ function Library:CreateWindow(config)
 		end
 	end
 
+	-- Settings are attached to an element, but the box itself is a real
+	-- groupbox. That way AddToggle/AddSlider/AddDependencyBox etc. all behave
+	-- exactly the same inside a settings popup as they do on a normal tab.
+	local function createSettingsObject(parentObj, info)
+		info = type(info) == "table" and info or {}
+		if parentObj.Settings and not parentObj.Settings.Destroyed then
+			return parentObj.Settings
+		end
+		if parentObj.Destroyed then
+			return nil
+		end
+
+		local function getMenuSize()
+			if typeof(info.Width) == "number" and info.Width > 0 then
+				return UDim2.fromOffset(math.floor(info.Width), 0)
+			end
+			local main = selfLib.Window and selfLib.Window.Main
+			if main and main.AbsoluteSize.X > 0 then
+				local width = (main.AbsoluteSize.X / (selfLib.DPIScale or 1) - 12) / 2 - 7
+				if width > 100 then
+					return UDim2.fromOffset(math.floor(width), 0)
+				end
+			end
+			return UDim2.fromOffset(200, 0)
+		end
+
+		local overlay = selfLib.OverlayFrame
+		if (not overlay or not overlay.Parent) and selfLib.ScreenGui then
+			overlay = selfLib.ScreenGui:FindFirstChild("Overlay")
+			if not overlay then
+				overlay = create("Frame", {
+					Name = "Overlay",
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					ZIndex = 5000,
+					Parent = selfLib.ScreenGui,
+				})
+			end
+			selfLib.OverlayFrame = overlay
+			selfLib.Overlay = overlay
+		end
+
+		local popup = create("Frame", {
+			Name = "SettingsMenu",
+			Size = getMenuSize(),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Visible = false,
+			ZIndex = 6000,
+			Parent = overlay,
+		})
+		local backdrop = create("TextButton", {
+			Name = "SettingsBackdrop",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Text = "",
+			AutoButtonColor = false,
+			Visible = false,
+			ZIndex = 5999,
+			Parent = overlay or popup,
+		})
+
+		local settings = Window._CreateGroupbox(popup, { Name = "", PopOut = false })
+		local container = settings.Container
+		container.Name = "SettingsBox"
+		container.ZIndex = 6001
+		local header = container:FindFirstChild("GroupboxHeader")
+		if header then
+			header.Visible = false
+		end
+		if settings.DescriptionLabel then
+			settings.DescriptionLabel.Visible = false
+		end
+		if settings.Holder then
+			settings.Holder.Visible = true
+		end
+
+		settings.Type = "Settings"
+		settings.Parent = parentObj
+		settings.Popup = popup
+		settings.Backdrop = backdrop
+		settings.Connections = {}
+		settings.Destroyed = false
+
+		local gearParent = parentObj.Instance or parentObj.TextLabel or parentObj.Button
+		local gearAnchor = Vector2.new(1, 0.5)
+		local gearPosition = UDim2.new(1, 0, 0.5, 0)
+		local gearSize = UDim2.fromOffset(18, 18)
+		if parentObj.Type == "Button" or parentObj.Type == "SubButton" then
+			gearParent = parentObj.Instance or parentObj.Button or gearParent
+			gearSize = UDim2.new(0, 21, 0, 30)
+			if parentObj.Button and parentObj.Button:IsA("GuiObject") then
+				parentObj.Button.Size = UDim2.new(1, -21, 1, 0)
+			end
+		elseif parentObj.Type == "Input" or parentObj.Type == "Dropdown" then
+			gearParent = parentObj.Instance or gearParent
+			gearPosition = UDim2.new(1, 0, 0, 8)
+			gearAnchor = Vector2.new(1, 0)
+			if parentObj.TextLabel and parentObj.TextLabel:IsA("GuiObject") then
+				parentObj.TextLabel.Size = UDim2.new(1, -24, 0, 18)
+			end
+		elseif typeof(parentObj.Addons) == "Instance" then
+			gearParent = parentObj.Addons
+			gearAnchor = Vector2.new(0, 0.5)
+			gearPosition = UDim2.new(0, 0, 0.5, 0)
+		elseif parentObj.TextLabel then
+			gearParent = parentObj.TextLabel.Parent or gearParent
+		end
+		if not gearParent then
+			-- Groupboxes have no element row, so give the gear its own small
+			-- row. PES Example still uses this form.
+			local row = create("Frame", {
+				Name = "SettingsRow",
+				Size = UDim2.new(1, 0, 0, 30),
+				BackgroundTransparency = 1,
+				Parent = parentObj.Holder or parentObj.Container,
+			})
+			gearParent = row
+			gearPosition = UDim2.new(1, -4, 0.5, 0)
+			gearAnchor = Vector2.new(1, 0.5)
+		end
+
+		local gear = create("TextButton", {
+			Name = "SettingsGear",
+			AnchorPoint = gearAnchor,
+			Position = gearPosition,
+			Size = gearSize,
+			BackgroundColor3 = selfLib.Theme.SurfaceAlt,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			ZIndex = 6002,
+			Parent = gearParent,
+		})
+		local gearCorner = addCorner(gear, math.max(1, (tonumber(selfLib.Theme.CornerRadius) or 6) / 2))
+		addStroke(gear, selfLib.Theme.Outline)
+		create("UIPadding", {
+			PaddingBottom = UDim.new(0, 3),
+			PaddingLeft = UDim.new(0, 3),
+			PaddingRight = UDim.new(0, 3),
+			PaddingTop = UDim.new(0, 3),
+			Parent = gear,
+		})
+		local gearIcon = createIconInstance("settings", {
+			Name = "SettingsGearIcon",
+			ImageColor3 = selfLib.Theme.Text,
+			ImageTransparency = 0.5,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 6003,
+			Parent = gear,
+		})
+		if not gearIcon then
+			gearIcon = create("TextLabel", {
+				Name = "SettingsGearIcon",
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				Font = selfLib.Theme.Font,
+				TextSize = 12,
+				TextColor3 = selfLib.Theme.Text,
+				TextTransparency = 0.5,
+				Text = "≡",
+				ZIndex = 6003,
+				Parent = gear,
+			})
+		end
+		settings.Gear = gear
+		settings.Menu = popup
+
+		local function setGearIconTransparency(value)
+			if gearIcon:IsA("ImageLabel") then
+				gearIcon.ImageTransparency = value
+			elseif gearIcon:IsA("TextLabel") then
+				gearIcon.TextTransparency = value
+			end
+		end
+
+		local active = false
+		local function setCornerRadius(radius)
+			if gearCorner then
+				gearCorner.CornerRadius = radius
+			end
+		end
+		local function positionMenu()
+			if not gear.Parent or not popup.Parent then
+				return
+			end
+			local viewport = viewportSize()
+			local boxSize = container.AbsoluteSize
+			local gearPos = gear.AbsolutePosition
+			local x = gearPos.X
+			if boxSize.X > 0 then
+				x = math.clamp(x, 6, math.max(6, viewport.X - boxSize.X - 6))
+			end
+			local y = gearPos.Y + gear.AbsoluteSize.Y + 4
+			if boxSize.Y > 0 and y + boxSize.Y > viewport.Y - 6 then
+				local above = gearPos.Y - boxSize.Y - 4
+				if above >= 6 then
+					y = above
+				end
+			end
+			popup.Position = UDim2.fromOffset(math.max(6, x), math.max(6, y))
+		end
+
+		function settings:SetWidth(width)
+			if width ~= nil then
+				width = tonumber(width)
+				if not width or width < 0 then
+					return
+				end
+			end
+			info.Width = width
+			popup.Size = getMenuSize()
+			if active then
+				task.defer(positionMenu)
+			end
+		end
+
+		function settings:Open()
+			if self.Destroyed or parentObj.Disabled then
+				return
+			end
+			active = true
+			popup.Visible = true
+			backdrop.Visible = true
+			setCornerRadius(UDim.new(0, 0))
+			setGearIconTransparency(0)
+			task.defer(positionMenu)
+		end
+
+		function settings:Close()
+			if self.Destroyed or not active then
+				return
+			end
+			active = false
+			backdrop.Visible = false
+			popup.Visible = false
+			setCornerRadius(UDim.new(0, math.max(1, (tonumber(selfLib.Theme.CornerRadius) or 6) / 2)))
+			setGearIconTransparency(0.5)
+		end
+
+		function settings:Toggle()
+			if active then
+				self:Close()
+			else
+				self:Open()
+			end
+		end
+
+		function settings:Update()
+			if self.Destroyed then
+				return
+			end
+			local disabled = parentObj.Disabled == true
+			gear.Active = not disabled
+			gear.BackgroundTransparency = disabled and 0.6 or 0
+			setGearIconTransparency(disabled and 0.8 or (active and 0 or 0.5))
+			if disabled then
+				self:Close()
+			end
+		end
+
+		function settings:RefreshSettings()
+			self:Update()
+		end
+		function settings:SetSettingsOpen(open)
+			if open then
+				self:Open()
+			else
+				self:Close()
+			end
+		end
+		function settings:ToggleSettings()
+			self:Toggle()
+		end
+		function settings:SetVisibilityControl(_) end
+
+		local baseDestroy = settings.Destroy
+		function settings:Destroy()
+			if self.Destroyed then
+				return
+			end
+			self:Close()
+			self.Destroyed = true
+			for _, connection in ipairs(self.Connections or {}) do
+				pcall(function()
+					connection:Disconnect()
+				end)
+			end
+			for _, element in ipairs(self.Elements or {}) do
+				if element ~= self and type(element.Destroy) == "function" then
+					pcall(function()
+						element:Destroy()
+					end)
+				end
+			end
+			table.clear(self.Elements or {})
+			table.clear(self.DependencyBoxes or {})
+			if type(baseDestroy) == "function" then
+				pcall(baseDestroy, self)
+			end
+			safeDestroy(popup)
+			safeDestroy(backdrop)
+			safeDestroy(gear)
+			if parentObj.Settings == self then
+				parentObj.Settings = nil
+			end
+			if parentObj._SettingsAddons then
+				local index = table.find(parentObj._SettingsAddons, self)
+				if index then
+					table.remove(parentObj._SettingsAddons, index)
+				end
+			end
+		end
+
+		table.insert(settings.Connections, gear.MouseButton1Click:Connect(function()
+			settings:Toggle()
+		end))
+		table.insert(settings.Connections, backdrop.MouseButton1Click:Connect(function()
+			settings:Close()
+		end))
+		table.insert(settings.Connections, UserInputService.InputBegan:Connect(function(input)
+			if input.KeyCode == Enum.KeyCode.Escape and active then
+				settings:Close()
+			end
+		end))
+
+		parentObj._SettingsAddons = parentObj._SettingsAddons or {}
+		table.insert(parentObj._SettingsAddons, settings)
+		parentObj.Settings = settings
+		settings:Update()
+		return settings
+	end
+
+	selfLib._CreateSettings = createSettingsObject
+
 	local function createGroupbox(parent, info)
 		info = info or {}
 		local container = create("Frame", {
@@ -6284,14 +6625,147 @@ function Library:CreateWindow(config)
 			groupbox:SetPoppedOut(true)
 		end
 
-		function groupbox:AddDivider()
-			local div = create("Frame", {
-				Size = UDim2.new(1, 0, 0, 1),
-				BackgroundColor3 = selfLib.Theme.Outline,
+		function groupbox:AddDivider(...)
+			if self.Destroyed then
+				return nil
+			end
+			local groupboxRef = self
+			local params = select(1, ...)
+			local text
+			local marginTop, marginBottom = 0, 0
+			if type(params) == "table" then
+				text = params.Text
+				marginTop = tonumber(params.MarginTop or params.Margin) or 0
+				marginBottom = tonumber(params.MarginBottom or params.Margin) or 0
+			elseif type(params) == "string" then
+				text = params
+			end
+			marginTop = math.max(0, marginTop)
+			marginBottom = math.max(0, marginBottom)
+
+			local holder = create("Frame", {
+				Name = "Divider",
+				Size = UDim2.new(1, 0, 0, 6 + marginTop + marginBottom),
+				BackgroundTransparency = 1,
 				BorderSizePixel = 0,
-				Parent = self.Holder,
+				Parent = self.Holder or self.Container,
 			})
-			return div
+			create("UIPadding", {
+				PaddingTop = UDim.new(0, marginTop),
+				PaddingBottom = UDim.new(0, marginBottom),
+				Parent = holder,
+			})
+			local inner = create("Frame", {
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = holder,
+			})
+
+			local function resizeParent()
+				if type(groupboxRef.Resize) == "function" then
+					pcall(function()
+						groupboxRef:Resize()
+					end)
+				end
+			end
+
+			local function makeLine(anchor, position, size)
+				local line = create("Frame", {
+					AnchorPoint = anchor,
+					Position = position,
+					Size = size,
+					BackgroundColor3 = selfLib.Theme.Surface,
+					BorderSizePixel = 0,
+					ZIndex = inner.ZIndex,
+					Parent = inner,
+				})
+				addStroke(line, selfLib.Theme.Outline)
+				return line
+			end
+
+			if text ~= nil and tostring(text) ~= "" then
+				text = tostring(text)
+				local label = create("TextLabel", {
+					AutomaticSize = Enum.AutomaticSize.X,
+					Size = UDim2.fromScale(1, 1),
+					BackgroundTransparency = 1,
+					Font = selfLib.Theme.Font,
+					TextSize = 14,
+					TextColor3 = selfLib.Theme.Text,
+					TextTransparency = 0.5,
+					TextXAlignment = Enum.TextXAlignment.Center,
+					Text = text,
+					Parent = inner,
+				})
+				local available = inner.AbsoluteSize.X / (selfLib.DPIScale or 1)
+				if available <= 0 then
+					local main = selfLib.Window and selfLib.Window.Main
+					available = (main and main.AbsoluteSize.X or 300) / (selfLib.DPIScale or 1)
+				end
+				available = math.max(80, available)
+				local bounds = selfLib:GetTextBounds(text, label.Font, label.TextSize, available)
+				local sizeX = math.floor(bounds.X / 2 + 10)
+				sizeX = math.clamp(sizeX, 0, math.floor(available * 0.45))
+				makeLine(Vector2.new(0, 0.5), UDim2.fromScale(0, 0.5), UDim2.new(0.5, -sizeX, 0, 2))
+				makeLine(Vector2.new(1, 0.5), UDim2.fromScale(1, 0.5), UDim2.new(0.5, -sizeX, 0, 2))
+			else
+				text = nil
+				makeLine(Vector2.new(0, 0.5), UDim2.fromScale(0, 0.5), UDim2.new(1, 0, 0, 2))
+			end
+
+			local divider = {
+				Connections = {},
+				Destroyed = false,
+				Holder = holder,
+				Text = text,
+				MarginTop = marginTop,
+				MarginBottom = marginBottom,
+				Type = "Divider",
+				Parent = groupboxRef,
+			}
+			-- Keep the old PESUI behaviour where the return value was the Frame
+			-- itself: unknown properties fall through to the holder.
+			setmetatable(divider, {
+				__index = function(_, key)
+					return holder[key]
+				end,
+				__newindex = function(_, key, value)
+					holder[key] = value
+				end,
+			})
+
+			function divider:SetVisible(state)
+				if self.Destroyed then
+					return
+				end
+				holder.Visible = state == true
+				resizeParent()
+			end
+
+			function divider:Destroy()
+				if self.Destroyed then
+					return
+				end
+				self.Destroyed = true
+				for _, connection in ipairs(self.Connections or {}) do
+					pcall(function()
+						connection:Disconnect()
+					end)
+				end
+				safeDestroy(holder)
+				groupboxRef.Elements = groupboxRef.Elements or {}
+				local index = table.find(groupboxRef.Elements, self)
+				if index then
+					table.remove(groupboxRef.Elements, index)
+				end
+				resizeParent()
+			end
+
+			groupboxRef.Elements = groupboxRef.Elements or {}
+			table.insert(groupboxRef.Elements, divider)
+			resizeParent()
+			return divider
 		end
 
 		function groupbox:AddLabel(arg1, arg2, arg3)
@@ -6375,6 +6849,9 @@ function Library:CreateWindow(config)
 			function obj:UpdateColors() end
 			function obj:Destroy()
 				safeDestroy(wrapper)
+			end
+			function obj:AddSettings(settingsInfo)
+				return createSettingsObject(self, settingsInfo)
 			end
 
 			function obj:AddColorPicker(cid, cinfo)
@@ -6505,6 +6982,9 @@ function Library:CreateWindow(config)
 				safeDestroy(wrapper)
 			end
 			function obj:SetIcon(_) end
+			function obj:AddSettings(settingsInfo)
+				return createSettingsObject(self, settingsInfo)
+			end
 			attachInfoTooltip(obj, info, button)
 			function obj:AddButton(subInfo)
 				subInfo = subInfo or {}
@@ -6531,7 +7011,33 @@ function Library:CreateWindow(config)
 				sub.MouseButton1Click:Connect(function()
 					selfLib:SafeCallback(subFunc)
 				end)
-				return sub
+				local subObj = setmetatable({
+					Type = "SubButton",
+					Instance = sub,
+					Button = sub,
+					Disabled = false,
+				}, {
+					__index = function(_, key)
+						return sub[key]
+					end,
+					__newindex = function(_, key, value)
+						sub[key] = value
+					end,
+				})
+				function subObj:SetText(value)
+					sub.Text = tostring(value or "")
+				end
+				function subObj:SetDisabled(state)
+					self.Disabled = state == true
+					sub.Active = not self.Disabled
+				end
+				function subObj:Destroy()
+					safeDestroy(sub)
+				end
+				function subObj:AddSettings(settingsInfo)
+					return createSettingsObject(self, settingsInfo)
+				end
+				return subObj
 			end
 			function obj:AddKeyPicker(idOrConfig, keyConfig)
 				local pid, pcfg
@@ -6678,6 +7184,8 @@ function Library:CreateWindow(config)
 			end
 
 			toggle.Instance = wrapper
+			toggle.Addons = addons
+			toggle.TextLabel = label
 			toggle.Variant = asCheckbox and "Checkbox" or "Switch"
 			toggle.Disabled = info.Disabled == true
 			toggle._setter = function(value)
@@ -7076,6 +7584,7 @@ function Library:CreateWindow(config)
 			end
 
 			inputObj.Instance = wrapper
+			inputObj.TextLabel = label
 			inputObj._setter = function(value)
 				applyValue(value)
 			end
@@ -8001,6 +8510,7 @@ function Library:CreateWindow(config)
 			end
 
 			dropdown.Instance = wrapper
+			dropdown.TextLabel = label
 			dropdown.Menu = menu
 			dropdown.Button = button
 			dropdown._setter = function(value)
@@ -8490,115 +9000,137 @@ function Library:CreateWindow(config)
 			return obj
 		end
 
-		-- UIPassthrough shell
 		function groupbox:AddUIPassthrough(id, info)
 			info = info or {}
+			local groupboxRef = self
 			local h = tonumber(info.Height) or 24
+			if h <= 0 then
+				h = 24
+			end
+
+			local function resize()
+				if type(groupboxRef.Resize) == "function" then
+					pcall(function()
+						groupboxRef:Resize()
+					end)
+				end
+			end
+
+			local function isGuiBase2d(value)
+				return typeof(value) == "Instance" and value:IsA("GuiBase2d")
+			end
+
 			local wrapper = createBaseElement(self.Holder, h)
 			local holder = create("Frame", {
+				Name = "UIPassthrough",
 				Size = UDim2.new(1, 0, 1, 0),
 				BackgroundTransparency = 1,
 				Parent = wrapper,
 			})
-			local obj = { Instance = wrapper, Holder = holder, Height = h, Visible = info.Visible ~= false }
+			local obj = {
+				Type = "UIPassthrough",
+				Instance = isGuiBase2d(info.Instance) and info.Instance or nil,
+				Holder = holder,
+				Wrapper = wrapper,
+				Height = h,
+				Visible = info.Visible ~= false,
+				Connections = {},
+				Destroyed = false,
+			}
 			wrapper.Visible = obj.Visible
-			if info.Instance then
-				info.Instance.Parent = holder
+			if obj.Instance then
+				obj.Instance.Parent = holder
 			end
+
+			groupboxRef.Elements = groupboxRef.Elements or {}
+			table.insert(groupboxRef.Elements, obj)
+			if id ~= nil then
+				selfLib.Options[id] = obj
+			end
+			resize()
+
 			function obj:SetHeight(height)
-				obj.Height = tonumber(height) or obj.Height
-				wrapper.Size = UDim2.new(1, 0, 0, obj.Height)
-				holder.Size = UDim2.new(1, 0, 0, obj.Height)
-			end
-			function obj:SetInstance(inst)
-				if inst then
-					inst.Parent = holder
+				if self.Destroyed then
+					return
 				end
+				local value = tonumber(height)
+				if not value or value <= 0 then
+					return
+				end
+				self.Height = value
+				wrapper.Size = UDim2.new(1, 0, 0, value)
+				holder.Size = UDim2.new(1, 0, 1, 0)
+				resize()
 			end
-			function obj:SetVisible(state)
-				obj.Visible = state ~= false
-				wrapper.Visible = obj.Visible
+
+			function obj:SetInstance(instance)
+				if self.Destroyed or not isGuiBase2d(instance) then
+					return
+				end
+				if self.Instance and self.Instance.Parent == holder then
+					self.Instance.Parent = nil
+				end
+				self.Instance = instance
+				instance.Parent = holder
 			end
+
+			function obj:SetVisible(visible)
+				if self.Destroyed then
+					return
+				end
+				self.Visible = visible ~= false
+				wrapper.Visible = self.Visible
+				resize()
+			end
+
 			function obj:Destroy()
+				if self.Destroyed then
+					return
+				end
+				self.Destroyed = true
+				for _, connection in ipairs(self.Connections or {}) do
+					pcall(function()
+						connection:Disconnect()
+					end)
+				end
+				-- The embedded instance belongs to the caller: detach it before
+				-- removing our holder so Destroy does not implicitly delete it.
+				if self.Instance and self.Instance.Parent == holder then
+					self.Instance.Parent = nil
+				end
 				safeDestroy(holder)
 				safeDestroy(wrapper)
+
+				local elements = groupboxRef.Elements or {}
+				local index = table.find(elements, self)
+				if index then
+					table.remove(elements, index)
+				end
+				if id ~= nil and selfLib.Options[id] == self then
+					selfLib.Options[id] = nil
+				end
+				resize()
 			end
-			selfLib.Options[id] = obj
+
 			return obj
 		end
 
-		-- Settings shell
+		-- PES Example uses AddSettings on a groupbox; Obsidian attaches it to
+		-- individual elements. Both forms share the same popup implementation.
 		function groupbox:AddSettings(id, info)
-			info = info or {}
-			local width = tonumber(info.Width) or 200
-			local wrapper = createBaseElement(self.Holder, 30)
-			local btn = create("TextButton", {
-				Size = UDim2.fromScale(1, 1),
-				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
-				BorderSizePixel = 0,
-				AutoButtonColor = false,
-				Font = selfLib.Theme.Font,
-				TextSize = 14,
-				TextColor3 = selfLib.Theme.Text,
-				Text = tostring(info.Title or info.Name or "Settings"),
-				Parent = wrapper,
-			})
-			addCorner(btn, selfLib.Theme.CornerRadius)
-			addStroke(btn, selfLib.Theme.Outline)
-			local menu = create("Frame", {
-				Visible = false,
-				Size = UDim2.fromOffset(width, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
-				BorderSizePixel = 0,
-				ZIndex = 5005,
-				Parent = selfLib.OverlayFrame or selfLib.ScreenGui,
-			})
-			addCorner(menu, selfLib.Theme.CornerRadius)
-			addStroke(menu, selfLib.Theme.Outline)
-			addPadding(menu, 8)
-			local obj = { Instance = wrapper, Button = btn, Menu = menu, Width = width, Visible = info.Visible ~= false }
-			wrapper.Visible = obj.Visible
-			function obj:Resize() end
-			function obj:SetWidth(w)
-				obj.Width = tonumber(w) or obj.Width
-				menu.Size = UDim2.fromOffset(obj.Width, 0)
-			end
-			function obj:Open()
-				menu.Visible = true
-			end
-			function obj:Close()
-				menu.Visible = false
-			end
-			function obj:Toggle()
-				menu.Visible = not menu.Visible
-			end
-			function obj:Update() end
-			function obj:SetVisible(state)
-				obj.Visible = state ~= false
-				wrapper.Visible = obj.Visible
-			end
-			-- Obsidian KeybindMenu/Settings names
-			function obj:RefreshSettings() obj:Update() end
-			function obj:SetSettingsOpen(open)
-				if open then
-					obj:Open()
-				else
-					obj:Close()
+			local settingsInfo
+			if type(id) == "table" then
+				settingsInfo = id
+			else
+				if type(info) == "table" then
+					settingsInfo = info
 				end
 			end
-			function obj:ToggleSettings() obj:Toggle() end
-			function obj:SetVisibilityControl(enabled) end
-			function obj:Destroy()
-				safeDestroy(menu)
-				safeDestroy(btn)
-				safeDestroy(wrapper)
+			local settings = createSettingsObject(self, settingsInfo)
+			if settings and id ~= nil and type(id) ~= "table" then
+				selfLib.Options[id] = settings
 			end
-			btn.MouseButton1Click:Connect(function()
-				obj:Toggle()
-			end)
-			selfLib.Options[id] = obj
-			return obj
+			return settings
 		end
 
 		local function createDependencyContainer(parentHolder)
