@@ -2329,6 +2329,20 @@ function Library:CreateWindow(config)
 					))
 				end
 				applyAt(getInputPosition(input))
+				if Library.DebugColorPicker then
+					task.defer(function()
+						for _, child in ipairs(target:GetChildren()) do
+							if child:IsA("Frame") and child.AnchorPoint == Vector2.new(0.5, 0.5) then
+								local c = child.AbsolutePosition + child.AbsoluteSize / 2
+								local m = UserInputService:GetMouseLocation()
+								warn(string.format(
+									"[PESUI color debug] dot center=(%.1f, %.1f)  mouse now=(%.1f, %.1f)  diff(dot-mouse)=(%.1f, %.1f)",
+									c.X, c.Y, m.X, m.Y, c.X - m.X, c.Y - m.Y
+								))
+							end
+						end
+					end)
+				end
 
 				local moveConn, endConn
 				local function stop()
