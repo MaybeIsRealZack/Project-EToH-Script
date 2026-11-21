@@ -4462,7 +4462,6 @@ function Library:CreateWindow(config)
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
 				ClearTextOnFocus = info.ClearTextOnFocus == true,
-				MaxLength = tonumber(info.MaxLength) or 0,
 				Font = selfLib.Theme.Font,
 				TextSize = 14,
 				TextColor3 = selfLib.Theme.Text,
@@ -4476,9 +4475,14 @@ function Library:CreateWindow(config)
 			addStroke(box, selfLib.Theme.Outline)
 			addPadding(box, 6)
 
+			local maxLength = tonumber(info.MaxLength) or 0
 			local function commit(text)
 				local value = text
-				if info.AllowEmpty == false and tostring(text):gsub("%s", "") == "" then
+				if maxLength > 0 and #value > maxLength then
+					value = value:sub(1, maxLength)
+					box.Text = value
+				end
+				if info.AllowEmpty == false and tostring(value):gsub("%s", "") == "" then
 					value = info.EmptyReset or "---"
 					box.Text = tostring(value)
 				end
