@@ -229,16 +229,17 @@ end
 -- the difference.
 Library.MouseOffset = Vector2.new(0, 0) -- manual fine-tune (pixels), added last
 
--- Screen -> GUI space. The conversion depends on how the executor container treats
--- IgnoreGuiInset, so instead of guessing we start from "GUI origin = below the top
--- bar" and correct it from real hit-tests (see calibrateMouse).
+-- Screen -> GUI space. The ScreenGui uses IgnoreGuiInset = true, so GUI space starts
+-- at the very top of the screen and GetMouseLocation() can be used as is (offset 0).
+-- If a container behaves differently, calibrateMouse() learns the real offset from
+-- hit-tests the engine itself performed.
 Library._MouseDY = nil -- learned vertical offset between screen space and GUI space
 
 local function getScreenToGui()
 	if Library._MouseDY ~= nil then
 		return Vector2.new(0, Library._MouseDY)
 	end
-	return Vector2.new(0, GuiService:GetGuiInset().Y)
+	return Vector2.new(0, 0)
 end
 
 local function getMouseLocation()
