@@ -161,11 +161,32 @@ end
 function Library:SetWatermark(_) end
 function Library:SetWatermarkVisibility(_) end
 
+-- ThemeManager only recolors instances registered with the library. Register
+-- every theme-colored property at creation time by matching the value we were
+-- handed against the current palette; the registry stores the palette key, so
+-- later theme changes still apply.
+local function themeKeyForColor(value)
+	if typeof(value) ~= "Color3" then
+		return nil
+	end
+	for key, color in pairs(Library.Theme) do
+		if typeof(color) == "Color3"
+			and color.R == value.R and color.G == value.G and color.B == value.B then
+			return key
+		end
+	end
+	return nil
+end
+
 local function create(className, props, children)
 	local inst = Instance.new(className)
 	for k, v in pairs(props or {}) do
 		if k ~= "Parent" then
 			inst[k] = v
+			local themeKey = themeKeyForColor(v)
+			if themeKey then
+				Library:AddToRegistry(inst, { [k] = themeKey })
+			end
 		end
 	end
 	for _, child in ipairs(children or {}) do
@@ -578,12 +599,11 @@ function Library:SetFont(font)
 		warn("[PESUI] SetFont expects an Enum.Font (or its name); got " .. typeof(font))
 		return
 	end
-	local oldFont = self.Theme.Font
 	self.Theme.Font = newFont
 	if self.ScreenGui then
 		for _, d in ipairs(self.ScreenGui:GetDescendants()) do
-			if (d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox")) and d.Font == oldFont then
-				d.Font = newFont
+			if d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox") then
+				pcall(function() d.Font = newFont end)
 			end
 		end
 	end
@@ -661,6 +681,13 @@ function Library:UpdateColorsUsingRegistry()
 		for schemeKey, themeKey in pairs(schemeToTheme) do
 			local value = self.Scheme[schemeKey]
 			if value ~= nil then
+				-- ThemeManager stores Font.fromEnum(...) (a Font object) in
+				-- Scheme.Font. TextLabel.Font needs an Enum.Font, so ignore
+				-- that implicit value and keep PESUI's default unless the user
+				-- explicitly calls SetFont from the font dropdown.
+				if schemeKey == "Font" and typeof(value) == "Font" then
+					continue
+				end
 				self.Theme[themeKey] = value
 			end
 		end
@@ -1244,7 +1271,14 @@ function Library:DownloadAsset(name, force)
 end
 
 function Library:AddToRegistry(instance, properties)
-	self.Registry[instance] = properties
+	local entry = self.Registry[instance]
+	if type(entry) ~= "table" then
+		entry = {}
+		self.Registry[instance] = entry
+	end
+	for prop, key in pairs(properties or {}) do
+		entry[prop] = key
+	end
 end
 function Library:RemoveFromRegistry(instance)
 	self.Registry[instance] = nil
@@ -1308,127 +1342,705 @@ function Library:SetWatermarkVisibility(visible)
 	end
 end
 
--- CreateLoading (usable before CreateWindow: owns a ScreenGui when there is none yet)
+-- CreateLoading. Obsidian gives the loader its own ScreenGui so it can be
+-- shown before CreateWindow and can restore the main window on Continue.
+local DEFAULT_LOADING_ICON = "rbxassetid://97544096941083"
+
 function Library:CreateLoading(info)
-	info = info or {}
-	local ownGui
-	local parent = self.ScreenGui
-	if not parent then
-		ownGui = create("ScreenGui", {
-			Name = "PESUILoading",
-			ResetOnSpawn = false,
-			IgnoreGuiInset = true,
-			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-			DisplayOrder = 1000000,
-		})
-		protectGui(ownGui)
-		parent = ownGui
-		table.insert(self.UnloadCallbacks, function()
-			safeDestroy(ownGui)
-		end)
+	if self.ActiveLoading then
+		warn("PESUI: Loading GUI already exists, you cannot create multiple Loading GUIs.")
+		return self.ActiveLoading
 	end
-	local frame = create("Frame", {
+
+	local cfg = self:Validate(info or {}, {
+		Title = "mspaint",
+		Icon = 95816097006870,
+		IconSize = UDim2.fromOffset(30, 30),
+		LoadingIcon = DEFAULT_LOADING_ICON,
+		LoadingIconColor = nil,
+		LoadingIconTweenTime = 1,
+		CurrentStep = 0,
+		TotalSteps = 10,
+		ShowSidebar = false,
+		AutoResizeHeight = false,
+		AlwaysOnTop = true,
+		WindowWidth = 450,
+		WindowHeight = 275,
+		ContentWidth = 450,
+		SidebarWidth = 250,
+	})
+
+	local screenGui = create("ScreenGui", {
+		Name = "PESUILoading",
+		ResetOnSpawn = false,
+		IgnoreGuiInset = true,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		DisplayOrder = cfg.AlwaysOnTop ~= false and 1000000 or 999,
+	})
+	protectGui(screenGui)
+
+	local loading = {
+		ScreenGui = screenGui,
+		CurrentStep = tonumber(cfg.CurrentStep) or 0,
+		TotalSteps = tonumber(cfg.TotalSteps) or 10,
+		ShowSidebar = cfg.ShowSidebar == true,
+		AutoResizeHeight = cfg.AutoResizeHeight == true,
+		AlwaysOnTop = cfg.AlwaysOnTop ~= false,
+		WindowWidth = tonumber(cfg.WindowWidth) or 450,
+		WindowHeight = tonumber(cfg.WindowHeight) or 275,
+		ContentWidth = tonumber(cfg.ContentWidth) or 450,
+		SidebarWidth = tonumber(cfg.SidebarWidth) or 250,
+		IsError = false,
+		Destroyed = false,
+	}
+	loading.BaseWindowHeight = loading.WindowHeight
+	loading.WindowErrorHeight = loading.WindowHeight
+
+	local restoreWindow = false
+	if self.ActiveWindow and self.ActiveWindow.Visible then
+		restoreWindow = true
+		pcall(function() self.ActiveWindow:Toggle(false) end)
+	end
+	self.ActiveLoading = loading
+
+	local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+	local connections = {}
+	local rotationTween
+	local function track(signal, fn)
+		local conn = signal:Connect(fn)
+		table.insert(connections, conn)
+		return conn
+	end
+	local function stopRotation()
+		if rotationTween then
+			pcall(function() rotationTween:Cancel() end)
+			rotationTween = nil
+		end
+	end
+
+	local main = create("TextButton", {
+		Name = "Main",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(tonumber(info.WindowWidth) or 450, tonumber(info.WindowHeight) or 275),
+		Size = UDim2.fromOffset(loading.ShowSidebar and (loading.ContentWidth + loading.SidebarWidth) or loading.WindowWidth, loading.WindowHeight),
 		BackgroundColor3 = self.Theme.Surface,
 		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		Text = "",
+		AutoButtonColor = false,
 		Active = true,
-		ZIndex = 10000,
-		Parent = parent,
+		Parent = screenGui,
 	})
-	addCorner(frame, self.Theme.CornerRadius)
-	addStroke(frame, self.Theme.Outline)
-	local title = create("TextLabel", {
+	addCorner(main, self.Theme.CornerRadius)
+	addStroke(main, self.Theme.Outline)
+
+	local content = create("Frame", {
+		Name = "Content",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(12, 10),
-		Size = UDim2.new(1, -24, 0, 24),
+		Size = UDim2.new(0, loading.ContentWidth, 1, 0),
+		Parent = main,
+	})
+	local sideBar = create("Frame", {
+		Name = "SideBar",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(loading.ContentWidth, 0),
+		Size = UDim2.new(0, loading.ShowSidebar and loading.SidebarWidth or 0, 1, 0),
+		ClipsDescendants = true,
+		Visible = loading.ShowSidebar,
+		Parent = main,
+	})
+	local sidebarDivider = create("Frame", {
+		Name = "Divider",
+		BackgroundColor3 = self.Theme.Outline,
+		BorderSizePixel = 0,
+		Size = UDim2.new(0, 1, 1, 0),
+		Visible = loading.ShowSidebar,
+		Parent = sideBar,
+	})
+
+	local topBar = create("Frame", {
+		Name = "TopBar",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 48),
+		Parent = content,
+	})
+	local titleHolder = create("Frame", {
+		Name = "TitleHolder",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 1, 0),
+		Parent = topBar,
+	})
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 6),
+		Parent = titleHolder,
+	})
+	create("UIPadding", { PaddingLeft = UDim.new(0, 12), Parent = titleHolder })
+
+	local iconOffset = 0
+	if cfg.Icon then
+		if createIconInstance(cfg.Icon, { Size = cfg.IconSize, Parent = titleHolder }) then
+			iconOffset = cfg.IconSize.X.Offset + 6
+		end
+	end
+	local titleWidth = math.min(
+		(self:GetTextBounds(tostring(cfg.Title), self.Theme.Font, 20) or Vector2.zero).X,
+		math.max(0, loading.ContentWidth - iconOffset - 24)
+	)
+	local titleLabel = create("TextLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(0, titleWidth, 1, 0),
 		Font = self.Theme.Font,
-		TextSize = 16,
+		TextSize = 20,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextColor3 = self.Theme.Text,
-		Text = tostring(info.Title or "Loading"),
-		Parent = frame,
+		Text = tostring(cfg.Title),
+		Parent = titleHolder,
 	})
-	local msg = create("TextLabel", {
+	create("Frame", {
+		Name = "TopDivider",
+		BackgroundColor3 = self.Theme.Outline,
+		BorderSizePixel = 0,
+		Position = UDim2.fromOffset(0, 48),
+		Size = UDim2.new(1, 0, 0, 1),
+		Parent = content,
+	})
+
+	local inner = create("Frame", {
+		Name = "InnerContent",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(12, 44),
-		Size = UDim2.new(1, -24, 0, 20),
+		Position = UDim2.fromOffset(0, 49),
+		Size = UDim2.new(1, 0, 1, -49),
+		Parent = content,
+	})
+	local innerLayout = create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Vertical,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 12),
+		Parent = inner,
+	})
+
+	local iconHolder = create("Frame", {
+		Name = "IconHolder",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(64, 64),
+		Parent = inner,
+	})
+	local loadingIcon = createIconInstance(cfg.LoadingIcon, {
+		Name = "LoaderIcon",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		ImageColor3 = cfg.LoadingIconColor or (cfg.LoadingIcon == DEFAULT_LOADING_ICON and self.Theme.Accent or Color3.new(1, 1, 1)),
+		Parent = iconHolder,
+	})
+
+	local function startRotation(duration)
+		stopRotation()
+		if not loadingIcon then
+			return
+		end
+		duration = tonumber(duration) or 0
+		if duration <= 0 then
+			pcall(function() loadingIcon.Rotation = 0 end)
+			return
+		end
+		local ok, tween = pcall(function()
+			return TweenService:Create(loadingIcon, TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1), { Rotation = 360 })
+		end)
+		if ok and tween then
+			rotationTween = tween
+			tween:Play()
+		end
+	end
+	startRotation(cfg.LoadingIconTweenTime)
+
+	local messageLabel = create("TextLabel", {
+		Name = "Message",
+		BackgroundTransparency = 1,
+		AutomaticSize = loading.AutoResizeHeight and Enum.AutomaticSize.Y or Enum.AutomaticSize.XY,
+		Size = loading.AutoResizeHeight and UDim2.new(1, -60, 0, 0) or UDim2.fromOffset(0, 0),
 		Font = self.Theme.Font,
-		TextSize = 13,
+		TextSize = 18,
+		TextWrapped = loading.AutoResizeHeight,
+		TextColor3 = self.Theme.Text,
+		Parent = inner,
+	})
+	local descriptionLabel = create("TextLabel", {
+		Name = "Description",
+		BackgroundTransparency = 1,
+		AutomaticSize = loading.AutoResizeHeight and Enum.AutomaticSize.Y or Enum.AutomaticSize.XY,
+		Size = loading.AutoResizeHeight and UDim2.new(1, -60, 0, 0) or UDim2.fromOffset(0, 0),
+		Font = self.Theme.Font,
+		TextSize = 14,
+		TextWrapped = loading.AutoResizeHeight,
+		TextTransparency = 0.5,
+		TextColor3 = self.Theme.Text,
+		Parent = inner,
+	})
+
+	local progressBar = create("Frame", {
+		Name = "ProgressBar",
+		BackgroundColor3 = self.Theme.SurfaceAlt,
+		BorderSizePixel = 0,
+		Size = UDim2.new(0.7, 0, 0, 15),
+		Parent = inner,
+	})
+	addCorner(progressBar, self.Theme.CornerRadius / 2)
+	addStroke(progressBar, self.Theme.Outline)
+	local progressFill = create("Frame", {
+		Name = "Fill",
+		BackgroundColor3 = self.Theme.Accent,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(0, 1),
+		Parent = progressBar,
+	})
+	addCorner(progressFill, self.Theme.CornerRadius / 2)
+	local progressLabel = create("TextLabel", {
+		Name = "Progress",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
+		Font = self.Theme.Font,
+		TextSize = 14,
+		TextColor3 = self.Theme.Text,
+		ZIndex = 2,
+		Parent = progressBar,
+	})
+
+	local sidebarScrolling = create("ScrollingFrame", {
+		Name = "SidebarScrolling",
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		CanvasSize = UDim2.new(),
+		Size = UDim2.fromScale(1, 1),
+		ScrollBarThickness = 2,
+		ScrollBarImageColor3 = self.Theme.Outline,
+		Parent = sideBar,
+	})
+	local sidebarList = create("UIListLayout", {
+		Padding = UDim.new(0, 8),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Parent = sidebarScrolling,
+	})
+	create("UIPadding", {
+		PaddingBottom = UDim.new(0, 12),
+		PaddingLeft = UDim.new(0, 12),
+		PaddingRight = UDim.new(0, 12),
+		PaddingTop = UDim.new(0, 12),
+		Parent = sidebarScrolling,
+	})
+	local sidebar = {
+		Elements = {},
+		DependencyBoxes = {},
+		Tabboxes = {},
+		BoxHolder = sidebarScrolling,
+		Container = sidebarScrolling,
+		Holder = sidebarScrolling,
+		Tab = { Elements = {}, DependencyBoxes = {}, Tabboxes = {} },
+	}
+	function sidebar:Resize()
+		sidebarScrolling.CanvasSize = UDim2.fromOffset(0, sidebarList.AbsoluteContentSize.Y + 24)
+	end
+	track(sidebarList:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+		sidebar:Resize()
+	end)
+	function sidebar:AddDivider()
+		local div = create("Frame", {
+			Size = UDim2.new(1, 0, 0, 1),
+			BackgroundColor3 = Library.Theme.Outline,
+			BorderSizePixel = 0,
+			Parent = sidebarScrolling,
+		})
+		return div
+	end
+	function sidebar:AddLabel(arg1, arg2, arg3)
+		local text, wrap, idx, info
+		if type(arg1) == "table" then
+			info = arg1
+			text = info.Text or info.Name or ""
+			wrap = info.DoesWrap
+			idx = info.Idx or info.Index
+		elseif type(arg2) == "table" then
+			idx = arg1
+			info = arg2
+			text = info.Text or info.Name or tostring(idx or "")
+			wrap = info.DoesWrap
+		else
+			text = arg1
+			wrap = arg2
+			idx = arg3
+		end
+		info = info or {}
+		if wrap == nil then
+			wrap = false
+		end
+		local label = create("TextLabel", {
+			Name = "Label_" .. tostring(idx or ""),
+			LayoutOrder = tonumber(idx) or 0,
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Font = Library.Theme.Font,
+			TextSize = 14,
+			TextWrapped = wrap,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = Library.Theme.Text,
+			Text = tostring(text or ""),
+			Parent = sidebarScrolling,
+		})
+		local obj = { Instance = label, Label = label, Text = label.Text }
+		function obj:SetText(value)
+			obj.Text = tostring(value or "")
+			label.Text = obj.Text
+		end
+		function obj:Destroy()
+			safeDestroy(label)
+		end
+		sidebar.Elements[idx or #sidebar.Elements + 1] = obj
+		return obj
+	end
+	function sidebar:AddParagraph(text, wrap)
+		return sidebar:AddLabel({ Text = text, DoesWrap = wrap ~= false })
+	end
+	function sidebar:AddButton(arg1, arg2)
+		local info = type(arg1) == "table" and arg1 or { Text = arg1, Func = arg2 }
+		info = info or {}
+		local wrapper = createBaseElement(sidebarScrolling, 32)
+		local button = create("TextButton", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundColor3 = Library.Theme.SurfaceAlt,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Font = Library.Theme.Font,
+			TextSize = 14,
+			TextColor3 = Library.Theme.Text,
+			Text = tostring(info.Text or info.Name or "Button"),
+			Parent = wrapper,
+		})
+		addCorner(button, Library.Theme.CornerRadius)
+		addStroke(button, Library.Theme.Outline)
+		bindHover(button, Library.Theme.SurfaceAlt, Library.Theme.Outline)
+		local obj = { Instance = wrapper, Button = button, Disabled = info.Disabled == true }
+		button.MouseButton1Click:Connect(function()
+			if not obj.Disabled then
+				Library:SafeCallback(info.Func or info.Callback or info.Function)
+			end
+		end)
+		function obj:SetDisabled(state) obj.Disabled = state == true end
+		function obj:SetText(text) button.Text = tostring(text or "") end
+		function obj:Destroy() safeDestroy(wrapper) end
+		attachInfoTooltip(obj, info, button)
+		table.insert(sidebar.Elements, obj)
+		return obj
+	end
+	loading.Sidebar = sidebar
+
+	local errorFrame = create("Frame", {
+		Name = "Error",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(0, 49),
+		Size = UDim2.new(1, 0, 1, -49),
+		ClipsDescendants = true,
+		Visible = false,
+		Parent = content,
+	})
+	create("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(15, 15),
+		Size = UDim2.new(1, -30, 0, 18),
+		Font = self.Theme.Font,
+		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextColor3 = self.Theme.SubText,
-		Text = "",
-		Parent = frame,
+		TextColor3 = self.Theme.Danger,
+		Text = "Error",
+		Parent = errorFrame,
 	})
-	local desc = create("TextLabel", {
+	local errorMessage = create("TextLabel", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(12, 68),
-		Size = UDim2.new(1, -24, 0, 40),
+		Position = UDim2.fromOffset(15, 39),
+		Size = UDim2.new(1, -30, 1, -90),
 		Font = self.Theme.Font,
-		TextSize = 13,
+		TextSize = 14,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
-		TextColor3 = self.Theme.SubText,
-		Text = "",
-		Parent = frame,
+		TextTransparency = 0.2,
+		TextColor3 = self.Theme.Text,
+		Text = "Error Message",
+		Parent = errorFrame,
 	})
-	local track = create("Frame", {
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 12, 1, -14),
-		Size = UDim2.new(1, -24, 0, 6),
-		BackgroundColor3 = self.Theme.SurfaceAlt,
+	local errorDivider = create("Frame", {
+		BackgroundTransparency = 0,
+		BackgroundColor3 = self.Theme.Outline,
 		BorderSizePixel = 0,
-		ZIndex = 10001,
-		Parent = frame,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 1, -48),
+		Size = UDim2.new(1, -30, 0, 1),
+		Visible = false,
+		Parent = errorFrame,
 	})
-	addCorner(track, 3)
-	local fill = create("Frame", {
-		Size = UDim2.fromScale(0, 1),
-		BackgroundColor3 = self.Theme.Accent,
-		BorderSizePixel = 0,
-		ZIndex = 10002,
-		Parent = track,
+	local errorButtons = create("Frame", {
+		AnchorPoint = Vector2.new(0.5, 1),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 42),
+		Visible = false,
+		Parent = errorFrame,
 	})
-	addCorner(fill, 3)
-	local obj = { Instance = frame, Title = title, Message = msg, Description = desc, CurrentStep = info.CurrentStep or 0, TotalSteps = info.TotalSteps or 10 }
-	function obj:SetMessage(text) msg.Text = tostring(text or "") end
-	function obj:SetDescription(text) desc.Text = tostring(text or "") end
-	local function updateProgress()
-		local total = math.max(1, tonumber(obj.TotalSteps) or 1)
-		fill.Size = UDim2.fromScale(math.clamp((tonumber(obj.CurrentStep) or 0) / total, 0, 1), 1)
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Right,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 8),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Parent = errorButtons,
+	})
+	create("UIPadding", {
+		PaddingTop = UDim.new(0, 5),
+		PaddingBottom = UDim.new(0, 15),
+		PaddingRight = UDim.new(0, 15),
+		Parent = errorButtons,
+	})
+
+	local function updateLayout()
+		if loading.Destroyed then
+			return
+		end
+		local show = loading.ShowSidebar
+		local finalWidth = show and (loading.ContentWidth + loading.SidebarWidth) or loading.WindowWidth
+		local finalHeight = loading.IsError and loading.WindowErrorHeight or loading.WindowHeight
+		if show then
+			sideBar.Visible = true
+			sidebarDivider.Visible = true
+		end
+		pcall(function()
+			TweenService:Create(main, tweenInfo, { Size = UDim2.fromOffset(finalWidth, finalHeight) }):Play()
+			TweenService:Create(sideBar, tweenInfo, {
+				Position = UDim2.fromOffset(loading.ContentWidth, 0),
+				Size = UDim2.new(0, show and loading.SidebarWidth or 0, 1, 0),
+			}):Play()
+			TweenService:Create(content, tweenInfo, {
+				Size = UDim2.new(0, show and loading.ContentWidth or loading.WindowWidth, 1, 0),
+			}):Play()
+		end)
+		if not show then
+			task.delay(tweenInfo.Time, function()
+				if not loading.ShowSidebar and not loading.Destroyed then
+					sideBar.Visible = false
+					sidebarDivider.Visible = false
+				end
+			end)
+		end
 	end
-	function obj:SetCurrentStep(step)
-		obj.CurrentStep = tonumber(step) or obj.CurrentStep
-		updateProgress()
+
+	function loading:UpdateLayout()
+		updateLayout()
 	end
-	function obj:SetTotalSteps(steps)
-		obj.TotalSteps = tonumber(steps) or obj.TotalSteps
-		updateProgress()
+	function loading:RecalculateLoadingHeight()
+		if not self.AutoResizeHeight then
+			return
+		end
+		local required = 49 + 48 + innerLayout.AbsoluteContentSize.Y
+		self.WindowHeight = math.max(self.BaseWindowHeight, required)
 	end
-	function obj:SetLoadingIcon(icon) end
-	function obj:SetLoadingIconTweenTime(t) end
-	function obj:SetLoadingIconColor(c) end
-	function obj:SetWindowHeight(h) frame.Size = UDim2.fromOffset(frame.AbsoluteSize.X, tonumber(h) or frame.AbsoluteSize.Y) end
-	function obj:SetWindowWidth(w) frame.Size = UDim2.fromOffset(tonumber(w) or frame.AbsoluteSize.X, frame.AbsoluteSize.Y) end
-	function obj:SetContentWidth(w) end
-	function obj:SetSidebarWidth(w) end
-	function obj:ShowSidebarPage(b) end
-	function obj:ShowErrorPage(b) end
-	function obj:SetErrorMessage(text) end
-	function obj:SetErrorButtons(btns) end
-	function obj:RecalculateLoadingHeight() end
-	function obj:UpdateLayout() end
-	-- Obsidian Loading API names
-	function obj:ChangeDescription(text) obj:SetDescription(text) end
-	function obj:ChangeStep(newStep) obj:SetCurrentStep(newStep) end
-	function obj:RecalculateErrorHeight() end
-	function obj:Destroy()
-		safeDestroy(ownGui or frame)
+	function loading:RecalculateErrorHeight()
+		local targetWidth = (self.ShowSidebar and self.ContentWidth or self.WindowWidth) - 30
+		local bounds = Library:GetTextBounds(errorMessage.Text, Library.Theme.Font, 14, targetWidth)
+		local textHeight = (bounds and bounds.Y) or 14
+		errorMessage.Size = UDim2.new(1, -30, 0, textHeight)
+		self.WindowErrorHeight = 49 + 15 + 18 + 6 + textHeight + 15 + (errorButtons.Visible and 48 or 0)
 	end
-	updateProgress()
-	return obj
+	function loading:SetMessage(text)
+		messageLabel.Text = tostring(text or "")
+		if self.AutoResizeHeight then
+			self:RecalculateLoadingHeight()
+			updateLayout()
+		end
+	end
+	function loading:SetDescription(text)
+		descriptionLabel.Text = tostring(text or "")
+		if self.AutoResizeHeight then
+			self:RecalculateLoadingHeight()
+			updateLayout()
+		end
+	end
+	function loading:SetCurrentStep(step)
+		local total = math.max(1, tonumber(self.TotalSteps) or 1)
+		self.CurrentStep = math.clamp(tonumber(step) or self.CurrentStep, 0, total)
+		local progress = self.CurrentStep / total
+		pcall(function()
+			TweenService:Create(progressFill, tweenInfo, { Size = UDim2.fromScale(progress, 1) }):Play()
+		end)
+		progressLabel.Text = string.format("%d/%d", self.CurrentStep, total)
+	end
+	function loading:SetTotalSteps(steps)
+		self.TotalSteps = math.max(1, tonumber(steps) or self.TotalSteps)
+		self:SetCurrentStep(self.CurrentStep)
+	end
+	function loading:SetLoadingIcon(icon)
+		local iconData = Library:GetCustomIcon(icon)
+		assert(iconData, "Image must be a valid Roblox asset or a valid URL or a valid lucide icon.")
+		local replacement = Library:ApplyIcon(loadingIcon, iconData)
+		if replacement ~= loadingIcon then
+			loadingIcon = replacement
+			startRotation(cfg.LoadingIconTweenTime)
+		end
+	end
+	function loading:SetLoadingIconTweenTime(duration)
+		cfg.LoadingIconTweenTime = tonumber(duration) or 0
+		startRotation(cfg.LoadingIconTweenTime)
+	end
+	function loading:SetLoadingIconColor(color)
+		if not loadingIcon then
+			return
+		end
+		if loadingIcon:IsA("TextLabel") or loadingIcon:IsA("TextButton") then
+			loadingIcon.TextColor3 = color
+		else
+			loadingIcon.ImageColor3 = color
+		end
+	end
+	function loading:SetWindowHeight(height)
+		self.WindowHeight = tonumber(height) or self.WindowHeight
+		updateLayout()
+	end
+	function loading:SetWindowWidth(width)
+		self.WindowWidth = tonumber(width) or self.WindowWidth
+		updateLayout()
+	end
+	function loading:SetContentWidth(width)
+		self.ContentWidth = tonumber(width) or self.ContentWidth
+		updateLayout()
+	end
+	function loading:SetSidebarWidth(width)
+		self.SidebarWidth = tonumber(width) or self.SidebarWidth
+		updateLayout()
+	end
+	function loading:ShowSidebarPage(enabled)
+		self.ShowSidebar = enabled == true
+		updateLayout()
+	end
+	function loading:ShowErrorPage(enabled)
+		self.IsError = enabled == true
+		if self.IsError then
+			self:RecalculateErrorHeight()
+		end
+		inner.Visible = not self.IsError
+		errorFrame.Visible = self.IsError
+		if self.ShowSidebar then
+			self:ShowSidebarPage(not self.IsError)
+		else
+			updateLayout()
+		end
+	end
+	function loading:SetErrorMessage(text)
+		errorMessage.Text = tostring(text or "")
+		if self.IsError then
+			self:RecalculateErrorHeight()
+			updateLayout()
+		end
+	end
+	function loading:SetErrorButtons(buttons)
+		assert(type(buttons) == "table", "Buttons must be a table")
+		for _, child in ipairs(errorButtons:GetChildren()) do
+			if child:IsA("Frame") then
+				safeDestroy(child)
+			end
+		end
+		local hasButtons = false
+		for _ in pairs(buttons) do
+			hasButtons = true
+			break
+		end
+		errorButtons.Visible = hasButtons
+		errorDivider.Visible = hasButtons
+		for key, btnInfo in pairs(buttons) do
+			btnInfo = type(btnInfo) == "table" and btnInfo or {}
+			local variant = btnInfo.Variant or "Primary"
+			local background = Library.Theme.Accent
+			local textColor = Library.Theme.Background
+			if variant == "Secondary" then
+				background = Library.Theme.SurfaceAlt
+				textColor = Library.Theme.Text
+			elseif variant == "Destructive" then
+				background = Library.Theme.Danger
+				textColor = Color3.new(1, 1, 1)
+			elseif variant == "Ghost" then
+				background = Library.Theme.Surface
+				textColor = Library.Theme.Text
+			end
+			local text = tostring(btnInfo.Title or key)
+			local width = (Library:GetTextBounds(text, Library.Theme.Font, 14) or Vector2.zero).X + 30
+			local holder = create("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(width, 26),
+				Parent = errorButtons,
+			})
+			local button = create("TextButton", {
+				BackgroundColor3 = background,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Font = Library.Theme.Font,
+				Text = "",
+				TextColor3 = textColor,
+				Size = UDim2.fromOffset(width, 26),
+				Parent = holder,
+			})
+			addCorner(button, Library.Theme.CornerRadius)
+			addStroke(button, background)
+			create("UIPadding", {
+				PaddingLeft = UDim.new(0, 15),
+				PaddingRight = UDim.new(0, 15),
+				Parent = button,
+			})
+			create("TextLabel", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				Font = Library.Theme.Font,
+				TextSize = 14,
+				TextColor3 = textColor,
+				Text = text,
+				Parent = button,
+			})
+			bindHover(button, background, background)
+			button.MouseButton1Click:Connect(function()
+				Library:SafeCallback(btnInfo.Callback, loading)
+			end)
+		end
+		if self.IsError then
+			self:RecalculateErrorHeight()
+		end
+		updateLayout()
+	end
+	function loading:ChangeDescription(text) self:SetDescription(text) end
+	function loading:ChangeStep(step) self:SetCurrentStep(step) end
+
+	function loading:Destroy()
+		if self.Destroyed then
+			return
+		end
+		self.Destroyed = true
+		stopRotation()
+		for _, conn in ipairs(connections) do
+			pcall(function() conn:Disconnect() end)
+		end
+		safeDestroy(screenGui)
+		if Library.ActiveLoading == self then
+			Library.ActiveLoading = nil
+		end
+		if (restoreWindow or self._RestoreWindow) and Library.ActiveWindow then
+			pcall(function() Library.ActiveWindow:Toggle(true) end)
+		end
+	end
+	loading.Continue = loading.Destroy
+
+	loading:SetCurrentStep(loading.CurrentStep)
+	sidebar:Resize()
+	updateLayout()
+	return loading
 end
 
 function Library:CreateWindow(config)
@@ -4424,7 +5036,25 @@ function Library:CreateWindow(config)
 		})
 		addPadding(bodyFrame, 10)
 
+		-- Keep the icon and the title as siblings inside a header. Parenting the
+		-- icon to the title (then moving the title) also moved the icon into the
+		-- text, which is what Obsidian avoids with its GroupboxTop/TextsFrame.
+		local iconData = getIconData(info.IconName or info.Icon)
+		local header = create("Frame", {
+			Name = "GroupboxHeader",
+			Size = UDim2.new(1, 0, 0, 18),
+			BackgroundTransparency = 1,
+			Parent = bodyFrame,
+		})
+		local textsFrame = create("Frame", {
+			Name = "GroupboxTexts",
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(iconData and 20 or 0, 0),
+			Size = UDim2.new(1, -(iconData and 20 or 0), 0, 18),
+			Parent = header,
+		})
 		local title = create("TextLabel", {
+			Name = "GroupboxTitle",
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 18),
 			Font = selfLib.Theme.Font,
@@ -4432,19 +5062,18 @@ function Library:CreateWindow(config)
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextColor3 = selfLib.Theme.Text,
 			Text = tostring(info.Name or "Groupbox"),
-			Parent = bodyFrame,
+			Parent = textsFrame,
 		})
 
-		if createIconInstance(info.IconName or info.Icon, {
-			Name = "GroupboxIcon",
-			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.fromOffset(0, 0),
-			Size = UDim2.fromOffset(16, 16),
-			BackgroundTransparency = 1,
-			Parent = title,
-		}) then
-			title.Position = UDim2.fromOffset(20, 0)
-			title.Size = UDim2.new(1, -20, 0, 18)
+		if iconData then
+			createIconInstance(iconData, {
+				Name = "GroupboxIcon",
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.fromScale(0, 0.5),
+				Size = UDim2.fromOffset(16, 16),
+				BackgroundTransparency = 1,
+				Parent = header,
+			})
 		end
 
 		local desc = create("TextLabel", {
@@ -8180,9 +8809,12 @@ function Library:CreateWindow(config)
 
 	applySidebar()
 
-	if config.AutoShow == false then
+	if config.AutoShow == false or (selfLib.ActiveLoading and not selfLib.ActiveLoading.Destroyed) then
 		main.Visible = false
 		Window.Visible = false
+		if selfLib.ActiveLoading then
+			selfLib.ActiveLoading._RestoreWindow = true
+		end
 	end
 
 	selfLib.ActiveWindow = Window
