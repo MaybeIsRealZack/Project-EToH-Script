@@ -1902,6 +1902,7 @@ function Library:CreateWindow(config)
 		end
 
 		refreshButton()
+		attachInfoTooltip(picker, info, button)
 		selfLib.Options[id] = picker
 		selfLib.Flags[id] = picker.Value
 		selfLib.KeyPickers = selfLib.KeyPickers or {}
@@ -2780,6 +2781,7 @@ function Library:CreateWindow(config)
 		picker.Instance = instance
 		picker.Swatch = swatch
 		picker.Menu = menu
+		attachInfoTooltip(picker, info, swatch)
 
 		return picker
 	end
@@ -5537,6 +5539,9 @@ function Library:CreateWindow(config)
 			end
 			function dropdown:SetDisabled(state)
 				dropdown.Disabled = state and true or false
+				if dropdown.TooltipTable then
+					dropdown.TooltipTable.Disabled = dropdown.Disabled
+				end
 				button.Active = not dropdown.Disabled
 				dropdown:Refresh()
 				if dropdown.Disabled then
@@ -5703,6 +5708,7 @@ function Library:CreateWindow(config)
 			end
 
 			dropdown:Refresh()
+			attachInfoTooltip(dropdown, info, button)
 			selfLib.Options[id] = dropdown
 			selfLib.Flags[id] = dropdown.Value
 			return dropdown
