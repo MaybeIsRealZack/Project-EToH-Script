@@ -449,13 +449,20 @@ local function createOptionObject(kind, id, defaults)
 		Idx = id,
 		Value = defaults.Value,
 		ChangedCallbacks = {},
+		Changed = nil,
 	}
 	function obj:OnChanged(fn)
+		if type(fn) ~= "function" then
+			return fn
+		end
 		table.insert(self.ChangedCallbacks, fn)
 		if self.Value ~= nil then
 			Library:SafeCallback(fn, self.Value)
 		end
 		return fn
+	end
+	function obj:GetValue()
+		return self.Value
 	end
 	function obj:Fire(value, ...)
 		self.Value = value
@@ -468,6 +475,9 @@ local function createOptionObject(kind, id, defaults)
 		for _, fn in ipairs(self.ChangedCallbacks) do
 			Library:SafeCallback(fn, value, ...)
 		end
+		if self.Changed then
+			Library:SafeCallback(self.Changed, value, ...)
+		end
 		if self.Callback then
 			Library:SafeCallback(self.Callback, value, ...)
 		end
@@ -478,6 +488,7 @@ local function createOptionObject(kind, id, defaults)
 		else
 			self:Fire(value)
 		end
+		return self
 	end
 	function obj:Destroy()
 		if self.Instance then
@@ -555,6 +566,15 @@ end
 
 function Library:SetDPIScale(scale)
 	self.DPIScale = (tonumber(scale) or 100) / 100
+	if self.OriginalMinSize then
+		self.MinSize = self.OriginalMinSize * self.DPIScale
+	end
+	for _, uiScale in pairs(self.Scales or {}) do
+		local offset = tonumber((self.ScalesOffset or {})[uiScale]) or 0
+		pcall(function()
+			uiScale.Scale = self.DPIScale - offset
+		end)
+	end
 end
 
 function Library:UpdateColorsUsingRegistry()
@@ -657,7 +677,9 @@ function Library:SetIconModule(module)
 end
 
 function Library:GetIcon(name)
-	if self._IconModule and type(self._IconModule.GetAsset) == "function" then
+	if self._IconModule
+		and self._IconModule ~= self.ImageManager
+		and type(self._IconModule.GetAsset) == "function" then
 		local ok, res = pcall(self._IconModule.GetAsset, name)
 		if ok then
 			return res
@@ -789,6 +811,111 @@ Library.Cursor = {
 	ChangeIconColor = function() end,
 	ChangeIconSize = function() end,
 }
+
+-- ====================================================================
+-- Obsidian API surface compatibility
+-- ====================================================================
+-- Obsidian scripts commonly touch Library.Scheme.* and Library.DPIScale.
+-- PESUI stores its palette in Library.Theme, so Scheme is a live two-way
+-- proxy: reading/writing an Obsidian key reads/writes the matching Theme
+-- entry, while non-mapped keys live in a private side table.
+do
+	local schemeExtra = {
+		WhiteColor = Color3.new(1, 1, 1),
+		DestructiveColor = Color3.fromRGB(220, 38, 38),
+		BackgroundImage = "",
+	}
+	local schemeMap = {
+		BackgroundColor = "Background",
+		MainColor = "Surface",
+		AccentColor = "Accent",
+		OutlineColor = "Outline",
+		FontColor = "Text",
+		Font = "Font",
+		RedColor = "Danger",
+		DarkColor = "SurfaceAlt",
+	}
+	Library.Scheme = setmetatable({}, {
+		__index = function(_, key)
+			local themeKey = schemeMap[key]
+			if themeKey and Library.Theme[themeKey] ~= nil then
+				return Library.Theme[themeKey]
+			end
+			return schemeExtra[key]
+		end,
+		__newindex = function(_, key, value)
+			local themeKey = schemeMap[key]
+			if themeKey then
+				Library.Theme[themeKey] = value
+				pcall(function()
+					Library:UpdateColorsUsingRegistry()
+				end)
+			else
+				schemeExtra[key] = value
+			end
+		end,
+	})
+	Library.IsLightTheme = false
+end
+
+Library.DPIScale = Library.DPIScale or 1
+Library.Scales = Library.Scales or {}
+Library.ScalesOffset = Library.ScalesOffset or {}
+Library.OriginalMinSize = Library.OriginalMinSize or Vector2.new(480, 360)
+Library.MinSize = Library.MinSize or Vector2.new(480, 360)
+Library.ImageManager = Library.ImageManager or {}
+
+function Library.ImageManager.AddAsset(name, assetId, url, force)
+	return Library:GetIcon(name)
+end
+function Library.ImageManager.GetAsset(name)
+	return Library:GetIcon(name)
+end
+function Library.ImageManager.DownloadAsset(name, force)
+	return Library:GetIcon(name)
+end
+function Library:AddAsset(name, url)
+	return self:GetIcon(name)
+end
+function Library:GetAsset(name)
+	return self:GetCustomIcon(name)
+end
+function Library:DownloadAsset(name, force)
+	return self:GetCustomIcon(name)
+end
+
+function Library:AddToRegistry(instance, properties)
+	self.Registry[instance] = properties
+end
+function Library:RemoveFromRegistry(instance)
+	self.Registry[instance] = nil
+end
+function Library:MakeOutline(frame, corner, zindex)
+	return addStroke(frame)
+end
+function Library:PlayTabAnimation(tab, showing, onComplete, previousTab)
+	if type(onComplete) == "function" then
+		Library:SafeCallback(onComplete)
+	end
+end
+
+-- Deprecated Obsidian cursor helpers -> forward to Library.Cursor
+local cursorAlias = {
+	ChangeCursorCrossColor = "ChangeCrossColor",
+	ResetCursorCross = "ResetCross",
+	ChangeCursorIcon = "ChangeIcon",
+	ChangeCursorIconColor = "ChangeIconColor",
+	ChangeCursorIconSize = "ChangeIconSize",
+	ResetCursorIcon = "ResetIcon",
+}
+for libName, cursorName in pairs(cursorAlias) do
+	Library[libName] = function(_, ...)
+		local fn = Library.Cursor and Library.Cursor[cursorName]
+		if type(fn) == "function" then
+			return fn(Library.Cursor, ...)
+		end
+	end
+end
 
 -- Watermark
 local watermarkLabel = nil
@@ -934,6 +1061,10 @@ function Library:CreateLoading(info)
 	function obj:SetErrorButtons(btns) end
 	function obj:RecalculateLoadingHeight() end
 	function obj:UpdateLayout() end
+	-- Obsidian Loading API names
+	function obj:ChangeDescription(text) obj:SetDescription(text) end
+	function obj:ChangeStep(newStep) obj:SetCurrentStep(newStep) end
+	function obj:RecalculateErrorHeight() end
 	function obj:Destroy()
 		safeDestroy(ownGui or frame)
 	end
@@ -1085,10 +1216,27 @@ function Library:CreateWindow(config)
 		picker.Callback = info.Callback
 		picker.ChangedCallback = info.ChangedCallback
 		picker.Modifiers = {}
-		if type(info.Modifiers) == "table" then
+		if type(info.DefaultModifiers) == "table" then
+			for _, m in ipairs(info.DefaultModifiers) do
+				table.insert(picker.Modifiers, m)
+			end
+		elseif type(info.Modifiers) == "table" then
 			for _, m in ipairs(info.Modifiers) do
 				table.insert(picker.Modifiers, m)
 			end
+		end
+		picker.Whitelisted = type(info.Whitelisted) == "table" and info.Whitelisted or nil
+		picker.Blacklisted = type(info.Blacklisted) == "table" and info.Blacklisted or nil
+		picker.WhitelistedModifiers = type(info.WhitelistedModifiers) == "table" and info.WhitelistedModifiers or nil
+		picker.BlacklistedModifiers = type(info.BlacklistedModifiers) == "table" and info.BlacklistedModifiers or nil
+		local function isKeyAllowed(keyStr)
+			if picker.Blacklisted and table.find(picker.Blacklisted, keyStr) then
+				return false
+			end
+			if picker.Whitelisted and #picker.Whitelisted > 0 and not table.find(picker.Whitelisted, keyStr) then
+				return false
+			end
+			return true
 		end
 		picker.ClickCallbacks = {}
 		picker.SyncToggleState = info.SyncToggleState == true
@@ -1413,7 +1561,7 @@ function Library:CreateWindow(config)
 					end
 				end
 				local keyStr = keyToString(input)
-				if keyStr then
+				if keyStr and isKeyAllowed(keyStr) then
 					picker:SetValue({ keyStr, Modifiers = pendingList() })
 					setListening(false)
 				end
@@ -2185,6 +2333,10 @@ function Library:CreateWindow(config)
 		end
 
 		function picker:SetValueHSVFromRGB(color)
+			setHSVFromRGB(color)
+		end
+		-- Obsidian name
+		function picker:SetHSVFromRGB(color)
 			setHSVFromRGB(color)
 		end
 
@@ -3343,11 +3495,6 @@ function Library:CreateWindow(config)
 		screenGui.DisplayOrder = state and 999999 or 0
 	end
 
-	function Window:SetBackgroundImage(_) end
-	function Window:SetCornerRadius(_) end
-	function Window:SetSnapping(_) end
-	function Window:ShowTabInfo(_, _) end
-	function Window:HideTabInfo() end
 	function Window:GetSidebarWidth()
 		return self.Sidebar.AbsoluteSize.X
 	end
@@ -3566,6 +3713,7 @@ function Library:CreateWindow(config)
 		function groupbox:TogglePoppedOut() end
 		function groupbox:SetMaxPopOutHeight(h) end
 		function groupbox:SetPopOutWidth(w) end
+		function groupbox:RefreshPopOutPlaceholder() end
 		function groupbox:SetCollapsed(state)
 			state = state == true
 			self._collapsed = state
@@ -4099,6 +4247,21 @@ function Library:CreateWindow(config)
 			slider.Min = minValue
 			slider.Max = maxValue
 			slider.Rounding = rounding
+			slider.Steps = type(info.Steps) == "table" and info.Steps or nil
+			slider.AllowRightClickInput = info.AllowRightClickInput ~= false
+			local function snapToSteps(value)
+				if not slider.Steps or #slider.Steps == 0 then
+					return value
+				end
+				local best, bestDiff = slider.Steps[1], math.huge
+				for _, step in ipairs(slider.Steps) do
+					local diff = math.abs((tonumber(step) or 0) - value)
+					if diff < bestDiff then
+						best, bestDiff = step, diff
+					end
+				end
+				return tonumber(best) or value
+			end
 
 			local wrapper = createBaseElement(self.Holder, 46)
 			local titleRow = create("Frame", {
@@ -4152,7 +4315,9 @@ function Library:CreateWindow(config)
 
 			local function formatValue(val)
 				local shown = round(val, rounding)
-				local str = tostring(shown)
+				local str = type(info.FormatValue) == "function"
+					and tostring(info.FormatValue(shown))
+					or tostring(shown)
 				if info.Prefix then
 					str = tostring(info.Prefix) .. str
 				end
@@ -4166,6 +4331,7 @@ function Library:CreateWindow(config)
 				alpha = math.clamp(alpha, 0, 1)
 				local raw = slider.Min + (slider.Max - slider.Min) * alpha
 				local stepped = round(raw, rounding)
+				stepped = snapToSteps(stepped)
 				stepped = math.clamp(stepped, slider.Min, slider.Max)
 				slider:Fire(stepped)
 				local ratio = 0
@@ -4188,7 +4354,9 @@ function Library:CreateWindow(config)
 			end
 
 			bar.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				local isLeft = input.UserInputType == Enum.UserInputType.MouseButton1
+				local isRight = info.AllowRightClickInput and input.UserInputType == Enum.UserInputType.MouseButton2
+				if isLeft or isRight or input.UserInputType == Enum.UserInputType.Touch then
 					dragging = true
 					updateFromInput(input)
 				end
@@ -4213,7 +4381,7 @@ function Library:CreateWindow(config)
 				if num == nil then
 					return
 				end
-				num = math.clamp(round(num, slider.Rounding), slider.Min, slider.Max)
+				num = snapToSteps(math.clamp(round(num, slider.Rounding), slider.Min, slider.Max))
 				slider:Fire(num)
 				local ratio = 0
 				if slider.Max ~= slider.Min then
@@ -4294,6 +4462,7 @@ function Library:CreateWindow(config)
 				BackgroundColor3 = selfLib.Theme.SurfaceAlt,
 				BorderSizePixel = 0,
 				ClearTextOnFocus = info.ClearTextOnFocus == true,
+				MaxLength = tonumber(info.MaxLength) or 0,
 				Font = selfLib.Theme.Font,
 				TextSize = 14,
 				TextColor3 = selfLib.Theme.Text,
@@ -4309,19 +4478,25 @@ function Library:CreateWindow(config)
 
 			local function commit(text)
 				local value = text
+				if info.AllowEmpty == false and tostring(text):gsub("%s", "") == "" then
+					value = info.EmptyReset or "---"
+					box.Text = tostring(value)
+				end
 				if info.Numeric then
-					local n = tonumber(text)
+					local n = tonumber(value)
 					if n == nil then
 						box.Text = tostring(inputObj.Value or "")
 						return
 					end
 					value = n
 				end
-				if info.Finished then
-					inputObj:Fire(value)
-				else
-					inputObj:Fire(value)
+				if type(info.VerifyValue) == "function" then
+					local ok, verified = pcall(info.VerifyValue, value)
+					if ok and verified ~= nil then
+						value = verified
+					end
 				end
+				inputObj:Fire(value)
 			end
 
 			box.FocusLost:Connect(function(enterPressed)
@@ -4329,6 +4504,9 @@ function Library:CreateWindow(config)
 					return
 				end
 				commit(box.Text)
+				if info.ClearTextOnBlur then
+					box.Text = ""
+				end
 			end)
 
 			if not info.Finished then
@@ -4362,10 +4540,10 @@ function Library:CreateWindow(config)
 			function inputObj:Destroy()
 				safeDestroy(wrapper)
 			end
-			inputObj.VerifyValue = inputObj.VerifyValue or nil
-			inputObj.AllowEmpty = true
-			inputObj.EmptyReset = "---"
-			inputObj.ClearTextOnBlur = false
+			inputObj.VerifyValue = info.VerifyValue
+			inputObj.AllowEmpty = info.AllowEmpty ~= false
+			inputObj.EmptyReset = info.EmptyReset or "---"
+			inputObj.ClearTextOnBlur = info.ClearTextOnBlur == true
 
 			selfLib.Options[id] = inputObj
 			selfLib.Flags[id] = inputObj.Value
@@ -4467,6 +4645,7 @@ function Library:CreateWindow(config)
 			local multi = info.Multi == true
 			local disabledValues = copyValues(info.DisabledValues or {})
 			local searchable = info.Searchable == true
+			local valueImages = type(info.ValueImages) == "table" and info.ValueImages or nil
 			local maxVisible = tonumber(info.MaxVisibleDropdownItems) or 8
 			if maxVisible < 1 then
 				maxVisible = 8
@@ -4498,7 +4677,7 @@ function Library:CreateWindow(config)
 				if value == nil then
 					return "None"
 				end
-				local formatter = info.FormatDisplayValue
+				local formatter = info.FormatValue or info.FormatDisplayValue
 				if type(formatter) == "function" then
 					local ok, res = pcall(formatter, value)
 					if ok and res ~= nil then
@@ -4506,6 +4685,15 @@ function Library:CreateWindow(config)
 					end
 				end
 				return tostring(value)
+			end
+			local function formatListItem(value)
+				if type(info.FormatListValue) == "function" then
+					local ok, res = pcall(info.FormatListValue, value)
+					if ok and res ~= nil then
+						return tostring(res)
+					end
+				end
+				return formatDisplay(value)
 			end
 
 			local function valueToText(value)
@@ -5069,7 +5257,7 @@ function Library:CreateWindow(config)
 							TextXAlignment = Enum.TextXAlignment.Left,
 							TextTruncate = Enum.TextTruncate.AtEnd,
 							TextColor3 = disabled and selfLib.Theme.SubText or selfLib.Theme.Text,
-							Text = valueToText(value),
+							Text = formatListItem(value),
 							ZIndex = 5006,
 							Parent = itemsScroll,
 						})
@@ -5193,8 +5381,10 @@ function Library:CreateWindow(config)
 				dropdown._setter(value)
 				dropdown:Refresh()
 			end
-			dropdown.KeepDisabledValuePosition = false
-			dropdown.AutoWidth = false
+			dropdown.KeepDisabledValuePosition = info.KeepDisabledValuePosition == true
+			dropdown.AutoWidth = info.AutoWidth == true
+			dropdown.DragSelect = info.DragSelect == true
+			dropdown.ValueImages = valueImages
 			function dropdown:GetActiveValues(asCount)
 				if multi then
 					if asCount then
@@ -5215,6 +5405,28 @@ function Library:CreateWindow(config)
 					return map
 				end
 				return dropdown.Value
+			end
+			function dropdown:Select(value)
+				if multi then
+					local current = deepCopy(type(dropdown.Value) == "table" and dropdown.Value or {})
+					current[value] = true
+					dropdown:SetValue(current)
+				else
+					dropdown:SetValue(value)
+				end
+			end
+			function dropdown:Deselect(value)
+				if multi then
+					local current = deepCopy(type(dropdown.Value) == "table" and dropdown.Value or {})
+					current[value] = nil
+					dropdown:SetValue(current)
+				end
+			end
+			function dropdown:BuildDropdownList()
+				dropdown:Refresh()
+			end
+			function dropdown:UpdateButton()
+				dropdown:Display()
 			end
 
 			dropdown.Instance = wrapper
@@ -5459,6 +5671,8 @@ function Library:CreateWindow(config)
 				Image = resolveIcon(info.Image) or (type(info.Image) == "string" and info.Image or ""),
 				ImageColor3 = info.Color or Color3.new(1, 1, 1),
 				ImageTransparency = info.Transparency or 0,
+				ImageRectOffset = typeof(info.RectOffset) == "Vector2" and info.RectOffset or Vector2.zero,
+				ImageRectSize = typeof(info.RectSize) == "Vector2" and info.RectSize or Vector2.zero,
 				ScaleType = info.ScaleType or Enum.ScaleType.Fit,
 				Parent = wrapper,
 			})
@@ -5623,6 +5837,17 @@ function Library:CreateWindow(config)
 				obj.Visible = state ~= false
 				wrapper.Visible = obj.Visible
 			end
+			-- Obsidian KeybindMenu/Settings names
+			function obj:RefreshSettings() obj:Update() end
+			function obj:SetSettingsOpen(open)
+				if open then
+					obj:Open()
+				else
+					obj:Close()
+				end
+			end
+			function obj:ToggleSettings() obj:Toggle() end
+			function obj:SetVisibilityControl(enabled) end
 			function obj:Destroy()
 				safeDestroy(menu)
 				safeDestroy(btn)
