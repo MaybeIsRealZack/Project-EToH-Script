@@ -456,8 +456,11 @@ local function attachInfoTooltip(element, info, hoverInstance)
 		return Library:AddTooltip(info.Tooltip, info.DisabledTooltip, hoverInstance)
 	end)
 	if not ok or not tip then
+		Library._TooltipError = tostring(tip)
 		return nil
 	end
+	Library._TooltipError = nil
+	Library._TooltipCount = (Library._TooltipCount or 0) + 1
 	if element then
 		element.TooltipTable = tip
 	end
@@ -840,6 +843,7 @@ function Library:AddTooltip(infoStr, disabledInfoStr, hoverInstance)
 		label.Position = UDim2.fromOffset(mouse.X + 14, mouse.Y + 12)
 	end
 	local function doHover()
+		Library._TooltipHoverCount = (Library._TooltipHoverCount or 0) + 1
 		if t.Destroyed or tooltipOwner == hoverInstance then
 			return
 		end
@@ -858,11 +862,14 @@ function Library:AddTooltip(infoStr, disabledInfoStr, hoverInstance)
 		label.Text = t.Disabled and disabledInfoStr or infoStr
 		positionTooltip()
 		label.Visible = true
+		Library._TooltipShown = tick()
 
-		while not t.Destroyed
-			and tooltipOwner == hoverInstance
-			and Library:MouseIsOverFrame(hoverInstance, getMouseLocation())
-		do
+		-- Keep the label visible until MouseLeave / Destroy explicitly clears
+		-- the owner. Obsidian also polls MouseIsOverFrame here, but a small
+		-- coordinate mismatch (inset / offset) makes that check fail on the
+		-- first frame and the tooltip vanishes before it can be seen.
+		-- MouseLeave is the authoritative hide signal.
+		while not t.Destroyed and tooltipOwner == hoverInstance do
 			positionTooltip()
 			RunService.RenderStepped:Wait()
 		end
@@ -6163,6 +6170,36 @@ function Library:CreateWindow(config)
 		end
 		function groupbox:AddDependencyGroupbox()
 			return createDependencyContainer(self.Holder)
+		end
+
+		-- Obsidian uses Create* method names; PESUI uses Add*. Mirror the whole
+		-- surface so unmodified Obsidian scripts work against a PESUI window.
+		local createAliases = {
+			CreateDivider = "AddDivider",
+			CreateLabel = "AddLabel",
+			CreateParagraph = "AddLabel",
+			CreateButton = "AddButton",
+			CreateToggle = "AddToggle",
+			CreateSlider = "AddSlider",
+			CreateInput = "AddInput",
+			CreateTextbox = "AddTextbox",
+			CreateDropdown = "AddDropdown",
+			CreateKeyPicker = "AddKeyPicker",
+			CreateColorPicker = "AddColorPicker",
+			CreateCheckbox = "AddCheckbox",
+			CreateViewport = "AddViewport",
+			CreateImage = "AddImage",
+			CreateVideo = "AddVideo",
+			CreateSettings = "AddSettings",
+			CreateDependencyBox = "AddDependencyBox",
+			CreateDependencyGroupbox = "AddDependencyGroupbox",
+		}
+		for alias, target in pairs(createAliases) do
+			if type(groupbox[target]) == "function" and groupbox[alias] == nil then
+				groupbox[alias] = function(self, ...)
+					return self[target](self, ...)
+				end
+			end
 		end
 
 		return groupbox
