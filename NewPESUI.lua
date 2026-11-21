@@ -229,10 +229,10 @@ end
 -- the difference.
 Library.MouseOffset = Vector2.new(0, 0) -- manual fine-tune (pixels), added last
 
--- Screen -> GUI space. The ScreenGui uses IgnoreGuiInset = true, so GUI space starts
--- at the very top of the screen and GetMouseLocation() can be used as is (offset 0).
--- If a container behaves differently, calibrateMouse() learns the real offset from
--- hit-tests the engine itself performed.
+-- Screen -> GUI space for the software cursor / hover helpers. The ScreenGui uses
+-- IgnoreGuiInset = true, so GetMouseLocation() is used as is (offset 0).
+-- NOTE: drags inside popups (colour picker) do NOT use this: they use the position
+-- carried by the input event itself, which is what the engine hit-tested.
 Library._MouseDY = nil -- learned vertical offset between screen space and GUI space
 
 local function getScreenToGui()
@@ -2293,6 +2293,11 @@ function Library:CreateWindow(config)
 		end))
 
 		local function beginDrag(target, callback)
+			-- InputObject.Position is in the same space the engine used to decide that
+			-- the press landed on `target`, so it always lines up with AbsolutePosition.
+			local function posOf(inp)
+				return Vector2.new(inp.Position.X, inp.Position.Y)
+			end
 			table.insert(picker.Connections, target.InputBegan:Connect(function(input)
 				if not isDragInput(input) then
 					return
@@ -2308,7 +2313,6 @@ function Library:CreateWindow(config)
 					callback(x, y)
 				end
 
-				calibrateMouse(input, target)
 				if Library.DebugColorPicker then
 					local m = UserInputService:GetMouseLocation()
 					local g = selfLib.ScreenGui
@@ -2319,16 +2323,16 @@ function Library:CreateWindow(config)
 							.. "  target pos=(%.1f, %.1f) size=(%.1f, %.1f)  rel=(%.1f, %.1f)\n"
 							.. "  screenGui size=(%.1f, %.1f) viewport=(%.1f, %.1f) guiInset=(%.1f, %.1f) touch=%s",
 						m.X, m.Y, ip.X, ip.Y,
-						getInputPosition(input).X, getInputPosition(input).Y, tostring(Library._MouseDY),
+						posOf(input).X, posOf(input).Y, tostring(Library._MouseDY),
 						target.AbsolutePosition.X, target.AbsolutePosition.Y, target.AbsoluteSize.X, target.AbsoluteSize.Y,
-						getInputPosition(input).X - target.AbsolutePosition.X, getInputPosition(input).Y - target.AbsolutePosition.Y,
+						posOf(input).X - target.AbsolutePosition.X, posOf(input).Y - target.AbsolutePosition.Y,
 						g and g.AbsoluteSize.X or 0, g and g.AbsoluteSize.Y or 0,
 						cam and cam.ViewportSize.X or 0, cam and cam.ViewportSize.Y or 0,
 						GuiService:GetGuiInset().X, GuiService:GetGuiInset().Y,
 						tostring(UserInputService.TouchEnabled)
 					))
 				end
-				applyAt(getInputPosition(input))
+				applyAt(posOf(input))
 				if Library.DebugColorPicker then
 					task.defer(function()
 						for _, child in ipairs(target:GetChildren()) do
@@ -2362,7 +2366,7 @@ function Library:CreateWindow(config)
 					end
 					if changed.UserInputType == Enum.UserInputType.MouseMovement
 						or (changed.UserInputType == Enum.UserInputType.Touch and changed == input) then
-						applyAt(getInputPosition(changed))
+						applyAt(posOf(changed))
 					end
 				end)
 				endConn = UserInputService.InputEnded:Connect(function(ended)
